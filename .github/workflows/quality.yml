@@ -1,0 +1,11 @@
+name: Frontend quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    uses: medio-under/ci-cd/.github/workflows/reusable-frontend.yml@main
