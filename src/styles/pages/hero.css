@@ -1,0 +1,25 @@
+.hero {
+  min-height: 52vh;
+}
+
+.hero h1,
+.page-intro h1 {
+  font-size: clamp(3.4rem, 9vw, 8.5rem);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--line-height-display);
+  margin: 15px 0 var(--space-xl);
+  max-width: 1000px;
+}
+
+.hero p,
+.page-intro p {
+  font-size: 1.25rem;
+  max-width: 650px;
+}
+
+.eyebrow {
+  font-size: 0.75rem !important;
+  font-weight: 800;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}

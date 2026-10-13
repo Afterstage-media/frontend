@@ -1,0 +1,53 @@
+.header {
+  align-items: center;
+  border-bottom: var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: 20px var(--gutter);
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: var(--tracking-heading);
+  text-decoration: none;
+}
+
+.mark {
+  background: var(--color-accent);
+  border: 2px solid var(--color-ink);
+  display: inline-block;
+  height: 15px;
+  margin-right: var(--space-xs);
+  transform: rotate(-8deg);
+  vertical-align: -2px;
+  width: 15px;
+}
+
+.header nav {
+  align-items: center;
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.header nav a {
+  text-decoration: none;
+}
+
+.header nav a.active {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: var(--border);
+  color: inherit;
+  cursor: pointer;
+  padding: var(--space-xs) var(--control-padding);
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}

@@ -1,0 +1,44 @@
+:root {
+  /* Brand and semantic colors */
+  --color-ink: #171717;
+  --color-paper: #f4f0e8;
+  --color-accent: #ff5c47;
+  --color-highlight: #c7f36a;
+  --color-muted: #68635d;
+  --color-danger: #a21caf;
+  --color-white: #fff;
+  /* Typography */
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --tracking-tight: -0.08em;
+  --tracking-heading: -0.04em;
+  --tracking-eyebrow: 0.14em;
+  --line-height-body: 1.5;
+  --line-height-display: 0.9;
+  /* Layout and sizing */
+  --content-width: 1100px;
+  --reading-width: 820px;
+  --text-width: 700px;
+  --gutter: 5vw;
+  --gutter-mobile: 6vw;
+  --space-xs: 7px;
+  --space-sm: 10px;
+  --space-md: 18px;
+  --space-lg: 22px;
+  --space-xl: 30px;
+  --space-section: 75px;
+  --border: 1px solid var(--color-ink);
+  --border-dashed: 1px dashed var(--color-muted);
+  --control-padding: 12px;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-ink: #f4f0e8;
+  --color-paper: #171717;
+  --color-accent: #ff7664;
+  --color-highlight: #b8e86b;
+  --color-muted: #b8b1a7;
+  --color-danger: #ff8bdc;
+  --color-white: #171717;
+  color-scheme: dark;
+}

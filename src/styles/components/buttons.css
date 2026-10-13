@@ -1,0 +1,17 @@
+.button {
+  background: var(--color-accent);
+  border: var(--border);
+  display: inline-block;
+  font-weight: 700;
+  padding: var(--control-padding) var(--space-lg);
+  text-decoration: none;
+}
+
+.button.dark {
+  background: var(--color-ink);
+  color: var(--color-white);
+}
+
+.button.ghost {
+  background: transparent;
+}

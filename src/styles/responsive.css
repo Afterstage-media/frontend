@@ -1,0 +1,32 @@
+@media (max-width: 750px) {
+  .header {
+    align-items: flex-start;
+    display: block;
+  }
+
+  .header nav {
+    flex-wrap: wrap;
+    margin-top: var(--space-md);
+  }
+
+  .cards,
+  .split-forms {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .page-intro,
+  .section,
+  .article,
+  .form,
+  .events,
+  .admin-list {
+    padding-left: var(--gutter-mobile);
+    padding-right: var(--gutter-mobile);
+  }
+
+  footer {
+    display: grid;
+    gap: var(--space-xs);
+  }
+}

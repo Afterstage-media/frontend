@@ -1,0 +1,18 @@
+.article {
+  max-width: var(--reading-width);
+}
+
+.article h1 {
+  font-size: clamp(3rem, 8vw, 7rem);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--line-height-display);
+}
+
+.article .lead {
+  font-size: 1.4rem;
+}
+
+.article p {
+  font-size: 1.15rem;
+  max-width: var(--text-width);
+}

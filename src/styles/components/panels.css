@@ -1,0 +1,17 @@
+.card,
+.admin-list article,
+.event,
+.admin-record {
+  border: var(--border);
+  padding: var(--space-lg);
+}
+
+.card h2,
+.card h3 {
+  letter-spacing: var(--tracking-heading);
+}
+
+.card a,
+.event a {
+  font-weight: 700;
+}

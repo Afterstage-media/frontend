@@ -1,0 +1,51 @@
+.form,
+.editor-form {
+  display: grid;
+  gap: var(--space-md);
+  max-width: var(--reading-width);
+  padding-top: 0;
+}
+
+.form label,
+.editor-form label {
+  display: grid;
+  font-weight: 700;
+  gap: var(--space-xs);
+}
+
+.form input,
+.form textarea,
+.form select,
+.editor-form input,
+.editor-form textarea,
+.editor-form select {
+  border: var(--border);
+  padding: var(--control-padding);
+}
+
+.editor-form textarea {
+  min-height: 120px;
+}
+
+.editor-tools,
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.token-gate {
+  max-width: 500px;
+}
+
+.upload {
+  border: var(--border-dashed);
+  padding: 16px;
+}
+
+.split-forms {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

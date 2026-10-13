@@ -1,0 +1,37 @@
+.hero,
+.page-intro,
+.section,
+.article,
+.form,
+.events,
+.admin-list {
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: var(--space-section) var(--gutter);
+}
+
+.section {
+  border-top: var(--border);
+}
+
+.section-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cards {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 0 var(--gutter) 70px;
+}
+
+footer {
+  border-top: var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xl) var(--gutter);
+}
