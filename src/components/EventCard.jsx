@@ -1,14 +1,14 @@
-export function EventCard({ event }) {
+export function EventCard({ event, index = 0 }) {
   const date = event.startsAt ? new Date(event.startsAt) : null;
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
   return (
-    <article className="event">
+    <article className="event" style={{ "--event-index": index }}>
       <div className="event-date">
         <b>{date ? date.toLocaleDateString("es-AR", { month: "short" }).toUpperCase() : "PRÓX"}</b>
         <strong>{date ? date.getDate() : ""}</strong>
       </div>
-      <div>
+      <div className="event-content">
         <small>
           {event.artist || "Evento"} · {event.venue || event.city || "Agenda"}
           {event.distanceKm !== undefined ? ` · ${event.distanceKm} km` : ""}
@@ -23,17 +23,19 @@ export function EventCard({ event }) {
             : "Fecha por confirmar"}{" "}
           {event.city && `· ${event.city}`}
         </p>
-        {(event.address || event.venue) && <p className="event-location">{event.address || event.venue}</p>}
-        {mapUrl && (
-          <a href={mapUrl} target="_blank" rel="noreferrer">
-            Ver ubicación ↗
-          </a>
-        )}{" "}
-        {event.url && (
-          <a href={event.url} target="_blank" rel="noreferrer">
-            Más información ↗
-          </a>
-        )}
+        {(event.address || event.venue) && <p className="event-location">⌖ {event.address || event.venue}</p>}
+        <div className="event-links">
+          {mapUrl && (
+            <a href={mapUrl} target="_blank" rel="noreferrer">
+              Ver ubicación ↗
+            </a>
+          )}
+          {event.url && (
+            <a href={event.url} target="_blank" rel="noreferrer">
+              Más información ↗
+            </a>
+          )}
+        </div>
       </div>
     </article>
   );
