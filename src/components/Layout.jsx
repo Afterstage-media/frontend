@@ -54,6 +54,9 @@ export function Layout({ children }) {
           <NavLink className="button dark" to="/admin">
             Redacción
           </NavLink>
+          <NavLink className="button" to="/colaborador">
+            Colaborador
+          </NavLink>
         </nav>
       </header>
       <main>{children}</main>
