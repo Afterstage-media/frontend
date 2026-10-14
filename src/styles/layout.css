@@ -47,6 +47,24 @@
   max-width: 1180px;
 }
 
+.publish-intro {
+  min-height: 0;
+  padding-bottom: 42px;
+  padding-top: clamp(44px, 6vw, 72px);
+}
+
+.publish-intro h1 {
+  font-size: clamp(3rem, 5vw, 5.5rem);
+  line-height: 0.9;
+  margin-bottom: 0;
+  max-width: 760px;
+}
+
+.publish-form {
+  padding-bottom: var(--space-section);
+  padding-top: 36px;
+}
+
 .page-intro > p:not(.eyebrow) {
   color: var(--color-muted);
 }
