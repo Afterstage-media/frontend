@@ -3,6 +3,7 @@ import { HomePage } from "../pages/HomePage.jsx";
 import { NotesPage } from "../pages/NotesPage.jsx";
 import { ArticlePage } from "../pages/ArticlePage.jsx";
 import { AgendaPage } from "../pages/AgendaPage.jsx";
+import { EventPage } from "../pages/EventPage.jsx";
 import { CommunityPage, PublishPage } from "../pages/PublicPages.jsx";
 import { AdminPage, NewContentPage, ContentPage, PressPage } from "../pages/AdminPages.jsx";
 import { PolicyPage, CreditsPage } from "../pages/PolicyPage.jsx";
@@ -16,6 +17,7 @@ export function App() {
       <Route path="/notas" element={<NotesPage />} />
       <Route path="/notas/:slug" element={<ArticlePage />} />
       <Route path="/agenda" element={<AgendaPage />} />
+      <Route path="/agenda/evento/:id" element={<EventPage />} />
       <Route path="/directorio" element={<DirectoryPage />} />
       <Route path="/comunidad" element={<CommunityPage />} />
       <Route path="/publicar" element={<PublishPage />} />

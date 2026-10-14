@@ -16,3 +16,14 @@
   font-size: 1.15rem;
   max-width: var(--text-width);
 }
+
+.event-detail {
+  min-height: 62vh;
+}
+
+.back-link {
+  display: inline-block;
+  font-weight: 700;
+  margin-bottom: var(--space-section);
+  text-underline-offset: 4px;
+}

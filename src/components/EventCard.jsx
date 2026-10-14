@@ -5,7 +5,7 @@ export function EventCard({ event, index = 0 }) {
   const eventUrl = event.url || "";
   const internalUrl = eventUrl.startsWith("/") || eventUrl.startsWith("#") || !/^https?:\/\//i.test(eventUrl);
   return (
-    <article className="event" id={event.id ? `evento-${event.id}` : undefined} style={{ "--event-index": index }}>
+    <article className="event" style={{ "--event-index": index }}>
       <div className="event-date">
         <b>{date ? date.toLocaleDateString("es-AR", { month: "short" }).toUpperCase() : "PRÓX"}</b>
         <strong>{date ? date.getDate() : ""}</strong>
