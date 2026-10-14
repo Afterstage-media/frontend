@@ -7,6 +7,7 @@ export function AgendaPage() {
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
     query: "",
+    dateRange: "all",
     lat: "",
     lng: "",
     radiusKm: "25",
@@ -15,6 +16,7 @@ export function AgendaPage() {
   const [scrollOffset, setScrollOffset] = useState(0);
   const load = (nextFilters = filters) => {
     setLoading(true);
+    setError("");
     const params =
       nextFilters.lat && nextFilters.lng
         ? `?lat=${nextFilters.lat}&lng=${nextFilters.lng}&radiusKm=${nextFilters.radiusKm}`
@@ -22,16 +24,28 @@ export function AgendaPage() {
     api(`/api/public/events${params}`)
       .then((items) => {
         const query = nextFilters.query.trim().toLowerCase();
+        const now = new Date();
+        const endOfToday = new Date(now);
+        endOfToday.setHours(23, 59, 59, 999);
+        const endOfWeek = new Date(endOfToday);
+        endOfWeek.setDate(endOfWeek.getDate() + 7);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
         setEvents(
-          query
-            ? items.filter((event) =>
-                [event.name, event.artist, event.venue, event.address, event.city, event.country]
-                  .filter(Boolean)
-                  .join(" ")
-                  .toLowerCase()
-                  .includes(query),
-              )
-            : items,
+          items.filter((event) => {
+            const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+            const startsAt = event.startsAt ? new Date(event.startsAt) : null;
+            const matchesDate =
+              nextFilters.dateRange === "all" ||
+              (startsAt &&
+                startsAt >= now &&
+                ((nextFilters.dateRange === "today" && startsAt <= endOfToday) ||
+                  (nextFilters.dateRange === "week" && startsAt <= endOfWeek) ||
+                  (nextFilters.dateRange === "month" && startsAt <= endOfMonth)));
+            return (!query || searchable.includes(query)) && matchesDate;
+          }),
         );
       })
       .catch((e) => setError(e.message))
@@ -67,6 +81,11 @@ export function AgendaPage() {
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
     );
   };
+  const clearFilters = () => {
+    const nextFilters = { query: "", dateRange: "all", lat: "", lng: "", radiusKm: "25" };
+    setFilters(nextFilters);
+    load(nextFilters);
+  };
   return (
     <Layout>
       <section className="agenda-hero" style={{ "--agenda-shift": `${Math.min(scrollOffset * 0.16, 90)}px` }}>
@@ -75,11 +94,6 @@ export function AgendaPage() {
           <p className="eyebrow">Agenda abierta / 01</p>
           <h1>Donde la escena se encuentra.</h1>
           <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
-        </div>
-        <div className="agenda-hero-note" aria-hidden="true">
-          <span>Próximo pulso</span>
-          <strong>{loading ? "…" : String(events.length).padStart(2, "0")}</strong>
-          <span>resultados</span>
         </div>
         <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
           <label className="agenda-search">
@@ -99,7 +113,25 @@ export function AgendaPage() {
             <button className="button ghost" type="button" onClick={useMyLocation}>
               Cerca mío
             </button>
-            {filters.lat && <span className="muted">Radio: {filters.radiusKm} km</span>}
+            <select
+              aria-label="Filtrar por fecha"
+              value={filters.dateRange}
+              onChange={(e) => {
+                const nextFilters = { ...filters, dateRange: e.target.value };
+                setFilters(nextFilters);
+                load(nextFilters);
+              }}
+            >
+              <option value="all">Todas las fechas</option>
+              <option value="today">Hoy</option>
+              <option value="week">Próximos 7 días</option>
+              <option value="month">Este mes</option>
+            </select>
+            {(filters.query || filters.dateRange !== "all" || filters.lat) && (
+              <button className="filter-clear" type="button" onClick={clearFilters}>
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
       </section>
