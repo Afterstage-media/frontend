@@ -20,6 +20,12 @@
   font-style: normal;
 }
 
+.scene-ticker-item {
+  align-items: center;
+  display: flex;
+  gap: 26px;
+}
+
 .scene-ticker-track {
   align-items: center;
   animation: ticker-marquee 24s linear infinite;

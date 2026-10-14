@@ -1,20 +1,49 @@
 .article {
-  max-width: var(--reading-width);
+  max-width: 940px;
+  padding-bottom: 110px;
+  padding-top: 100px;
 }
 
 .article h1 {
-  font-size: clamp(3rem, 8vw, 7rem);
+  font-size: clamp(4rem, 10vw, 9rem);
   letter-spacing: var(--tracking-tight);
   line-height: var(--line-height-display);
 }
 
 .article .lead {
-  font-size: 1.4rem;
+  color: var(--color-muted);
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  line-height: 1.15;
+  max-width: 680px;
 }
 
 .article p {
   font-size: 1.15rem;
   max-width: var(--text-width);
+}
+
+.article > small {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.article .hero-image {
+  border: 2px solid var(--color-ink);
+  filter: saturate(0.85) contrast(1.05);
+  margin: 55px 0;
+  max-height: 620px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.article h2 {
+  color: var(--color-accent);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: -0.06em;
+  margin-top: 60px;
 }
 
 .event-detail {

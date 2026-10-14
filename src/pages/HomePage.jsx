@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ContentCard } from "../components/ContentCard.jsx";
+import { EditorialPoster, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function HomePage() {
   const [items, setItems] = useState([]);
@@ -21,25 +22,7 @@ export function HomePage() {
   }, []);
   return (
     <Layout>
-      <div className="scene-ticker" aria-label="Manifiesto de Medio Under">
-        <div className="scene-ticker-track">
-          <span>MEDIO UNDER</span>
-          <i>✳</i>
-          <span>RUIDO LOCAL</span>
-          <i>✳</i>
-          <span>HISTORIAS REALES</span>
-          <i>✳</i>
-          <span>BAJO LA SUPERFICIE</span>
-          <i>✳</i>
-          <span>MEDIO UNDER</span>
-          <i>✳</i>
-          <span>RUIDO LOCAL</span>
-          <i>✳</i>
-          <span>HISTORIAS REALES</span>
-          <i>✳</i>
-          <span>BAJO LA SUPERFICIE</span>
-        </div>
-      </div>
+      <SignalTicker />
       <section className="hero hero-editorial">
         <div className="hero-copy">
           <p className="eyebrow">El diario de la escena / 2026</p>
@@ -58,31 +41,15 @@ export function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="hero-poster" aria-label="Identidad visual de Medio Under">
-          <span className="poster-index">N° 001</span>
-          <span className="poster-word poster-word-top">VIVO</span>
-          <span className="poster-word poster-word-bottom">AHORA</span>
-          <span className="poster-disc" aria-hidden="true" />
-          <span className="poster-caption">
-            SIN FILTRO
-            <br />
-            SIN PAUSA
-          </span>
-          <span className="poster-arrow" aria-hidden="true">
-            ↘
-          </span>
-        </div>
+        <EditorialPoster />
       </section>
       <section className="section">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">Desde adentro</p>
-            <h2>Lo último que nos movió</h2>
-          </div>
-          <Link className="section-link" to="/notas">
-            Ver archivo completo <span>↗</span>
-          </Link>
-        </div>
+        <SectionHeading
+          eyebrow="Desde adentro"
+          title="Lo último que nos movió"
+          to="/notas"
+          linkLabel="Ver archivo completo"
+        />
         {loading ? (
           <LoadingState label="Buscando historias…" />
         ) : error ? (

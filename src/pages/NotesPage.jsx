@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { ContentCard } from "../components/ContentCard.jsx";
+import { EditorialIntro, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function NotesPage() {
@@ -20,11 +21,12 @@ export function NotesPage() {
   }, []);
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Archivo editorial</p>
-        <h1>Notas para leer con el volumen alto.</h1>
-        <p>Crónicas, entrevistas, columnas y fotos de la escena.</p>
-      </section>
+      <SignalTicker items={["Archivo editorial", "Crónicas", "Entrevistas", "Fotos de la escena"]} />
+      <EditorialIntro
+        eyebrow="Archivo editorial / 02"
+        title="Notas para leer con el volumen alto."
+        description="Crónicas, entrevistas, columnas y fotos de la escena."
+      />
       {loading ? (
         <section className="content-section">
           <LoadingState label="Abriendo el archivo…" />
@@ -34,7 +36,7 @@ export function NotesPage() {
           <ErrorState message="El archivo no está disponible en este momento." onRetry={load} />
         </section>
       ) : items.length ? (
-        <div className="cards">
+        <div className="cards editorial-grid">
           {items.map((item) => (
             <ContentCard item={item} key={item.id} />
           ))}

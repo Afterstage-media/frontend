@@ -10,6 +10,29 @@
   padding: var(--space-section) var(--gutter);
 }
 
+.page-intro {
+  background: var(--color-paper);
+  border-bottom: var(--border);
+  max-width: none;
+  min-height: 390px;
+  overflow: hidden;
+  padding-bottom: 70px;
+  padding-top: 85px;
+  position: relative;
+}
+
+.page-intro::after {
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+  content: "";
+  height: 400px;
+  opacity: 0.6;
+  position: absolute;
+  right: -100px;
+  top: -170px;
+  width: 400px;
+}
+
 .section {
   border-top: var(--border);
 }
@@ -53,9 +76,17 @@
 }
 
 footer {
+  align-items: center;
+  background: var(--color-ink);
   color: var(--color-muted);
-  border-top: var(--border);
+  border-top: 2px solid var(--color-ink);
   display: flex;
   justify-content: space-between;
   padding: var(--space-xl) var(--gutter);
+}
+
+footer strong {
+  color: var(--color-paper);
+  font-family: var(--font-display);
+  letter-spacing: -0.05em;
 }

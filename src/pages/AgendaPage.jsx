@@ -3,6 +3,7 @@ import { api } from "../services/api.js";
 import { EventCard } from "../components/EventCard.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
+import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 export function AgendaPage() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
@@ -89,6 +90,7 @@ export function AgendaPage() {
   };
   return (
     <Layout>
+      <SignalTicker items={["Agenda abierta", "Shows", "Ferias", "Ciclos", "Encuentros"]} />
       <section className="agenda-hero" style={{ "--agenda-shift": `${Math.min(scrollOffset * 0.16, 90)}px` }}>
         <div className="agenda-hero-mark" aria-hidden="true" />
         <div className="agenda-hero-copy">

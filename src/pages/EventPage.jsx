@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout, Loading } from "../components/Layout.jsx";
+import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 
 export function EventPage() {
   const { id } = useParams();
@@ -43,6 +44,7 @@ export function EventPage() {
 
   return (
     <Layout>
+      <SignalTicker items={["Agenda abierta", "Fecha", "Lugar", "Comunidad"]} />
       <article className="article event-detail">
         <Link className="back-link" to="/agenda">
           ← Volver a la agenda

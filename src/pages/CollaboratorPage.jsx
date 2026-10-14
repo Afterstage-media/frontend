@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LoginForm } from "../components/AuthGate.jsx";
 import { Layout } from "../components/Layout.jsx";
+import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 
 export function CollaboratorPage() {
   const [user, setUser] = useState(null);
 
   return (
     <Layout>
+      <SignalTicker items={["Comunidad", "Colaborá", "Contá", "Hacé archivo"]} />
       {user ? (
         <section className="page-intro">
           <p className="eyebrow">Colaboradores</p>
