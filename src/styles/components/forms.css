@@ -6,6 +6,12 @@
   padding-top: 0;
 }
 
+.auth-form {
+  margin: 0 auto;
+  padding: var(--space-section) var(--gutter) var(--space-section);
+  width: min(100%, calc(var(--reading-width) + var(--gutter) * 2));
+}
+
 .form label,
 .editor-form label {
   display: grid;

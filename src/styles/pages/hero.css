@@ -1,5 +1,9 @@
 .hero {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
+    var(--color-paper);
   min-height: 52vh;
+  position: relative;
 }
 
 .hero h1,
@@ -9,6 +13,24 @@
   line-height: var(--line-height-display);
   margin: 15px 0 var(--space-xl);
   max-width: 1000px;
+}
+
+.hero-note {
+  align-items: center;
+  border-left: 5px solid var(--color-accent);
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-section);
+  max-width: 420px;
+  padding: var(--space-sm) 0 var(--space-sm) var(--space-md);
+}
+
+.hero-note span,
+.ui-state-kicker {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
 }
 
 .hero p,

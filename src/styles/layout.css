@@ -14,6 +14,12 @@
   border-top: var(--border);
 }
 
+.content-section {
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 0 var(--gutter) var(--space-section);
+}
+
 .page-intro {
   max-width: 1180px;
 }
@@ -35,6 +41,15 @@
   margin: 0 auto;
   max-width: var(--content-width);
   padding: 0 var(--gutter) 70px;
+}
+
+.card-image {
+  aspect-ratio: 16 / 9;
+  border: var(--border-soft);
+  display: block;
+  margin: calc(var(--space-lg) * -1) calc(var(--space-lg) * -1) var(--space-lg);
+  object-fit: cover;
+  width: calc(100% + var(--space-lg) * 2);
 }
 
 footer {

@@ -34,7 +34,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
   };
 
   return (
-    <form className="form token-gate" onSubmit={signIn}>
+    <form className="form token-gate auth-form" onSubmit={signIn}>
       <h2>
         {collaborator ? (registering ? "Registrarme como colaborador" : "Ingreso de colaborador") : "Iniciar sesión"}
       </h2>

@@ -55,6 +55,9 @@ export function Layout({ children }) {
 
   return (
     <>
+      <a className="skip-link" href="#main-content">
+        Ir al contenido
+      </a>
       <header className="header">
         <Link className="brand" to="/">
           <span className="mark" /> MEDIO UNDER
@@ -69,7 +72,7 @@ export function Layout({ children }) {
         >
           <span /> <span /> <span />
         </button>
-        <nav id="site-navigation" className={menuOpen ? "is-open" : ""}>
+        <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
           <NavLink to="/notas">Notas</NavLink>
           <NavLink to="/agenda">Agenda</NavLink>
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
@@ -95,7 +98,7 @@ export function Layout({ children }) {
           </NavLink>
         </nav>
       </header>
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <footer>
         <strong>MEDIO UNDER</strong>
         <span>Periodismo musical para la escena que hace.</span>

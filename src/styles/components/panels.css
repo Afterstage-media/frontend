@@ -13,6 +13,10 @@
   border-color: var(--color-ink);
 }
 
+.card {
+  overflow: hidden;
+}
+
 .card h2,
 .card h3 {
   letter-spacing: var(--tracking-heading);

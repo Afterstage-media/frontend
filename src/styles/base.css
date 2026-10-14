@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+
 * {
   box-sizing: border-box;
 }
@@ -12,6 +14,15 @@ body {
   font-family: var(--font-sans);
   line-height: var(--line-height-body);
   margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+button,
+.brand {
+  font-family: var(--font-display);
 }
 
 ::selection {
@@ -50,6 +61,56 @@ textarea {
 .error {
   color: var(--color-danger);
   font-weight: 700;
+}
+
+.ui-state {
+  border: var(--border-dashed);
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0 auto;
+  max-width: var(--reading-width);
+  padding: var(--space-xl);
+}
+
+.ui-state strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 1;
+}
+
+.ui-state p {
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 56ch;
+}
+
+.ui-state-error {
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-paper));
+  border-style: solid;
+  border-color: var(--color-danger);
+  color: var(--color-ink);
+  margin: 0 auto var(--space-md);
+  padding-inline: var(--gutter);
+}
+
+.ui-state-error .button {
+  justify-self: start;
+}
+
+.ui-state-loading {
+  align-items: center;
+  border-style: solid;
+  display: flex;
+}
+
+.ui-state-dot {
+  background: var(--color-accent);
+  border: 1px solid var(--color-ink);
+  display: inline-block;
+  height: 12px;
+  transform: rotate(-8deg);
+  width: 12px;
 }
 
 .success {
