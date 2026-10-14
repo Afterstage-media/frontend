@@ -56,8 +56,8 @@ export function HomePage() {
           <ErrorState message="No pudimos cargar el archivo editorial." onRetry={load} />
         ) : items.length ? (
           <div className="cards">
-            {items.map((item) => (
-              <ContentCard item={item} key={item.id} />
+            {items.map((item, index) => (
+              <ContentCard item={item} index={index} key={item.id} />
             ))}
           </div>
         ) : (

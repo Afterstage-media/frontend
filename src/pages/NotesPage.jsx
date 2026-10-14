@@ -37,8 +37,8 @@ export function NotesPage() {
         </section>
       ) : items.length ? (
         <div className="cards editorial-grid">
-          {items.map((item) => (
-            <ContentCard item={item} key={item.id} />
+          {items.map((item, index) => (
+            <ContentCard item={item} index={index} key={item.id} />
           ))}
         </div>
       ) : (
