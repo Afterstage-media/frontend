@@ -14,6 +14,11 @@ body {
   margin: 0;
 }
 
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-ink);
+}
+
 a {
   color: inherit;
 }
@@ -23,6 +28,19 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .muted {
@@ -35,7 +53,11 @@ textarea {
 }
 
 .success {
-  background: var(--color-highlight);
-  border: var(--border);
+  color: var(--color-ink);
+}
+
+.success {
+  background: color-mix(in srgb, var(--color-success) 18%, var(--color-surface));
+  border: 1px solid var(--color-success);
   padding: var(--control-padding);
 }

@@ -1,17 +1,40 @@
 .button {
   background: var(--color-accent);
   border: var(--border);
+  color: var(--color-ink);
+  cursor: pointer;
   display: inline-block;
   font-weight: 700;
   padding: var(--control-padding) var(--space-lg);
   text-decoration: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.button:hover {
+  box-shadow: 3px 3px 0 var(--color-ink);
+  transform: translate(-1px, -1px);
+}
+
+.button:active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 .button.dark {
   background: var(--color-ink);
-  color: var(--color-white);
+  color: var(--color-on-ink);
 }
 
 .button.ghost {
   background: transparent;
+  color: var(--color-ink);
 }

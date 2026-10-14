@@ -2,8 +2,15 @@
 .admin-list article,
 .event,
 .admin-record {
-  border: var(--border);
+  background: var(--color-surface);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
   padding: var(--space-lg);
+}
+
+.card:hover,
+.admin-record:hover {
+  border-color: var(--color-ink);
 }
 
 .card h2,

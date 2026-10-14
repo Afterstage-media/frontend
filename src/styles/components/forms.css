@@ -19,8 +19,42 @@
 .editor-form input,
 .editor-form textarea,
 .editor-form select {
-  border: var(--border);
+  background: var(--color-surface);
+  border: var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
   padding: var(--control-padding);
+}
+
+.form input::placeholder,
+.form textarea::placeholder,
+.editor-form input::placeholder,
+.editor-form textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+.form input:hover,
+.form textarea:hover,
+.form select:hover,
+.editor-form input:hover,
+.editor-form textarea:hover,
+.editor-form select:hover {
+  border-color: var(--color-ink);
+}
+
+fieldset {
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+}
+
+fieldset label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .editor-form textarea {
