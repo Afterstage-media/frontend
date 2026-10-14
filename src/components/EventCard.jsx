@@ -1,5 +1,7 @@
 export function EventCard({ event }) {
   const date = event.startsAt ? new Date(event.startsAt) : null;
+  const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
+  const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
   return (
     <article className="event">
       <div className="event-date">
@@ -21,6 +23,12 @@ export function EventCard({ event }) {
             : "Fecha por confirmar"}{" "}
           {event.city && `· ${event.city}`}
         </p>
+        {(event.address || event.venue) && <p className="event-location">{event.address || event.venue}</p>}
+        {mapUrl && (
+          <a href={mapUrl} target="_blank" rel="noreferrer">
+            Ver ubicación ↗
+          </a>
+        )}{" "}
         {event.url && (
           <a href={event.url} target="_blank" rel="noreferrer">
             Más información ↗
