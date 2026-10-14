@@ -18,7 +18,7 @@ export function EventCard({ event, index = 0 }) {
           {event.distanceKm !== undefined ? ` · ${event.distanceKm} km` : ""}
         </small>
         <h3>{event.name}</h3>
-        <p>
+        <p className="event-time">
           {date
             ? date.toLocaleString("es-AR", {
                 dateStyle: "medium",
@@ -28,6 +28,8 @@ export function EventCard({ event, index = 0 }) {
           {event.city && `· ${event.city}`}
         </p>
         {(event.address || event.venue) && <p className="event-location">⌖ {event.address || event.venue}</p>}
+      </div>
+      <div className="event-aside">
         {date && <Countdown target={event.startsAt} />}
         <div className="event-links">
           {mapUrl && (
