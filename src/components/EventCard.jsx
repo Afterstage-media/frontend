@@ -2,8 +2,10 @@ export function EventCard({ event, index = 0 }) {
   const date = event.startsAt ? new Date(event.startsAt) : null;
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
+  const eventUrl = event.url || "";
+  const internalUrl = eventUrl.startsWith("/") || eventUrl.startsWith("#") || !/^https?:\/\//i.test(eventUrl);
   return (
-    <article className="event" style={{ "--event-index": index }}>
+    <article className="event" id={event.id ? `evento-${event.id}` : undefined} style={{ "--event-index": index }}>
       <div className="event-date">
         <b>{date ? date.toLocaleDateString("es-AR", { month: "short" }).toUpperCase() : "PRÓX"}</b>
         <strong>{date ? date.getDate() : ""}</strong>
@@ -30,8 +32,8 @@ export function EventCard({ event, index = 0 }) {
               Ver ubicación ↗
             </a>
           )}
-          {event.url && (
-            <a href={event.url} target="_blank" rel="noreferrer">
+          {eventUrl && (
+            <a href={eventUrl} {...(internalUrl ? {} : { target: "_blank", rel: "noreferrer" })}>
               Más información ↗
             </a>
           )}
