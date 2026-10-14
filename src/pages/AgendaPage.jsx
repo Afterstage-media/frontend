@@ -5,55 +5,85 @@ import { ErrorMessage, Layout } from "../components/Layout.jsx";
 export function AgendaPage() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
-  const [location, setLocation] = useState({
+  const [filters, setFilters] = useState({
+    query: "",
     lat: "",
     lng: "",
-    radiusKm: "50",
+    radiusKm: "25",
   });
-  const load = () => {
+  const [loading, setLoading] = useState(true);
+  const load = (nextFilters = filters) => {
+    setLoading(true);
     const params =
-      location.lat && location.lng ? `?lat=${location.lat}&lng=${location.lng}&radiusKm=${location.radiusKm}` : "";
+      nextFilters.lat && nextFilters.lng
+        ? `?lat=${nextFilters.lat}&lng=${nextFilters.lng}&radiusKm=${nextFilters.radiusKm}`
+        : "";
     api(`/api/public/events${params}`)
-      .then(setEvents)
-      .catch((e) => setError(e.message));
+      .then((items) => {
+        const query = nextFilters.query.trim().toLowerCase();
+        setEvents(
+          query
+            ? items.filter((event) =>
+                [event.name, event.artist, event.venue, event.address, event.city, event.country]
+                  .filter(Boolean)
+                  .join(" ")
+                  .toLowerCase()
+                  .includes(query),
+              )
+            : items,
+        );
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   };
   useEffect(() => {
     load();
   }, []);
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Tu navegador no permite detectar la ubicación.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const nextFilters = { ...filters, lat: String(coords.latitude), lng: String(coords.longitude) };
+        setFilters(nextFilters);
+        load(nextFilters);
+      },
+      () => setError("No pudimos obtener tu ubicación. También podés buscar por ciudad o lugar."),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
+    );
+  };
   return (
     <Layout>
       <section className="page-intro">
         <p className="eyebrow">Agenda abierta</p>
         <h1>Todos los próximos eventos.</h1>
-        <p>
-          Shows, ferias, ciclos y encuentros. La agenda combina eventos del medio con fuentes RSS/Atom configuradas.
-        </p>
-        <div className="actions editor-tools">
+        <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
+        <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
           <input
-            placeholder="Latitud"
-            value={location.lat}
-            onChange={(e) => setLocation({ ...location, lat: e.target.value })}
+            aria-label="Buscar evento, lugar o ciudad"
+            placeholder="Buscar evento, lugar o ciudad"
+            value={filters.query}
+            onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+            onKeyDown={(e) => e.key === "Enter" && load()}
           />
-          <input
-            placeholder="Longitud"
-            value={location.lng}
-            onChange={(e) => setLocation({ ...location, lng: e.target.value })}
-          />
-          <input
-            type="number"
-            min="1"
-            placeholder="Radio km"
-            value={location.radiusKm}
-            onChange={(e) => setLocation({ ...location, radiusKm: e.target.value })}
-          />
-          <button className="button" onClick={load}>
-            Filtrar distancia
-          </button>
+          <div className="actions">
+            <button className="button dark" type="button" onClick={() => load()}>
+              Buscar
+            </button>
+            <button className="button ghost" type="button" onClick={useMyLocation}>
+              Cerca mío
+            </button>
+            {filters.lat && <span className="muted">Radio: {filters.radiusKm} km</span>}
+          </div>
         </div>
       </section>
       <ErrorMessage error={error} />
       <section className="events">
-        {events.length ? (
+        {loading ? (
+          <p className="muted">Buscando próximos eventos…</p>
+        ) : events.length ? (
           events.map((event) => <EventCard event={event} key={event.id} />)
         ) : (
           <p className="muted">No hay próximos eventos cargados.</p>

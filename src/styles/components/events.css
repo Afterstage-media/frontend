@@ -4,6 +4,20 @@
   padding-top: 0;
 }
 
+.agenda-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  max-width: 760px;
+}
+
+.agenda-filters > input {
+  flex: 1 1 360px;
+  min-width: 240px;
+}
+
 .event {
   align-items: flex-start;
   display: flex;
@@ -22,4 +36,8 @@
 .event-date strong {
   font-size: 2.4rem;
   line-height: 1;
+}
+
+.event-location {
+  margin: 0 0 var(--space-xs);
 }

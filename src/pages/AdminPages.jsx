@@ -495,6 +495,7 @@ export function PressPage() {
     name: "",
     artist: "",
     venue: "",
+    address: "",
     city: "",
     startsAt: "",
     url: "",
@@ -593,6 +594,7 @@ export function PressPage() {
                     name: "",
                     artist: "",
                     venue: "",
+                    address: "",
                     city: "",
                     startsAt: "",
                     url: "",
@@ -603,7 +605,7 @@ export function PressPage() {
               <h2>Nuevo evento</h2>
               {Object.entries(event).map(([key, value]) => (
                 <label key={key}>
-                  {key}
+                  {key === "address" ? "Dirección del lugar" : key}
                   <input
                     required={key === "name"}
                     type={key === "startsAt" ? "datetime-local" : key === "url" ? "url" : "text"}
