@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { EventCard } from "../components/EventCard.jsx";
-import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Layout } from "../components/Layout.jsx";
+import { EmptyState, ErrorState } from "../components/UiState.jsx";
 export function AgendaPage() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
@@ -135,7 +136,12 @@ export function AgendaPage() {
           </div>
         </div>
       </section>
-      <ErrorMessage error={error} />
+      {error && (
+        <ErrorState
+          message="No pudimos actualizar la agenda. Tus filtros siguen disponibles para intentar otra vez."
+          onRetry={() => load()}
+        />
+      )}
       <section className="events">
         <div className="events-heading">
           <p className="eyebrow">Lo que está pasando</p>
@@ -145,13 +151,22 @@ export function AgendaPage() {
         </div>
         {loading ? (
           <p className="muted">Buscando próximos eventos…</p>
+        ) : error ? (
+          <p className="muted">La agenda no pudo actualizarse. Usá “Intentar de nuevo” para volver a consultar.</p>
         ) : events.length ? (
           events.map((event, index) => <EventCard event={event} index={index} key={event.id} />)
         ) : (
-          <div className="events-empty">
-            <strong>No encontramos eventos con esa búsqueda.</strong>
-            <p>Probá con una ciudad, un lugar o limpiá el filtro para volver a mirar.</p>
-          </div>
+          <EmptyState
+            title="No encontramos eventos con esa búsqueda."
+            message="Probá con otra ciudad, un lugar distinto o limpiá el filtro para volver a mirar."
+            action={
+              (filters.query || filters.dateRange !== "all" || filters.lat) && (
+                <button className="button ghost" type="button" onClick={clearFilters}>
+                  Limpiar filtros
+                </button>
+              )
+            }
+          />
         )}
       </section>
     </Layout>

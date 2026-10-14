@@ -50,6 +50,17 @@
     padding-right: var(--gutter-mobile);
   }
 
+  .content-section,
+  .ui-state-error,
+  .auth-form {
+    padding-left: var(--gutter-mobile);
+    padding-right: var(--gutter-mobile);
+  }
+
+  .hero-note {
+    margin-top: var(--space-xl);
+  }
+
   footer {
     display: grid;
     gap: var(--space-xs);
