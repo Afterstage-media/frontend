@@ -1,3 +1,5 @@
+import { Countdown } from "./Countdown.jsx";
+
 export function EventCard({ event, index = 0 }) {
   const date = event.startsAt ? new Date(event.startsAt) : null;
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
@@ -26,6 +28,7 @@ export function EventCard({ event, index = 0 }) {
           {event.city && `· ${event.city}`}
         </p>
         {(event.address || event.venue) && <p className="event-location">⌖ {event.address || event.venue}</p>}
+        {date && <Countdown target={event.startsAt} />}
         <div className="event-links">
           {mapUrl && (
             <a href={mapUrl} target="_blank" rel="noreferrer">

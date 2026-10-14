@@ -191,6 +191,56 @@
   margin: 0 0 var(--space-xs);
 }
 
+.countdown {
+  align-items: center;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  gap: var(--space-md);
+  justify-content: space-between;
+  margin: 20px 0;
+  max-width: 430px;
+  padding: 12px 14px;
+}
+
+.countdown-label {
+  color: var(--color-highlight);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.countdown-values {
+  display: flex;
+  gap: 16px;
+}
+
+.countdown-unit {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.countdown-unit strong {
+  color: var(--color-paper);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.countdown-unit small {
+  color: var(--color-muted);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.countdown-live strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
 .event-content {
   flex: 1;
 }
@@ -256,6 +306,15 @@
   .agenda-filters .actions,
   .agenda-filters .button {
     width: 100%;
+  }
+
+  .countdown {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .countdown-values {
+    gap: 12px;
   }
 
   .agenda-filters .actions {
