@@ -10,6 +10,10 @@
   justify-content: space-between;
 }
 
+.admin-list article {
+  cursor: pointer;
+}
+
 .admin-record {
   display: grid;
   gap: 6px;
@@ -43,8 +47,8 @@
 }
 
 .metric-card {
-  background: var(--surface-raised);
-  border: var(--border);
+  background: var(--color-surface);
+  border: var(--border-soft);
   border-radius: var(--radius-md);
   display: grid;
   gap: var(--space-xs);
@@ -55,7 +59,7 @@
   font-size: 1.6rem;
 }
 .metric-card span {
-  color: var(--muted);
+  color: var(--color-muted);
   font-size: 0.85rem;
 }
 

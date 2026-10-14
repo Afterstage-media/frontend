@@ -17,9 +17,16 @@
   }
 
   .header nav.is-open {
+    background: var(--color-paper);
+    border-top: var(--border-soft);
     display: grid;
     gap: var(--space-sm);
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .header nav.is-open a,
+  .header nav.is-open .theme-toggle {
+    padding: 10px;
   }
 
   .header nav.is-open .theme-toggle,
