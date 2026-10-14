@@ -24,6 +24,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         body: JSON.stringify(registering ? { email: identifier, password } : { identifier, password }),
       });
       localStorage.setItem(tokenKey, result.accessToken);
+      window.dispatchEvent(new Event("medio-under-auth-changed"));
       onReady(result.user);
     } catch (requestError) {
       setError(requestError.message);

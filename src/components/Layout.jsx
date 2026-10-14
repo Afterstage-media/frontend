@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { api } from "../services/api.js";
 
 const themeStorageKey = "medio-under-theme";
 
@@ -17,6 +18,22 @@ function getInitialTheme() {
 
 export function Layout({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
+  const [roles, setRoles] = useState(null);
+
+  useEffect(() => {
+    const refreshRoles = () => {
+      if (!localStorage.getItem("medio-under-token")) {
+        setRoles([]);
+        return;
+      }
+      api("/api/auth/me")
+        .then(({ user }) => setRoles(user.roles || []))
+        .catch(() => setRoles([]));
+    };
+    refreshRoles();
+    window.addEventListener("medio-under-auth-changed", refreshRoles);
+    return () => window.removeEventListener("medio-under-auth-changed", refreshRoles);
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -28,6 +45,7 @@ export function Layout({ children }) {
   }, [theme]);
 
   const nextTheme = theme === "dark" ? "light" : "dark";
+  const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
 
   return (
     <>
@@ -38,10 +56,10 @@ export function Layout({ children }) {
         <nav>
           <NavLink to="/notas">Notas</NavLink>
           <NavLink to="/agenda">Agenda</NavLink>
-          <NavLink to="/directorio">Directorio</NavLink>
-          <NavLink to="/comunidad">Comunidad</NavLink>
-          <NavLink to="/publicar">Publicar</NavLink>
-          <NavLink to="/reemplazos">Reemplazos</NavLink>
+          {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+          {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
+          {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+          {can("admin", "editor", "press", "community") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
           <button
             aria-label={`Cambiar a modo ${nextTheme === "dark" ? "oscuro" : "claro"}`}
             className="theme-toggle"
@@ -51,9 +69,11 @@ export function Layout({ children }) {
           >
             {theme === "dark" ? "☀ Claro" : "☾ Oscuro"}
           </button>
-          <NavLink className="button dark" to="/admin">
-            Redacción
-          </NavLink>
+          {can("admin", "editor") && (
+            <NavLink className="button dark" to="/admin">
+              Redacción
+            </NavLink>
+          )}
           <NavLink className="button" to="/colaborador">
             Colaborador
           </NavLink>

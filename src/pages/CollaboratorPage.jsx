@@ -21,6 +21,7 @@ export function CollaboratorPage() {
               className="button ghost"
               onClick={() => {
                 localStorage.removeItem("medio-under-token");
+                window.dispatchEvent(new Event("medio-under-auth-changed"));
                 setUser(null);
               }}
             >
