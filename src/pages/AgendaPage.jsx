@@ -12,6 +12,7 @@ export function AgendaPage() {
     radiusKm: "25",
   });
   const [loading, setLoading] = useState(true);
+  const [scrollOffset, setScrollOffset] = useState(0);
   const load = (nextFilters = filters) => {
     setLoading(true);
     const params =
@@ -39,6 +40,18 @@ export function AgendaPage() {
   useEffect(() => {
     load();
   }, []);
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setScrollOffset(window.scrollY));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
   const useMyLocation = () => {
     if (!navigator.geolocation) {
       setError("Tu navegador no permite detectar la ubicación.");
@@ -56,21 +69,32 @@ export function AgendaPage() {
   };
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Agenda abierta</p>
-        <h1>Todos los próximos eventos.</h1>
-        <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
+      <section className="agenda-hero" style={{ "--agenda-shift": `${Math.min(scrollOffset * 0.16, 90)}px` }}>
+        <div className="agenda-hero-mark" aria-hidden="true" />
+        <div className="agenda-hero-copy">
+          <p className="eyebrow">Agenda abierta / 01</p>
+          <h1>Donde la escena se encuentra.</h1>
+          <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
+        </div>
+        <div className="agenda-hero-note" aria-hidden="true">
+          <span>Próximo pulso</span>
+          <strong>{loading ? "…" : String(events.length).padStart(2, "0")}</strong>
+          <span>resultados</span>
+        </div>
         <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
-          <input
-            aria-label="Buscar evento, lugar o ciudad"
-            placeholder="Buscar evento, lugar o ciudad"
-            value={filters.query}
-            onChange={(e) => setFilters({ ...filters, query: e.target.value })}
-            onKeyDown={(e) => e.key === "Enter" && load()}
-          />
+          <label className="agenda-search">
+            <span>Encontrá tu próximo plan</span>
+            <input
+              aria-label="Buscar evento, lugar o ciudad"
+              placeholder="Nombre, lugar o ciudad"
+              value={filters.query}
+              onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && load()}
+            />
+          </label>
           <div className="actions">
             <button className="button dark" type="button" onClick={() => load()}>
-              Buscar
+              Buscar ↗
             </button>
             <button className="button ghost" type="button" onClick={useMyLocation}>
               Cerca mío
@@ -81,12 +105,21 @@ export function AgendaPage() {
       </section>
       <ErrorMessage error={error} />
       <section className="events">
+        <div className="events-heading">
+          <p className="eyebrow">Lo que está pasando</p>
+          {!loading && (
+            <span className="muted">{events.length ? `${events.length} encuentros` : "Agenda en movimiento"}</span>
+          )}
+        </div>
         {loading ? (
           <p className="muted">Buscando próximos eventos…</p>
         ) : events.length ? (
-          events.map((event) => <EventCard event={event} key={event.id} />)
+          events.map((event, index) => <EventCard event={event} index={index} key={event.id} />)
         ) : (
-          <p className="muted">No hay próximos eventos cargados.</p>
+          <div className="events-empty">
+            <strong>No encontramos eventos con esa búsqueda.</strong>
+            <p>Probá con una ciudad, un lugar o limpiá el filtro para volver a mirar.</p>
+          </div>
         )}
       </section>
     </Layout>
