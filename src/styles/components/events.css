@@ -7,9 +7,10 @@
 }
 
 .agenda-hero {
-  background: var(--color-paper);
+  background: #111 url("https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2200&q=88")
+    center / cover;
   border-bottom: var(--border);
-  color: var(--color-ink);
+  color: #f4f0e8;
   min-height: 510px;
   overflow: hidden;
   padding: 90px var(--gutter) 46px;
@@ -32,6 +33,19 @@
   width: 370px;
 }
 
+.agenda-hero::before {
+  background: rgba(10, 10, 12, 0.64);
+  border: 0;
+  border-radius: 0;
+  inset: 0;
+  height: auto;
+  opacity: 1;
+  right: auto;
+  top: auto;
+  transform: none;
+  width: auto;
+}
+
 .agenda-hero::after {
   height: 620px;
   right: -215px;
@@ -41,7 +55,7 @@
 
 .agenda-hero-mark {
   background: var(--color-accent);
-  border: 2px solid var(--color-ink);
+  border: 2px solid #f4f0e8;
   height: 100px;
   left: 6vw;
   position: absolute;
@@ -76,7 +90,7 @@
 .agenda-filters {
   align-items: end;
   background: var(--color-surface);
-  border: var(--border);
+  border: 1px solid rgba(244, 240, 232, 0.7);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
