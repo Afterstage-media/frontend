@@ -43,11 +43,11 @@ export function PublishPage() {
   return (
     <AuthGate allowedRoles={["admin", "editor", "community"]}>
       <Layout>
-        <section className="page-intro">
+        <section className="page-intro publish-intro">
           <p className="eyebrow">Sumate</p>
           <h1>Publicá una historia, búsqueda o cobertura.</h1>
         </section>
-        <form className="form" onSubmit={submit}>
+        <form className="form publish-form" onSubmit={submit}>
           <label>
             Tipo
             <input name="kind" required placeholder="Búsqueda, nota, cobertura…" />
