@@ -4,9 +4,12 @@ import { ErrorMessage, Layout } from "./Layout.jsx";
 
 const tokenKey = "medio-under-token";
 
-export function LoginForm({ onReady }) {
+export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator = true }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [collaborator, setCollaborator] = useState(collaboratorOnly);
+  const [registering, setRegistering] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,9 +18,10 @@ export function LoginForm({ onReady }) {
     setLoading(true);
     setError("");
     try {
-      const result = await api("/api/auth/login", {
+      if (registering && password !== passwordConfirmation) throw new Error("Las contraseñas no coinciden");
+      const result = await api(registering ? "/api/auth/register" : "/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify(registering ? { email: identifier, password } : { identifier, password }),
       });
       localStorage.setItem(tokenKey, result.accessToken);
       onReady(result.user);
@@ -30,12 +34,19 @@ export function LoginForm({ onReady }) {
 
   return (
     <form className="form token-gate" onSubmit={signIn}>
-      <h2>Iniciar sesión</h2>
-      <p>Usá tu usuario o email y contraseña del medio.</p>
+      <h2>
+        {collaborator ? (registering ? "Registrarme como colaborador" : "Ingreso de colaborador") : "Iniciar sesión"}
+      </h2>
+      <p>
+        {collaborator
+          ? "Participá de la comunidad y enviá propuestas autenticadas."
+          : "Usá tu usuario o email y contraseña del medio."}
+      </p>
       <label>
-        Usuario o email
+        {collaborator ? "Email" : "Usuario o email"}
         <input
-          autoComplete="username"
+          autoComplete={collaborator ? "email" : "username"}
+          type={collaborator ? "email" : "text"}
           value={identifier}
           onChange={(event) => setIdentifier(event.target.value)}
           required
@@ -51,9 +62,32 @@ export function LoginForm({ onReady }) {
           required
         />
       </label>
+      {collaborator && registering && (
+        <label>
+          Repetir contraseña
+          <input
+            autoComplete="new-password"
+            type="password"
+            value={passwordConfirmation}
+            onChange={(event) => setPasswordConfirmation(event.target.value)}
+            minLength={12}
+            required
+          />
+        </label>
+      )}
       <button className="button dark" disabled={loading} type="submit">
-        {loading ? "Verificando…" : "Ingresar"}
+        {loading ? "Procesando…" : registering ? "Crear cuenta" : "Ingresar"}
       </button>
+      {collaborator && (
+        <button className="button ghost" type="button" onClick={() => setRegistering((value) => !value)}>
+          {registering ? "Ya tengo una cuenta" : "Registrarme"}
+        </button>
+      )}
+      {!collaborator && showCollaborator && (
+        <button className="button ghost" type="button" onClick={() => setCollaborator(true)}>
+          Colaborador
+        </button>
+      )}
       <ErrorMessage error={error} />
     </form>
   );

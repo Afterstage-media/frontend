@@ -8,6 +8,7 @@ import { AdminPage, NewContentPage, ContentPage, PressPage } from "../pages/Admi
 import { PolicyPage, CreditsPage } from "../pages/PolicyPage.jsx";
 import { DirectoryPage, AdminDirectoryPage } from "../pages/DirectoryPage.jsx";
 import { ReplacementsPage, AdminReplacementsPage } from "../pages/ReplacementsPage.jsx";
+import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 export function App() {
   return (
     <Routes>
@@ -22,6 +23,7 @@ export function App() {
       <Route path="/politica-editorial" element={<PolicyPage />} />
       <Route path="/codigo-de-creditos" element={<CreditsPage />} />
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/colaborador" element={<CollaboratorPage />} />
       <Route path="/admin/nueva" element={<NewContentPage />} />
       <Route path="/admin/contenido/:id" element={<ContentPage />} />
       <Route path="/admin/prensa" element={<PressPage />} />
