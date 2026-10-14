@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { api } from "../services/api.js";
 
 const themeStorageKey = "medio-under-theme";
@@ -19,6 +19,8 @@ function getInitialTheme() {
 export function Layout({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
   const [roles, setRoles] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const refreshRoles = () => {
@@ -34,6 +36,10 @@ export function Layout({ children }) {
     window.addEventListener("medio-under-auth-changed", refreshRoles);
     return () => window.removeEventListener("medio-under-auth-changed", refreshRoles);
   }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -53,7 +59,17 @@ export function Layout({ children }) {
         <Link className="brand" to="/">
           <span className="mark" /> MEDIO UNDER
         </Link>
-        <nav>
+        <button
+          aria-expanded={menuOpen}
+          aria-controls="site-navigation"
+          aria-label={menuOpen ? "Cerrar navegación" : "Abrir navegación"}
+          className="menu-toggle"
+          onClick={() => setMenuOpen((open) => !open)}
+          type="button"
+        >
+          <span /> <span /> <span />
+        </button>
+        <nav id="site-navigation" className={menuOpen ? "is-open" : ""}>
           <NavLink to="/notas">Notas</NavLink>
           <NavLink to="/agenda">Agenda</NavLink>
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}

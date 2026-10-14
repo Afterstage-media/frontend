@@ -29,6 +29,21 @@
   gap: var(--space-lg);
 }
 
+.menu-toggle {
+  background: transparent;
+  border: var(--border);
+  display: none;
+  gap: 4px;
+  padding: 10px;
+}
+
+.menu-toggle span {
+  background: currentColor;
+  display: block;
+  height: 2px;
+  width: 22px;
+}
+
 .header nav a {
   text-decoration: none;
 }

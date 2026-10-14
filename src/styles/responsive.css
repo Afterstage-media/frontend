@@ -1,12 +1,30 @@
 @media (max-width: 750px) {
   .header {
-    align-items: flex-start;
-    display: block;
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .menu-toggle {
+    display: grid;
+    margin-left: auto;
   }
 
   .header nav {
-    flex-wrap: wrap;
+    display: none;
+    flex-basis: 100%;
     margin-top: var(--space-md);
+  }
+
+  .header nav.is-open {
+    display: grid;
+    gap: var(--space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .header nav.is-open .theme-toggle,
+  .header nav.is-open .button {
+    text-align: center;
   }
 
   .cards,
