@@ -3,18 +3,22 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
+import { EditorialIntro, SignalTicker } from "../components/EditorialPrimitives.jsx";
 export function CommunityPage() {
   return (
     <AuthGate allowedRoles={["admin", "editor", "community"]}>
       <Layout>
-        <section className="page-intro">
-          <p className="eyebrow">Comunidad</p>
-          <h1>La escena se cuenta entre todes.</h1>
-          <p>Buscamos noteros, fotógrafos, bandas y personas que quieran construir archivo.</p>
-          <Link className="button" to="/publicar">
-            Publicar una propuesta ↗
-          </Link>
-        </section>
+        <SignalTicker items={["Comunidad", "Noteros", "Fotógrafos", "Bandas"]} />
+        <EditorialIntro
+          eyebrow="Comunidad / 03"
+          title="La escena se cuenta entre todes."
+          description="Buscamos noteros, fotógrafos, bandas y personas que quieran construir archivo."
+          action={
+            <Link className="button" to="/publicar">
+              Publicar una propuesta ↗
+            </Link>
+          }
+        />
       </Layout>
     </AuthGate>
   );

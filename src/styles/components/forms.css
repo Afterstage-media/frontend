@@ -2,14 +2,17 @@
 .editor-form {
   display: grid;
   gap: var(--space-md);
-  max-width: var(--reading-width);
+  max-width: 720px;
   padding-top: 0;
 }
 
 .auth-form {
+  background: var(--color-surface);
+  border: var(--border);
+  max-width: 540px;
   margin: 0 auto;
   padding: var(--space-section) var(--gutter) var(--space-section);
-  width: min(100%, calc(var(--reading-width) + var(--gutter) * 2));
+  width: min(100%, calc(540px + var(--gutter) * 2));
 }
 
 .form label,
@@ -27,9 +30,10 @@
 .editor-form select {
   background: var(--color-surface);
   border: var(--border-soft);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--color-ink);
-  padding: var(--control-padding);
+  min-height: 48px;
+  padding: 13px 14px;
 }
 
 .form input::placeholder,

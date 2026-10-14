@@ -4,13 +4,13 @@
 .admin-record {
   background: var(--color-surface);
   border: var(--border-soft);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   padding: var(--space-lg);
 }
 
 .card:hover,
 .admin-record:hover {
-  border-color: var(--color-ink);
+  border-color: var(--color-accent);
 }
 
 .card {
@@ -20,6 +20,17 @@
 .card h2,
 .card h3 {
   letter-spacing: var(--tracking-heading);
+}
+
+.card h2 {
+  font-size: clamp(1.5rem, 3vw, 2.35rem);
+  line-height: 0.95;
+}
+.card p {
+  color: var(--color-muted);
+}
+.card a {
+  text-underline-offset: 5px;
 }
 
 .card a,
