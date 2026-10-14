@@ -154,14 +154,15 @@
 }
 
 .event {
-  align-items: flex-start;
+  align-items: stretch;
   animation: event-in 500ms both;
   animation-delay: calc(var(--event-index) * 70ms);
   background: var(--color-surface);
   border: var(--border);
-  display: flex;
-  gap: var(--space-lg);
-  padding: var(--space-lg);
+  display: grid;
+  gap: clamp(18px, 3vw, 42px);
+  grid-template-columns: 92px minmax(0, 1fr) minmax(250px, 0.45fr);
+  padding: 24px;
   transition:
     background 180ms ease,
     transform 180ms ease;
@@ -169,21 +170,22 @@
 
 .event:hover {
   background: color-mix(in srgb, var(--color-highlight) 12%, var(--color-surface));
-  transform: translateX(8px) rotate(-0.35deg);
+  transform: translateX(6px);
 }
 
 .event-date {
   background: var(--color-highlight);
   border: 1px solid var(--color-ink);
   display: grid;
-  min-width: 80px;
+  min-height: 92px;
+  min-width: 0;
   padding: var(--control-padding);
   text-align: center;
   transform: rotate(-3deg);
 }
 
 .event-date strong {
-  font-size: 2.4rem;
+  font-size: 3.2rem;
   line-height: 1;
 }
 
@@ -193,18 +195,19 @@
 
 .countdown {
   align-items: center;
-  background: var(--color-ink);
-  color: var(--color-paper);
+  background: var(--color-accent);
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
   display: flex;
   gap: var(--space-md);
   justify-content: space-between;
-  margin: 20px 0;
-  max-width: 430px;
+  margin: 0 0 18px;
+  max-width: none;
   padding: 12px 14px;
 }
 
 .countdown-label {
-  color: var(--color-highlight);
+  color: var(--color-ink);
   font-family: var(--font-display);
   font-size: 0.68rem;
   font-weight: 800;
@@ -224,7 +227,7 @@
 }
 
 .countdown-unit strong {
-  color: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-display);
   font-size: 1.35rem;
   line-height: 1;
@@ -242,14 +245,22 @@
 }
 
 .event-content {
-  flex: 1;
+  min-width: 0;
 }
 
 .event-content h3 {
   font-size: clamp(1.5rem, 3vw, 2.45rem);
   letter-spacing: var(--tracking-heading);
   line-height: 1;
-  margin: 8px 0 12px;
+  margin: 13px 0 12px;
+}
+
+.event-time {
+  margin: 0 0 10px;
+}
+.event-aside {
+  align-self: center;
+  min-width: 0;
 }
 
 .event-links {
@@ -259,6 +270,8 @@
 }
 
 .event-links a {
+  border-bottom: 2px solid var(--color-ink);
+  padding-bottom: 3px;
   text-underline-offset: 4px;
 }
 
@@ -315,6 +328,14 @@
   }
   .countdown-values {
     gap: 12px;
+  }
+
+  .event {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .event-aside {
+    grid-column: 2;
   }
 
   .agenda-filters .actions {
