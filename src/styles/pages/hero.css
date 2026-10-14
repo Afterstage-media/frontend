@@ -36,7 +36,8 @@
 }
 .hero-editorial {
   align-items: stretch;
-  background: var(--color-paper);
+  background: #111 url("https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=2200&q=88")
+    center / cover;
   display: grid;
   gap: clamp(30px, 7vw, 110px);
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
@@ -45,6 +46,13 @@
   padding-bottom: clamp(55px, 9vw, 120px);
   padding-top: clamp(60px, 9vw, 120px);
   position: relative;
+  color: #f4f0e8;
+}
+.hero-editorial::before {
+  background: rgba(10, 10, 12, 0.68);
+  content: "";
+  inset: 0;
+  position: absolute;
 }
 .hero-editorial::after {
   border: 1px solid var(--color-ink);
@@ -99,9 +107,11 @@
 }
 .hero-poster {
   align-self: center;
-  background: var(--color-ink);
-  border: 2px solid var(--color-ink);
-  color: var(--color-paper);
+  background: #111 url("https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1000&q=88")
+    center / cover;
+  border: 0;
+  box-shadow: 18px 18px 0 var(--color-accent);
+  color: #f4f0e8;
   min-height: 410px;
   overflow: hidden;
   position: relative;
@@ -114,26 +124,19 @@
   transform: rotate(-1deg) translateY(-8px);
 }
 .hero-poster::before {
-  background: var(--color-accent);
-  border: 2px solid var(--color-ink);
-  border-radius: 50%;
-  content: "";
-  height: 65%;
-  left: 18%;
-  position: absolute;
-  top: 19%;
-  width: 65%;
-}
-.hero-poster::after {
-  background: repeating-linear-gradient(
-    135deg,
-    transparent 0 10px,
-    color-mix(in srgb, var(--color-paper) 80%, transparent) 11px 12px
-  );
+  background: rgba(10, 10, 12, 0.32);
+  border: 0;
+  border-radius: 0;
   content: "";
   inset: 0;
-  mix-blend-mode: screen;
-  opacity: 0.28;
+  position: absolute;
+}
+.hero-poster::after {
+  background: rgba(255, 92, 71, 0.16);
+  content: "";
+  inset: 0;
+  mix-blend-mode: multiply;
+  opacity: 1;
   position: absolute;
 }
 .poster-index,
@@ -162,7 +165,7 @@
   right: 20px;
 }
 .poster-word {
-  color: var(--color-ink);
+  color: #f4f0e8;
   font-family: var(--font-display);
   font-size: clamp(3rem, 6vw, 5.5rem);
   font-weight: 800;
