@@ -5,7 +5,7 @@
   cursor: pointer;
   display: inline-block;
   font-weight: 700;
-  padding: var(--control-padding) var(--space-lg);
+  padding: 14px 20px;
   text-decoration: none;
   transition:
     transform 160ms ease,
@@ -14,7 +14,7 @@
 }
 
 .button:hover {
-  box-shadow: 3px 3px 0 var(--color-ink);
+  box-shadow: 5px 5px 0 var(--color-accent);
   transform: translate(-1px, -1px);
 }
 

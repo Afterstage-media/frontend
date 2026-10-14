@@ -1,15 +1,15 @@
 :root {
   /* Brand and semantic colors */
-  --color-ink: #171717;
-  --color-paper: #f4f0e8;
-  --color-surface: #fffdf8;
-  --color-surface-muted: #e9e3d8;
-  --color-on-ink: #f4f0e8;
+  --color-ink: #f4f0e8;
+  --color-paper: #111114;
+  --color-surface: #1b1b20;
+  --color-surface-muted: #292930;
+  --color-on-ink: #111114;
   --color-accent: #ff5c47;
-  --color-highlight: #b9e95b;
-  --color-muted: #5b5751;
-  --color-danger: #9b174c;
-  --color-success: #216e4e;
+  --color-highlight: #d8ff4f;
+  --color-muted: #a6a19a;
+  --color-danger: #ff8bdc;
+  --color-success: #7ed8a9;
   --color-white: #fff;
   /* Typography */
   --font-display: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
@@ -38,19 +38,19 @@
   --radius-md: 3px;
   --shadow-hard: 5px 5px 0 var(--color-ink);
   --control-padding: 12px;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
-[data-theme="dark"] {
-  --color-ink: #f4f0e8;
-  --color-paper: #171717;
-  --color-surface: #222222;
-  --color-surface-muted: #2d2d2d;
-  --color-on-ink: #171717;
-  --color-accent: #ff7664;
-  --color-highlight: #c5ef70;
-  --color-muted: #b8b1a7;
-  --color-danger: #ff8bdc;
-  --color-success: #7ed8a9;
-  color-scheme: dark;
+[data-theme="light"] {
+  --color-ink: #171717;
+  --color-paper: #f4f0e8;
+  --color-surface: #fffdf8;
+  --color-surface-muted: #e9e3d8;
+  --color-on-ink: #f4f0e8;
+  --color-accent: #ff5c47;
+  --color-highlight: #b9e95b;
+  --color-muted: #5b5751;
+  --color-danger: #9b174c;
+  --color-success: #216e4e;
+  color-scheme: light;
 }
