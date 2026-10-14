@@ -53,7 +53,7 @@
   padding-top: clamp(44px, 6vw, 72px);
 }
 
-.publish-intro h1 {
+.page-intro.publish-intro h1 {
   font-size: clamp(3rem, 5vw, 5.5rem);
   line-height: 0.9;
   margin-bottom: 0;
