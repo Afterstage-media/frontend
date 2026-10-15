@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { api } from "../services/api.js";
 
@@ -20,6 +20,8 @@ export function Layout({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const reflectorRefs = useRef([]);
+  const reflectorStageRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -50,6 +52,53 @@ export function Layout({ children }) {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const stage = reflectorStageRef.current;
+    if (!stage) return undefined;
+
+    let frame = 0;
+    let pointer = { x: window.innerWidth / 2, y: 120 };
+
+    const render = () => {
+      frame = 0;
+      const { x, y } = pointer;
+      stage.style.setProperty("--pointer-x", `${x}px`);
+      stage.style.setProperty("--pointer-y", `${y}px`);
+      stage.style.setProperty("--lights-opacity", "1");
+
+      reflectorRefs.current.forEach((reflector) => {
+        if (!reflector) return;
+        const bounds = reflector.getBoundingClientRect();
+        const sourceX = bounds.left + bounds.width / 2;
+        const sourceY = bounds.top + bounds.height / 2;
+        const angle = (Math.atan2(y - sourceY, x - sourceX) * 180) / Math.PI + 90;
+        const distance = Math.max(140, Math.hypot(x - sourceX, y - sourceY));
+        reflector.style.setProperty("--beam-angle", `${angle}deg`);
+        reflector.style.setProperty("--beam-distance", `${distance}px`);
+        reflector.style.setProperty("--source-x", `${sourceX}px`);
+        reflector.style.setProperty("--source-y", `${sourceY}px`);
+      });
+    };
+
+    const onPointerMove = (event) => {
+      pointer = { x: event.clientX, y: event.clientY };
+      if (!frame) frame = window.requestAnimationFrame(render);
+    };
+    const onPointerLeave = () => stage.style.setProperty("--lights-opacity", "0");
+    const onPointerOut = (event) => {
+      if (!event.relatedTarget) onPointerLeave();
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerout", onPointerOut);
+    render();
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOut);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const nextTheme = theme === "dark" ? "light" : "dark";
   const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
 
@@ -59,6 +108,21 @@ export function Layout({ children }) {
         Ir al contenido
       </a>
       <header className="header">
+        <div aria-hidden="true" className="reflector-stage" ref={reflectorStageRef}>
+          {[0, 1, 2, 3, 4].map((reflector) => (
+            <span
+              className="header-reflector"
+              key={reflector}
+              ref={(element) => {
+                reflectorRefs.current[reflector] = element;
+              }}
+            >
+              <span className="reflector-beam" />
+              <span className="reflector-bulb" />
+            </span>
+          ))}
+          <span className="pointer-glow" />
+        </div>
         <Link className="brand" to="/">
           <span className="mark" /> MEDIO UNDER
         </Link>

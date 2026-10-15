@@ -9,6 +9,80 @@
   z-index: 10;
 }
 
+.reflector-stage {
+  inset: 0;
+  opacity: var(--lights-opacity, 0);
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 260ms ease;
+  z-index: 0;
+}
+
+.header-reflector {
+  height: 12px;
+  position: absolute;
+  top: 13px;
+  width: 32px;
+}
+
+.header-reflector:nth-child(1) {
+  left: 15%;
+}
+.header-reflector:nth-child(2) {
+  left: 33%;
+}
+.header-reflector:nth-child(3) {
+  left: 51%;
+}
+.header-reflector:nth-child(4) {
+  left: 69%;
+}
+.header-reflector:nth-child(5) {
+  left: 87%;
+}
+
+.reflector-bulb {
+  background: var(--color-highlight);
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-highlight) 80%, transparent);
+  display: block;
+  height: 8px;
+  left: 50%;
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  width: 20px;
+  z-index: 2;
+}
+
+.reflector-beam {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-highlight) 22%, transparent), transparent 82%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(7px);
+  height: var(--beam-distance, 160px);
+  left: var(--source-x, 50%);
+  opacity: 0.42;
+  position: fixed;
+  top: var(--source-y, 20px);
+  transform: translateX(-50%) rotate(var(--beam-angle, 0deg));
+  transform-origin: 50% 0;
+  width: 118px;
+}
+
+.pointer-glow {
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-highlight) 16%, transparent) 0, transparent 68%);
+  filter: blur(8px);
+  height: 190px;
+  left: var(--pointer-x, 50vw);
+  opacity: 0.7;
+  position: fixed;
+  top: var(--pointer-y, 120px);
+  transform: translate(-50%, -50%);
+  width: 190px;
+}
+
 .skip-link {
   background: var(--color-highlight);
   border: var(--border);
@@ -34,6 +108,8 @@
   letter-spacing: var(--tracking-heading);
   white-space: nowrap;
   text-decoration: none;
+  position: relative;
+  z-index: 1;
 }
 
 .mark {
@@ -51,6 +127,8 @@
   align-items: center;
   display: flex;
   gap: var(--space-lg);
+  position: relative;
+  z-index: 1;
 }
 
 .header nav a,
@@ -71,6 +149,8 @@
   display: none;
   gap: 4px;
   padding: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-toggle span {
@@ -102,4 +182,10 @@
 .theme-toggle:focus-visible {
   background: var(--color-ink);
   color: var(--color-paper);
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .reflector-stage {
+    display: none;
+  }
 }
