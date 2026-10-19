@@ -29,7 +29,14 @@ export function App() {
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/colaborador" element={<CollaboratorPage />} />
       <Route path="/monetizar" element={<MonetizationPage />} />
-      <Route path="/admin/monetizacion" element={<AuthGate allowedRoles={["admin", "editor"]}><AdminMonetizationPage /></AuthGate>} />
+      <Route
+        path="/admin/monetizacion"
+        element={
+          <AuthGate allowedRoles={["admin", "editor"]}>
+            <AdminMonetizationPage />
+          </AuthGate>
+        }
+      />
       <Route path="/admin/nueva" element={<NewContentPage />} />
       <Route path="/admin/contenido/:id" element={<ContentPage />} />
       <Route path="/admin/prensa" element={<PressPage />} />
