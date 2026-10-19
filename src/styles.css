@@ -11,3 +11,11 @@
 @import "./styles/pages/hero.css";
 @import "./styles/pages/article.css";
 @import "./styles/responsive.css";
+/* Monetización */
+.monetization-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr); gap:28px; padding:0 5vw 80px; }
+.product-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-content:start; }
+.product-card { background:var(--surface,#f4f0e8); border:1px solid currentColor; color:inherit; cursor:pointer; padding:20px; text-align:left; transition:transform .2s,background .2s; }
+.product-card:hover,.product-card.selected { background:#c7f36a; transform:translateY(-3px); }
+.product-card h2 { font-size:clamp(25px,3vw,42px); letter-spacing:-.06em; line-height:.95; margin:12px 0; }
+.product-card p { min-height:54px; }
+@media (max-width:800px) { .monetization-layout,.product-grid { grid-template-columns:1fr; } }

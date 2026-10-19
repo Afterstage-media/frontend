@@ -87,6 +87,9 @@ export function AdminPage() {
           <Link className="button" to="/admin/directorio">
             Directorio ↗
           </Link>
+          <Link className="button" to="/admin/monetizacion">
+            Monetización ↗
+          </Link>
           <button
             className="button ghost"
             onClick={() => {
