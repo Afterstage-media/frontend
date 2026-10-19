@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { api } from "../services/api.js";
 
-const themeStorageKey = "medio-under-theme";
+const themeStorageKey = "medio-under-theme-v2";
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
@@ -13,7 +13,7 @@ function getInitialTheme() {
     saved = null;
   }
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function Layout({ children }) {
@@ -57,6 +57,8 @@ export function Layout({ children }) {
     if (!stage) return undefined;
 
     let frame = 0;
+    let firingTimeout;
+    let palette = 0;
     let pointer = { x: window.innerWidth / 2, y: 120 };
 
     const render = () => {
@@ -71,7 +73,7 @@ export function Layout({ children }) {
         const bounds = reflector.getBoundingClientRect();
         const sourceX = bounds.left + bounds.width / 2;
         const sourceY = bounds.top + bounds.height / 2;
-        const angle = (Math.atan2(y - sourceY, x - sourceX) * 180) / Math.PI + 90;
+        const angle = (Math.atan2(y - sourceY, x - sourceX) * 180) / Math.PI - 90;
         const distance = Math.max(140, Math.hypot(x - sourceX, y - sourceY));
         reflector.style.setProperty("--beam-angle", `${angle}deg`);
         reflector.style.setProperty("--beam-distance", `${distance}px`);
@@ -88,18 +90,31 @@ export function Layout({ children }) {
     const onPointerOut = (event) => {
       if (!event.relatedTarget) onPointerLeave();
     };
+    const onPointerDown = (event) => {
+      pointer = { x: event.clientX, y: event.clientY };
+      if (!frame) frame = window.requestAnimationFrame(render);
+      palette = (palette + 1) % 4;
+      stage.dataset.palette = String(palette);
+      stage.classList.remove("is-firing");
+      void stage.offsetWidth;
+      stage.classList.add("is-firing");
+      window.clearTimeout(firingTimeout);
+      firingTimeout = window.setTimeout(() => stage.classList.remove("is-firing"), 520);
+    };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerout", onPointerOut);
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
     render();
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.clearTimeout(firingTimeout);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
 
-  const nextTheme = theme === "dark" ? "light" : "dark";
   const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
 
   return (
@@ -137,31 +152,29 @@ export function Layout({ children }) {
           <span /> <span /> <span />
         </button>
         <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
+          <NavLink end to="/">
+            Inicio
+          </NavLink>
           <NavLink to="/notas">Notas</NavLink>
+          <NavLink to="/busquedas">Búsquedas</NavLink>
+          <NavLink to="/comunidad">Comunidad</NavLink>
           <NavLink to="/agenda">Agenda</NavLink>
           <NavLink to="/monetizar">Promocioná tu proyecto</NavLink>
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-          {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
           {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-          {can("admin", "editor", "press", "community") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
-          <button
-            aria-label={`Cambiar a modo ${nextTheme === "dark" ? "oscuro" : "claro"}`}
-            className="theme-toggle"
-            onClick={() => setTheme(nextTheme)}
-            title={`Modo ${nextTheme === "dark" ? "oscuro" : "claro"}`}
-            type="button"
-          >
-            {theme === "dark" ? "☀ Claro" : "☾ Oscuro"}
-          </button>
+          {can("admin", "editor", "press", "community", "social") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
+          <NavLink aria-label="Buscar en Medio Under" className="header-search" to="/notas">
+            ⌕
+          </NavLink>
           {can("admin", "editor") && (
             <NavLink className="button dark" to="/admin">
               Redacción
             </NavLink>
           )}
-          <NavLink className="button" to="/colaborador">
-            Colaborador
-          </NavLink>
         </nav>
+        <NavLink className="button header-join" to="/colaborador">
+          Sumate
+        </NavLink>
       </header>
       <main id="main-content">{children}</main>
       <footer>

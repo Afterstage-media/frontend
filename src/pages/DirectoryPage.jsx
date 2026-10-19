@@ -197,13 +197,13 @@ function DirectoryBrowser() {
 
 export function DirectoryPage() {
   return (
-    <AuthGate allowedRoles={["admin", "editor", "press", "directory"]}>
+    <AuthGate allowedRoles={["admin", "editor", "press", "directory", "auditor"]}>
       <DirectoryBrowser />
     </AuthGate>
   );
 }
 
-export function AdminDirectoryPage() {
+function AdminDirectoryEditor() {
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(empty);
@@ -306,5 +306,13 @@ export function AdminDirectoryPage() {
         onScoreChange={(id, value) => setScores((current) => ({ ...current, [id]: value }))}
       />
     </Layout>
+  );
+}
+
+export function AdminDirectoryPage() {
+  return (
+    <AuthGate allowedRoles={["admin", "editor", "press", "directory"]}>
+      <AdminDirectoryEditor />
+    </AuthGate>
   );
 }

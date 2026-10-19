@@ -5,14 +5,14 @@
   --color-surface: #1b1b20;
   --color-surface-muted: #292930;
   --color-on-ink: #111114;
-  --color-accent: #ff5c47;
-  --color-highlight: #d8ff4f;
+  --color-accent: #7b35ff;
+  --color-highlight: #f4f0e8;
   --color-muted: #a6a19a;
   --color-danger: #ff8bdc;
   --color-success: #7ed8a9;
   --color-white: #fff;
   /* Typography */
-  --font-display: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
   --font-sans: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   --tracking-tight: -0.08em;
   --tracking-heading: -0.04em;
@@ -47,8 +47,8 @@
   --color-surface: #fffdf8;
   --color-surface-muted: #e9e3d8;
   --color-on-ink: #f4f0e8;
-  --color-accent: #ff5c47;
-  --color-highlight: #b9e95b;
+  --color-accent: #7b35ff;
+  --color-highlight: #f4f0e8;
   --color-muted: #5b5751;
   --color-danger: #9b174c;
   --color-success: #216e4e;

@@ -5,7 +5,8 @@
   justify-content: space-between;
   background: var(--color-paper);
   padding: 21px var(--gutter);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 10;
 }
 
@@ -20,6 +21,7 @@
 }
 
 .header-reflector {
+  --reflector-color: var(--color-highlight);
   height: 12px;
   position: absolute;
   top: 13px;
@@ -43,22 +45,46 @@
 }
 
 .reflector-bulb {
-  background: var(--color-highlight);
-  border: 1px solid var(--color-ink);
-  border-radius: 999px;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-highlight) 80%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 78%, var(--color-paper));
+  border: 1px solid color-mix(in srgb, var(--color-ink) 65%, transparent);
+  border-radius: 2px 2px 4px 4px;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-highlight) 55%, transparent);
   display: block;
-  height: 8px;
+  height: 10px;
   left: 50%;
   position: absolute;
-  top: 2px;
+  top: 3px;
   transform: translateX(-50%);
-  width: 20px;
+  width: 18px;
   z-index: 2;
 }
 
+.reflector-bulb::before {
+  background: color-mix(in srgb, var(--color-ink) 70%, var(--color-paper));
+  content: "";
+  height: 4px;
+  left: 50%;
+  position: absolute;
+  top: -4px;
+  transform: translateX(-50%);
+  width: 4px;
+}
+
+.reflector-bulb::after {
+  background: var(--reflector-color, var(--color-highlight));
+  border: 1px solid color-mix(in srgb, var(--color-ink) 55%, transparent);
+  border-radius: 50%;
+  bottom: 1px;
+  content: "";
+  height: 3px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 8px;
+}
+
 .reflector-beam {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-highlight) 22%, transparent), transparent 82%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--reflector-color) 22%, transparent), transparent 82%);
   clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
   filter: blur(7px);
   height: var(--beam-distance, 160px);
@@ -81,6 +107,143 @@
   top: var(--pointer-y, 120px);
   transform: translate(-50%, -50%);
   width: 190px;
+}
+
+.pointer-glow::after {
+  border: 1px solid color-mix(in srgb, var(--color-highlight) 60%, transparent);
+  border-radius: 50%;
+  content: "";
+  inset: 30px;
+  opacity: 0;
+  position: absolute;
+}
+
+html[data-theme="light"] .reflector-bulb {
+  background: #242421;
+  border-color: #171717;
+  box-shadow:
+    0 0 12px rgb(255 92 71 / 32%),
+    0 0 5px rgb(23 23 23 / 24%);
+}
+
+html[data-theme="light"] .reflector-bulb::before {
+  background: #242421;
+}
+
+html[data-theme="light"] .reflector-beam {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--reflector-color) 26%, transparent),
+    color-mix(in srgb, var(--reflector-color) 8%, transparent) 45%,
+    transparent 84%
+  );
+  opacity: 0.56;
+}
+
+html[data-theme="light"] .header-reflector:nth-child(odd) {
+  --reflector-color: #ff3b30;
+}
+
+html[data-theme="light"] .header-reflector:nth-child(even) {
+  --reflector-color: #2878e8;
+}
+
+.reflector-stage[data-palette="1"] .header-reflector:nth-child(odd) {
+  --reflector-color: #ff3b30;
+}
+
+.reflector-stage[data-palette="1"] .header-reflector:nth-child(even) {
+  --reflector-color: #2878e8;
+}
+
+.reflector-stage[data-palette="2"] .header-reflector:nth-child(odd) {
+  --reflector-color: #9b5cff;
+}
+
+.reflector-stage[data-palette="2"] .header-reflector:nth-child(even) {
+  --reflector-color: #ffb000;
+}
+
+.reflector-stage[data-palette="3"] .header-reflector:nth-child(odd) {
+  --reflector-color: #00b8d9;
+}
+
+.reflector-stage[data-palette="3"] .header-reflector:nth-child(even) {
+  --reflector-color: #ff3cac;
+}
+
+html[data-theme="light"] .pointer-glow {
+  background:
+    radial-gradient(circle at 42% 50%, rgb(255 59 48 / 18%) 0, transparent 58%),
+    radial-gradient(circle at 58% 50%, rgb(40 120 232 / 18%) 0, transparent 58%);
+}
+
+html[data-theme="light"] .pointer-glow::after {
+  border-color: rgb(23 23 23 / 38%);
+}
+
+.reflector-stage.is-firing .reflector-bulb {
+  animation: reflector-flash 520ms ease-out;
+}
+
+.reflector-stage.is-firing .reflector-beam {
+  animation: beam-flash 520ms ease-out;
+}
+
+.reflector-stage.is-firing .pointer-glow {
+  animation: pointer-flash 520ms ease-out;
+}
+
+@keyframes reflector-flash {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: translateX(-50%) scale(1);
+  }
+  18% {
+    filter: brightness(1.8);
+    transform: translateX(-50%) scale(1.25);
+  }
+}
+
+@keyframes beam-flash {
+  0%,
+  100% {
+    opacity: 0.42;
+  }
+  18% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes pointer-flash {
+  0% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.reflector-stage.is-firing .pointer-glow::after {
+  animation: pointer-ring 520ms ease-out;
+}
+
+@keyframes pointer-ring {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
 }
 
 .skip-link {
@@ -113,7 +276,7 @@
 }
 
 .mark {
-  background: var(--color-highlight);
+  background: var(--color-accent);
   border: 2px solid var(--color-ink);
   display: inline-block;
   height: 15px;
@@ -127,6 +290,15 @@
   align-items: center;
   display: flex;
   gap: var(--space-lg);
+  left: 50%;
+  position: relative;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.header-join {
+  margin-left: auto;
   position: relative;
   z-index: 1;
 }
@@ -182,6 +354,20 @@
 .theme-toggle:focus-visible {
   background: var(--color-ink);
   color: var(--color-paper);
+}
+
+.brand:hover .mark {
+  animation: mark-jolt 360ms ease both;
+}
+
+@keyframes mark-jolt {
+  0%,
+  100% {
+    transform: rotate(-8deg) scale(1);
+  }
+  45% {
+    transform: rotate(8deg) scale(1.18);
+  }
 }
 
 @media (pointer: coarse), (prefers-reduced-motion: reduce) {

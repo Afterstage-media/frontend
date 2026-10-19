@@ -2,9 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
-import { LoginForm } from "../components/AuthGate.jsx";
+import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
+const nextStatuses = {
+  idea: ["idea", "draft"],
+  draft: ["draft", "idea", "review"],
+  review: ["review", "draft", "approved"],
+  approved: ["approved", "draft", "scheduled", "publishing"],
+  scheduled: ["scheduled", "approved", "publishing"],
+  publishing: ["publishing", "published", "failed"],
+  published: ["published"],
+  failed: ["failed", "draft", "approved", "publishing"],
+};
 const labels = {
   idea: "Idea",
   draft: "Borrador",
@@ -33,7 +43,7 @@ function ContentCard({ item, onSelect }) {
   );
 }
 
-export function AdminPage() {
+function AdminDashboard() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -152,7 +162,15 @@ export function AdminPage() {
   );
 }
 
-export function NewContentPage() {
+export function AdminPage() {
+  return (
+    <AuthGate allowedRoles={["admin", "editor"]}>
+      <AdminDashboard />
+    </AuthGate>
+  );
+}
+
+function NewContentEditor() {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const navigate = useNavigate();
@@ -199,6 +217,14 @@ export function NewContentPage() {
       </section>
       <ContentForm onSubmit={submit} error={error} status={status} submitLabel="Crear borrador" />
     </Layout>
+  );
+}
+
+export function NewContentPage() {
+  return (
+    <AuthGate allowedRoles={["admin", "editor"]}>
+      <NewContentEditor />
+    </AuthGate>
   );
 }
 
@@ -273,7 +299,7 @@ function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cam
   );
 }
 
-export function ContentPage() {
+function ContentEditorPage() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
@@ -422,13 +448,11 @@ export function ContentPage() {
         </button>
         <div className="actions">
           <select value={item.status} onChange={(e) => transition(e.target.value)}>
-            {statuses
-              .filter((s) => !["published", "failed"].includes(s) || ["published", "failed"].includes(item.status))
-              .map((s) => (
-                <option key={s} value={s}>
-                  {labels[s]}
-                </option>
-              ))}
+            {(nextStatuses[item.status] || statuses).map((s) => (
+              <option key={s} value={s}>
+                {labels[s]}
+              </option>
+            ))}
           </select>
           <button className="button ghost" onClick={() => publish(true)}>
             Simular publicación
@@ -443,6 +467,14 @@ export function ContentPage() {
         </div>
       </section>
     </Layout>
+  );
+}
+
+export function ContentPage() {
+  return (
+    <AuthGate allowedRoles={["admin", "editor"]}>
+      <ContentEditorPage />
+    </AuthGate>
   );
 }
 
@@ -490,7 +522,7 @@ function MediaKitForm({ mediaKit, onSaved }) {
   );
 }
 
-export function PressPage() {
+function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
@@ -532,8 +564,8 @@ export function PressPage() {
   const create = async (path, value, reset) => {
     try {
       const payload = { ...value };
-      if (payload.startsAt) payload.startsAt = new Date(payload.startsAt).toISOString();
-      if (payload.followUpAt) payload.followUpAt = new Date(payload.followUpAt).toISOString();
+      payload.startsAt = payload.startsAt ? new Date(payload.startsAt).toISOString() : null;
+      payload.followUpAt = payload.followUpAt ? new Date(payload.followUpAt).toISOString() : null;
       await api(path, { method: "POST", body: JSON.stringify(payload) });
       reset();
       load();
@@ -841,5 +873,13 @@ export function PressPage() {
         </>
       )}
     </Layout>
+  );
+}
+
+export function PressPage() {
+  return (
+    <AuthGate allowedRoles={["admin", "press"]}>
+      <PressDashboard />
+    </AuthGate>
   );
 }

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
-export function SignalTicker({ items = ["Medio Under", "Ruido local", "Historias reales", "Bajo la superficie"] }) {
+export function SignalTicker({
+  items = ["Coberturas reales", "Agenda de acá", "Historias desde adentro", "Bajo la superficie"],
+}) {
   const repeatedItems = [...items, ...items];
   return (
     <div className="scene-ticker" aria-label="Manifiesto de Medio Under">
@@ -43,7 +45,7 @@ export function SectionHeading({ eyebrow, title, to, linkLabel = "Ver todo" }) {
   );
 }
 
-export function EditorialPoster({ index = "N° 001", top = "VIVO", bottom = "AHORA" }) {
+export function EditorialPoster({ index = "N° 001", top = "COBERTURA", bottom = "REAL" }) {
   return (
     <div className="hero-poster" aria-label="Identidad visual de Medio Under">
       <span className="poster-index">{index}</span>
@@ -51,7 +53,7 @@ export function EditorialPoster({ index = "N° 001", top = "VIVO", bottom = "AHO
       <span className="poster-word poster-word-bottom">{bottom}</span>
       <span className="poster-disc" aria-hidden="true" />
       <span className="poster-caption">
-        SIN FILTRO
+        DESDE EL SHOW
         <br />
         SIN PAUSA
       </span>
