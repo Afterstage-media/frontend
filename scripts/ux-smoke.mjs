@@ -35,7 +35,7 @@ assert.match(layout, /can\("admin", "editor", "community"\).*Comunidad/s);
 assert.match(auth, /auth-form/);
 assert.match(auth, /accessDenied/);
 assert.match(app, /<Route path="\*" element={<NotFoundPage \/>} \/>/);
-assert.match(app, /<Route path="\/busquedas" element={<ReplacementsPage \/>} \/>/);
+assert.doesNotMatch(app, /path="\/busquedas"/);
 assert.match(article, /document\.title/);
 assert.match(article, /Nota no disponible/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);

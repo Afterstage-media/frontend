@@ -40,7 +40,6 @@ export function App() {
       <Route path="/directorio" element={<DirectoryPage />} />
       <Route path="/comunidad" element={<CommunityPage />} />
       <Route path="/publicar" element={<PublishPage />} />
-      <Route path="/busquedas" element={<ReplacementsPage />} />
       <Route path="/reemplazos" element={<ReplacementsPage />} />
       <Route path="/politica-editorial" element={<PolicyPage />} />
       <Route path="/codigo-de-creditos" element={<CreditsPage />} />
