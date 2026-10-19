@@ -12,6 +12,10 @@ const eventCard = await read("src/components/EventCard.jsx");
 const countdown = await read("src/components/Countdown.jsx");
 const layout = await read("src/components/Layout.jsx");
 const auth = await read("src/components/AuthGate.jsx");
+const app = await read("src/app/App.jsx");
+const article = await read("src/pages/ArticlePage.jsx");
+const admin = await read("src/pages/AdminPages.jsx");
+const replacements = await read("src/pages/ReplacementsPage.jsx");
 const styles = await read("src/styles/responsive.css");
 
 assert.match(home, /LoadingState/);
@@ -27,6 +31,16 @@ assert.match(countdown, /min/);
 assert.match(layout, /skip-link/);
 assert.match(layout, /aria-label="Navegación principal"/);
 assert.match(auth, /auth-form/);
+assert.match(app, /<Route path="\*" element={<NotFoundPage \/>} \/>/);
+assert.match(app, /<Route path="\/busquedas" element={<ReplacementsPage \/>} \/>/);
+assert.match(layout, /<NavLink to="\/busquedas">Búsquedas<\/NavLink>/);
+assert.match(layout, /can\("admin", "editor", "press", "community", "social"\)/);
+assert.match(article, /Nota no disponible/);
+assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
+assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
+assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "press"\]\}>/);
+assert.match(replacements, /useEffect\(\(\) => \{/);
+assert.match(replacements, /Todavía no hay búsquedas abiertas/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");

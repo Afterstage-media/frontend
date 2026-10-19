@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ContentCard } from "../components/ContentCard.jsx";
-import { EditorialPoster, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { SectionHeading } from "../components/EditorialPrimitives.jsx";
+import { HomeHero, HomeQuickLinks } from "../components/HomeEditorial.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function HomePage() {
   const [items, setItems] = useState([]);
@@ -22,27 +23,8 @@ export function HomePage() {
   }, []);
   return (
     <Layout>
-      <SignalTicker />
-      <section className="hero hero-editorial">
-        <div className="hero-copy">
-          <p className="eyebrow">El diario de la escena / 2026</p>
-          <h1>
-            La música no pide permiso<span>.</span>
-          </h1>
-          <p className="hero-lede">
-            Historias, personas y lugares que hacen ruido antes de que alguien les ponga una etiqueta.
-          </p>
-          <div className="actions hero-actions">
-            <Link className="button" to="/notas">
-              Entrar al archivo ↗
-            </Link>
-            <Link className="text-link" to="/agenda">
-              Encontrar un plan hoy <span>↗</span>
-            </Link>
-          </div>
-        </div>
-        <EditorialPoster />
-      </section>
+      <HomeHero />
+      <HomeQuickLinks />
       <section className="section">
         <SectionHeading
           eyebrow="Desde adentro"
@@ -63,7 +45,7 @@ export function HomePage() {
         ) : (
           <EmptyState
             title="El archivo está tomando forma."
-            message="Mientras tanto, explorá la agenda o conocé cómo podés ser parte de Medio Under."
+            message="Encontrar un plan en la agenda también es parte de la escena. Conocé cómo podés ser parte de Medio Under."
             action={
               <Link className="button ghost" to="/colaborador">
                 Sumate a la escena ↗

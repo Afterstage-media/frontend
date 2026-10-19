@@ -12,7 +12,7 @@
   max-width: 540px;
   margin: 0 auto;
   padding: var(--space-section) var(--gutter) var(--space-section);
-  width: min(100%, calc(540px + var(--gutter) * 2));
+  width: min(calc(100% - var(--gutter) * 2), 540px);
 }
 
 .form label,

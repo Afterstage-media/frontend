@@ -1,15 +1,33 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../services/api.js";
+import { Link } from "react-router-dom";
 import { Layout, Loading } from "../components/Layout.jsx";
 export function ArticlePage() {
   const { slug } = useParams();
   const [item, setItem] = useState(null);
+  const [error, setError] = useState("");
   useEffect(() => {
+    setItem(null);
+    setError("");
     api(`/api/public/content/${slug}`)
       .then(setItem)
-      .catch(() => {});
+      .catch((requestError) => setError(requestError.message));
   }, [slug]);
+  if (error)
+    return (
+      <Layout>
+        <section className="page-intro">
+          <p className="eyebrow">Archivo editorial</p>
+          <h1>Nota no disponible.</h1>
+          <p className="muted">No encontramos esta nota o ya no está publicada.</p>
+          <p className="error">{error}</p>
+          <Link className="button dark" to="/notas">
+            Volver al archivo
+          </Link>
+        </section>
+      </Layout>
+    );
   if (!item)
     return (
       <Layout>

@@ -13,7 +13,14 @@
   .header nav {
     display: none;
     flex-basis: 100%;
+    left: auto;
     margin-top: var(--space-md);
+    position: static;
+    transform: none;
+  }
+
+  .header-join {
+    display: none;
   }
 
   .header nav.is-open {
@@ -55,6 +62,10 @@
   .auth-form {
     padding-left: var(--gutter-mobile);
     padding-right: var(--gutter-mobile);
+  }
+
+  .auth-form {
+    width: calc(100% - var(--gutter-mobile) * 2);
   }
 
   .hero-note {

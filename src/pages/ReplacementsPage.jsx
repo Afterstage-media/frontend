@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 import { api } from "../services/api.js";
 
 const profiles = {
@@ -16,11 +17,18 @@ function Board() {
   const [form, setForm] = useState({ applicantName: "", applicantEmail: "", message: "", portfolioUrl: "" });
   const [error, setError] = useState("");
   const [sent, setSent] = useState("");
-  const load = () =>
+  const [loading, setLoading] = useState(true);
+  const load = () => {
+    setLoading(true);
+    setError("");
     api("/api/public/replacements")
       .then(setItems)
-      .catch((e) => setError(e.message));
-  useEffect(load, []);
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => {
+    load();
+  }, []);
   const apply = async (event) => {
     event.preventDefault();
     setError("");
@@ -39,30 +47,41 @@ function Board() {
   return (
     <Layout>
       <section className="page-intro">
-        <p className="eyebrow">Comunidad profesional</p>
-        <h1>Reemplazos.</h1>
-        <p>Encontrá fotógrafos, noteros y cronistas para cubrir eventos del medio.</p>
+        <p className="eyebrow">Tablero de oportunidades</p>
+        <h1>Búsquedas.</h1>
+        <p>Encontrá fotógrafos, noteros, cronistas y videógrafos para cubrir eventos del medio.</p>
       </section>
       <ErrorMessage error={error} />
       {sent && <p className="success">{sent}</p>}
-      <div className="admin-grid">
-        {items.map((item) => (
-          <article className="card" key={item.id}>
-            <small>
-              {profiles[item.profile]} · {item.city || "Ubicación a coordinar"}
-            </small>
-            <h2>{item.title}</h2>
-            <p>{item.description || item.requirements}</p>
-            <p className="muted">
-              {item.startsAt ? new Date(item.startsAt).toLocaleString() : "Fecha a coordinar"}
-              {item.compensation && ` · ${item.compensation}`}
-            </p>
-            <button className="button" onClick={() => setSelected(item)}>
-              Postularme
-            </button>
-          </article>
-        ))}
-      </div>
+      {loading ? (
+        <LoadingState label="Buscando oportunidades…" />
+      ) : error ? (
+        <ErrorState message="No pudimos cargar las búsquedas disponibles." onRetry={load} />
+      ) : items.length ? (
+        <div className="admin-grid">
+          {items.map((item) => (
+            <article className="card" key={item.id}>
+              <small>
+                {profiles[item.profile]} · {item.city || "Ubicación a coordinar"}
+              </small>
+              <h2>{item.title}</h2>
+              <p>{item.description || item.requirements}</p>
+              <p className="muted">
+                {item.startsAt ? new Date(item.startsAt).toLocaleString() : "Fecha a coordinar"}
+                {item.compensation && ` · ${item.compensation}`}
+              </p>
+              <button className="button" onClick={() => setSelected(item)}>
+                Postularme
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="Todavía no hay búsquedas abiertas."
+          message="Cuando aparezca una cobertura para sumar fotógrafos, noteros o videógrafos, la vas a encontrar acá."
+        />
+      )}
       {selected && (
         <form className="form" onSubmit={apply}>
           <h2>Postularme: {selected.title}</h2>
@@ -109,7 +128,7 @@ function Board() {
 
 export function ReplacementsPage() {
   return (
-    <AuthGate allowedRoles={["admin", "editor", "press", "community"]}>
+    <AuthGate allowedRoles={["admin", "editor", "press", "community", "social"]}>
       <Board />
     </AuthGate>
   );
@@ -131,7 +150,9 @@ function AdminBoard() {
     api("/api/press/replacements")
       .then(setItems)
       .catch((e) => setError(e.message));
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
   const showApplications = async (id) => {
     try {
       setApplications({ ...applications, [id]: await api(`/api/press/replacements/${id}/applications`) });

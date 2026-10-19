@@ -28,14 +28,15 @@ export function PublishPage() {
   const [error, setError] = useState("");
   const submit = async (e) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    const formElement = e.currentTarget;
+    const form = new FormData(formElement);
     try {
       const result = await api("/api/public/submissions", {
         method: "POST",
         body: JSON.stringify(Object.fromEntries(form)),
       });
       setStatus(result.message);
-      e.currentTarget.reset();
+      formElement.reset();
     } catch (err) {
       setError(err.message);
     }
