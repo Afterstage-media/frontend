@@ -139,6 +139,7 @@ export function Layout({ children }) {
         <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
           <NavLink to="/notas">Notas</NavLink>
           <NavLink to="/agenda">Agenda</NavLink>
+          <NavLink to="/monetizar">Promocioná tu proyecto</NavLink>
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
           {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
           {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
