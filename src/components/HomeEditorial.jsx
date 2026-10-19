@@ -16,8 +16,8 @@ const quickLinks = [
     image: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1000&q=88",
   },
   {
-    title: "Comunidad",
-    detail: "Personas · Proyectos · Redes reales",
+    title: "Sumate",
+    detail: "Colaborá · Contá · Hacé archivo",
     to: "/colaborador",
     className: "quick-link-community",
     image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1000&q=88",
@@ -42,14 +42,13 @@ export function HomeHero() {
       <div className="home-hero-copy">
         <h1 id="home-title">
           La escena
-          <br />
-          <span>está viva.</span>
+          <br /> <span>está viva.</span>
         </h1>
         <p className="home-hero-note">
           DESDE EL ESCENARIO <i /> <b aria-hidden="true">→</b>
         </p>
       </div>
-      <div className="home-hero-photo" aria-label="Fotografía documental de un recital">
+      <div className="home-hero-photo" role="img" aria-label="Fotografía documental de un recital">
         <span className="home-hero-star" aria-hidden="true">
           ✳
         </span>
