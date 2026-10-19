@@ -61,7 +61,7 @@ export function MonetizationPage() {
   return (
     <Layout>
       <section className="page-intro">
-        <p className="eyebrow">Monetizá tu proyecto</p>
+        <p className="eyebrow">Promocioná tu proyecto</p>
         <h1>Hacé que tu próxima fecha se vea.</h1>
         <p>
           Servicios simples para bandas, eventos, salas y productoras. Todo el contenido pago está identificado como
@@ -90,18 +90,18 @@ export function MonetizationPage() {
           <h2>{selected?.name || "Elegí un servicio"}</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
           {[
-            ["customerName", "Nombre y apellido", true],
-            ["customerEmail", "Email", true],
-            ["organization", "Banda, proyecto u organización"],
-            ["title", "Título del evento o lanzamiento", true],
-            ["city", "Ciudad"],
-            ["eventDate", "Fecha"],
-            ["instagram", "Instagram"],
-            ["website", "Website"],
-          ].map(([name, label, required]) => (
+            ["customerName", "Nombre y apellido", "text", true],
+            ["customerEmail", "Email", "email", true],
+            ["organization", "Banda, proyecto u organización", "text"],
+            ["title", "Título del evento o lanzamiento", "text", true],
+            ["city", "Ciudad", "text"],
+            ["eventDate", "Fecha", "date"],
+            ["instagram", "Instagram", "text"],
+            ["website", "Website", "url"],
+          ].map(([name, label, type, required]) => (
             <label key={name}>
               {label}
-              <input name={name} value={form[name]} onChange={change} required={required} />
+              <input name={name} type={type} value={form[name]} onChange={change} required={required} />
             </label>
           ))}
           <label>

@@ -156,8 +156,8 @@ export function Layout({ children }) {
             Inicio
           </NavLink>
           <NavLink to="/notas">Notas</NavLink>
-          <NavLink to="/busquedas">Búsquedas</NavLink>
-          <NavLink to="/comunidad">Comunidad</NavLink>
+          {can("admin", "editor", "press", "community", "social") && <NavLink to="/reemplazos">Búsquedas</NavLink>}
+          {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
           <NavLink to="/agenda">Agenda</NavLink>
           <NavLink to="/monetizar">Promocioná tu proyecto</NavLink>
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}

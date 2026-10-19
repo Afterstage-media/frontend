@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
 
@@ -99,6 +100,7 @@ export function AuthGate({ allowedRoles, children }) {
   const [token, setToken] = useState(() => localStorage.getItem(tokenKey) || "");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const [accessDenied, setAccessDenied] = useState(false);
   const [loading, setLoading] = useState(Boolean(token));
 
   useEffect(() => {
@@ -110,16 +112,24 @@ export function AuthGate({ allowedRoles, children }) {
     setLoading(true);
     api("/api/auth/me")
       .then(({ user: actor }) => {
-        if (!(actor.roles || []).some((role) => allowedRoles.includes(role)))
-          throw new Error("Tus roles no tienen acceso a esta sección");
+        if (!(actor.roles || []).some((role) => allowedRoles.includes(role))) {
+          setAccessDenied(true);
+          setUser(null);
+          setError("");
+          return;
+        }
         setUser(actor);
+        setAccessDenied(false);
         setError("");
       })
       .catch((requestError) => {
-        localStorage.removeItem(tokenKey);
-        setToken("");
+        if (requestError.status === 401) {
+          localStorage.removeItem(tokenKey);
+          setToken("");
+        }
         setUser(null);
-        setError(requestError.message);
+        setAccessDenied(requestError.status === 403);
+        setError(requestError.status === 403 ? "" : requestError.message);
       })
       .finally(() => setLoading(false));
   }, [rolesKey, token]);
@@ -133,18 +143,33 @@ export function AuthGate({ allowedRoles, children }) {
       </Layout>
     );
 
+  if (accessDenied)
+    return (
+      <Layout>
+        <section className="page-intro">
+          <p className="eyebrow">Acceso restringido</p>
+          <h1>No tenés permiso para esta sección.</h1>
+          <p className="muted">Tu sesión sigue activa. Pedí el rol correspondiente o volvé al inicio.</p>
+          <Link className="button dark" to="/">
+            Volver al inicio
+          </Link>
+        </section>
+      </Layout>
+    );
+
   if (!user)
     return (
       <Layout>
         <LoginForm
           onReady={(actor) => {
             if (!(actor.roles || []).some((role) => allowedRoles.includes(role))) {
-              localStorage.removeItem(tokenKey);
-              setError("Tus roles no tienen acceso a esta sección");
+              setAccessDenied(true);
+              setError("");
               return;
             }
             setToken(localStorage.getItem(tokenKey) || "");
             setUser(actor);
+            setAccessDenied(false);
             setError("");
           }}
         />

@@ -11,6 +11,10 @@ export async function api(path, options = {}) {
   const requestPath = /^https?:\/\//i.test(path) ? path : `${apiBaseUrl}${path}`;
   const response = await fetch(requestPath, { ...options, headers, cache: options.cache ?? "no-store" });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "No pudimos completar la solicitud");
+  if (!response.ok) {
+    const error = new Error(data.error || "No pudimos completar la solicitud");
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
