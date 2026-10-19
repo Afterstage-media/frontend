@@ -30,7 +30,7 @@ assert.match(countdown, /horas/);
 assert.match(countdown, /min/);
 assert.match(layout, /skip-link/);
 assert.match(layout, /aria-label="Navegación principal"/);
-assert.match(layout, /can\("admin", "editor", "press", "community", "social"\).*Búsquedas/s);
+assert.doesNotMatch(layout, />Búsquedas</);
 assert.match(layout, /can\("admin", "editor", "community"\).*Comunidad/s);
 assert.match(auth, /auth-form/);
 assert.match(auth, /accessDenied/);
