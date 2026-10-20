@@ -1,0 +1,465 @@
+.editor-page {
+  background: color-mix(in srgb, var(--color-paper) 88%, var(--color-surface-muted));
+  min-height: calc(100vh - 83px);
+  padding: 38px max(24px, var(--gutter)) 84px;
+}
+
+.editor-page-header,
+.editor-layout {
+  margin: 0 auto;
+  max-width: 1240px;
+}
+
+.editor-page-header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0 30px;
+}
+
+.editor-back {
+  background: transparent;
+  border: 0;
+  color: var(--color-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 26px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.editor-back:hover {
+  color: var(--color-ink);
+}
+
+.editor-kicker {
+  align-items: center;
+  color: var(--color-muted);
+  display: flex;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 10px;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  border: 1px solid color-mix(in srgb, var(--color-ink) 32%, transparent);
+  border-radius: 999px;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  padding: 4px 9px;
+  text-transform: none;
+}
+
+.status-draft {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-paper));
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+.editor-page-header h1 {
+  font-size: clamp(2.6rem, 5vw, 5.2rem);
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+  margin: 0 0 13px;
+  max-width: none;
+}
+
+.editor-header-copy {
+  color: var(--color-muted);
+  font-size: 1rem;
+  margin: 0;
+  max-width: 560px;
+}
+
+.editor-header-meta {
+  border-left: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  display: grid;
+  gap: 5px;
+  min-width: 130px;
+  padding-left: 18px;
+}
+
+.editor-meta-label {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.editor-header-meta strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.editor-layout {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.editor-layout-single {
+  grid-template-columns: minmax(0, 780px);
+}
+
+.editor-form {
+  gap: 18px;
+  max-width: none;
+  padding: 0;
+}
+
+.editor-card,
+.editor-side-card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  box-shadow: 0 8px 24px rgb(17 17 20 / 4%);
+  padding: 26px;
+}
+
+.editor-card-main {
+  border-top: 3px solid var(--color-accent);
+}
+
+.editor-card-last {
+  margin-bottom: 0;
+}
+
+.editor-card-heading,
+.editor-side-heading {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.editor-card-heading .eyebrow,
+.editor-side-heading .eyebrow {
+  margin: 0 0 6px;
+}
+
+.editor-card-heading h2,
+.editor-side-heading h2 {
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin: 0;
+}
+
+.editor-card-index {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.editor-form-grid {
+  display: grid;
+  gap: 18px 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field-half {
+  grid-column: span 3;
+}
+
+.field-third {
+  grid-column: span 2;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.field > span,
+.status-control > span {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.77rem;
+  font-weight: 700;
+  justify-content: space-between;
+}
+
+.field > span small {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.editor-form input,
+.editor-form textarea,
+.editor-form select,
+.editor-sidebar textarea,
+.editor-sidebar select {
+  background: var(--color-paper);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: 2px;
+  color: var(--color-ink);
+  min-height: 46px;
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.editor-form input:focus,
+.editor-form textarea:focus,
+.editor-form select:focus,
+.editor-sidebar textarea:focus,
+.editor-sidebar select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  outline: none;
+}
+
+.field-title input {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  min-height: 60px;
+}
+
+.field-body textarea {
+  line-height: 1.65;
+  min-height: 330px;
+}
+
+.editor-form textarea::placeholder,
+.editor-form input::placeholder,
+.editor-sidebar textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 0.8;
+}
+
+.channels-fieldset {
+  border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 13px;
+}
+
+.channels-fieldset legend {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+.channels-fieldset label {
+  align-items: center;
+  display: flex;
+  font-size: 0.84rem;
+  gap: 8px;
+}
+
+.channels-fieldset input {
+  accent-color: var(--color-accent);
+  min-height: auto;
+}
+
+.editor-form-footer {
+  align-items: center;
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 14%, transparent);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.editor-form-footer .success,
+.editor-form-footer .error {
+  margin: 0;
+}
+
+.editor-sidebar {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: 104px;
+}
+
+.editor-side-card {
+  padding: 21px;
+}
+
+.editor-side-heading {
+  margin-bottom: 15px;
+}
+
+.editor-side-copy,
+.publish-hint {
+  color: var(--color-muted);
+  font-size: 0.83rem;
+  line-height: 1.45;
+  margin: 0 0 14px;
+}
+
+.ai-mark {
+  align-items: center;
+  background: var(--color-accent);
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  font-size: 1rem;
+  height: 27px;
+  justify-content: center;
+  transform: rotate(8deg);
+  width: 27px;
+}
+
+.editor-ai-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.editor-ai-actions .button,
+.button-wide {
+  text-align: center;
+  width: 100%;
+}
+
+.upload-dropzone {
+  align-items: center;
+  background: var(--color-paper);
+  border: 1px dashed color-mix(in srgb, var(--color-ink) 36%, transparent);
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  margin-bottom: 10px;
+  padding: 20px 12px;
+  text-align: center;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--color-accent);
+}
+
+.upload-dropzone strong {
+  font-size: 0.82rem;
+}
+
+.upload-dropzone small {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.upload-dropzone input {
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+.upload-icon {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.status-control {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.status-control select {
+  width: 100%;
+}
+
+.editor-publish-card .button + .button {
+  margin-top: 8px;
+}
+
+.publish-hint {
+  display: block;
+  font-size: 0.72rem;
+  margin: 12px 0 0;
+}
+
+.sr-only {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (max-width: 960px) {
+  .editor-layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .editor-page {
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .editor-page {
+    padding: 28px 16px 60px;
+  }
+
+  .editor-page-header {
+    align-items: start;
+    display: grid;
+    gap: 24px;
+  }
+
+  .editor-page-header h1 {
+    font-size: clamp(2.5rem, 13vw, 4.5rem);
+  }
+
+  .editor-layout,
+  .editor-layout-single {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-sidebar {
+    position: static;
+  }
+
+  .editor-card,
+  .editor-side-card {
+    padding: 20px 16px;
+  }
+
+  .editor-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-half,
+  .field-third,
+  .field-wide {
+    grid-column: 1;
+  }
+
+  .field-body textarea {
+    min-height: 250px;
+  }
+
+  .editor-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editor-form-footer .button {
+    width: 100%;
+  }
+}

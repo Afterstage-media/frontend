@@ -10,6 +10,7 @@
 @import "./styles/components/verification.css";
 @import "./styles/pages/hero.css";
 @import "./styles/pages/article.css";
+@import "./styles/pages/editor.css";
 @import "./styles/responsive.css";
 /* Monetización */
 .monetization-layout {
