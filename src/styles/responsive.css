@@ -41,6 +41,30 @@
     text-align: center;
   }
 
+  .nav-more {
+    grid-column: 1 / -1;
+  }
+
+  .nav-more summary {
+    border: var(--border-soft);
+    padding: 10px;
+  }
+
+  .nav-more-menu {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+    padding: 4px 0 0;
+    position: static;
+  }
+
+  .nav-more-menu a {
+    border: var(--border-soft) !important;
+  }
+
   .cards,
   .split-forms {
     grid-template-columns: 1fr;

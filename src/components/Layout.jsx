@@ -158,20 +158,25 @@ export function Layout({ children }) {
           <NavLink to="/notas">Notas</NavLink>
           {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
           <NavLink to="/agenda">Agenda</NavLink>
-          <NavLink to="/contratar">Servicios para la escena</NavLink>
-          {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-          {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-          {can("admin", "editor", "press", "community", "social") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
-          {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+          <NavLink to="/servicios">Servicios</NavLink>
+          {roles?.length > 0 && (
+            <details className="nav-more">
+              <summary>Más</summary>
+              <div className="nav-more-menu">
+                {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+                {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+                {can("admin", "editor", "press", "community", "social") && (
+                  <NavLink to="/reemplazos">Reemplazos</NavLink>
+                )}
+                <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>
+                {can("admin", "editor") && <NavLink to="/admin">Redacción</NavLink>}
+                {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
+              </div>
+            </details>
+          )}
           <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
             ⌕
           </NavLink>
-          {can("admin", "editor") && (
-            <NavLink className="button dark" to="/admin">
-              Redacción
-            </NavLink>
-          )}
-          {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
         </nav>
         <NavLink className="button header-join" to="/colaborador">
           Sumate

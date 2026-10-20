@@ -13,6 +13,7 @@ import { ReplacementsPage, AdminReplacementsPage } from "../pages/ReplacementsPa
 import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { MonetizationPage, AdminMonetizationPage } from "../pages/MonetizationPage.jsx";
+import { ServicesPage } from "../pages/ServicesPage.jsx";
 import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
 
@@ -47,8 +48,9 @@ export function App() {
       <Route path="/codigo-de-creditos" element={<CreditsPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/colaborador" element={<CollaboratorPage />} />
+      <Route path="/servicios" element={<ServicesPage />} />
       <Route path="/contratar" element={<MonetizationPage />} />
-      <Route path="/monetizar" element={<Navigate to="/contratar" replace />} />
+      <Route path="/monetizar" element={<Navigate to="/servicios" replace />} />
       <Route
         path="/admin/monetizacion"
         element={
