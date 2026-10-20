@@ -444,6 +444,11 @@ function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
             </button>
           </>
         )}
+        {item.status === "approved" && item.scheduledAt && (
+          <button className="button ghost button-wide" onClick={() => onTransition("scheduled")} type="button">
+            Programar publicación
+          </button>
+        )}
         {canPublish && (
           <button className="button dark button-wide" onClick={() => onPublish(false)} type="button">
             Publicar ahora
