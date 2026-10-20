@@ -15,7 +15,7 @@
 
 .services-page {
   --parallax-y: 0px;
-  --services-header-offset: 86px;
+  --services-header-offset: 94px;
 }
 
 .services-intro::before {
@@ -104,6 +104,7 @@
 .services-jump-nav {
   align-items: center;
   border-bottom: var(--border);
+  border-top: var(--border-soft);
   display: flex;
   gap: clamp(18px, 3vw, 42px);
   margin: 0 auto;
@@ -113,8 +114,9 @@
   position: sticky;
   top: var(--services-header-offset);
   z-index: 9;
-  background: color-mix(in srgb, var(--color-paper) 90%, transparent);
+  background: color-mix(in srgb, var(--color-paper) 96%, transparent);
   backdrop-filter: blur(12px);
+  box-shadow: 0 8px 18px rgb(17 17 20 / 6%);
   white-space: nowrap;
 }
 
@@ -514,7 +516,7 @@
 
 @media (max-width: 560px) {
   .services-page {
-    --services-header-offset: 72px;
+    --services-header-offset: 78px;
   }
 
   .services-intro {
