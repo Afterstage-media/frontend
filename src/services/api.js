@@ -5,7 +5,7 @@ export async function api(path, options = {}) {
     ...(options.body && !isForm ? { "Content-Type": "application/json" } : {}),
     ...(options.headers || {}),
   };
-  const token = localStorage.getItem("medio-under-token");
+  const token = localStorage.getItem("afterstage-token");
   if (token) headers.Authorization = `Bearer ${token}`;
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
   const requestPath = /^https?:\/\//i.test(path) ? path : `${apiBaseUrl}${path}`;

@@ -1,4 +1,4 @@
-# Medio Under — frontend
+# afterstage — frontend
 
 Aplicación web pública y panel de redacción construidos con React y Vite.
 
@@ -10,4 +10,4 @@ npm run dev
 ```
 
 La API se configura con `VITE_API_BASE_URL`. La arquitectura y decisiones del
-producto están en [medio-under/docs](https://github.com/medio-under/docs).
+producto están en [afterstage/docs](https://github.com/afterstage/docs).

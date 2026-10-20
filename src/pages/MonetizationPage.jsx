@@ -53,7 +53,7 @@ export function MonetizationPage() {
         <section className="page-intro">
           <p className="eyebrow">Solicitud recibida</p>
           <h1>Ya estamos en contacto.</h1>
-          <p>Guardamos tu pedido. El equipo de Medio Under te va a escribir para coordinar el servicio y el pago.</p>
+          <p>Guardamos tu pedido. El equipo de afterstage te va a escribir para coordinar el servicio y el pago.</p>
           <p className="muted">Código: {result.id}</p>
         </section>
       </Layout>

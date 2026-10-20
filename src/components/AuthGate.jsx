@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
 
-const tokenKey = "medio-under-token";
+const tokenKey = "afterstage-token";
 
 export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator = true }) {
   const [identifier, setIdentifier] = useState("");
@@ -25,7 +25,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         body: JSON.stringify(registering ? { email: identifier, password } : { identifier, password }),
       });
       localStorage.setItem(tokenKey, result.accessToken);
-      window.dispatchEvent(new Event("medio-under-auth-changed"));
+      window.dispatchEvent(new Event("afterstage-auth-changed"));
       onReady(result.user);
     } catch (requestError) {
       setError(requestError.message);

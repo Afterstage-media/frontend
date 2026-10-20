@@ -204,7 +204,7 @@ export function DirectoryPage() {
 }
 
 function AdminDirectoryEditor() {
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(empty);
   const [query, setQuery] = useState("");
