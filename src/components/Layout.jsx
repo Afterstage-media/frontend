@@ -162,6 +162,7 @@ export function Layout({ children }) {
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
           {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
           {can("admin", "editor", "press", "community", "social") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
+          {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
           <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
             ⌕
           </NavLink>
