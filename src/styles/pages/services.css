@@ -157,6 +157,10 @@
   order: 1;
 }
 
+.services-lane:nth-child(even) {
+  grid-template-columns: minmax(0, 1.28fr) minmax(260px, 0.72fr);
+}
+
 .services-lane-image {
   background-position: center calc(50% + var(--parallax-y, 0px));
   background-size: cover;
@@ -490,6 +494,10 @@
   .services-lane:nth-child(even) .services-lane-image,
   .services-lane:nth-child(even) .services-lane-content {
     order: initial;
+  }
+
+  .services-lane:nth-child(even) {
+    grid-template-columns: 1fr;
   }
 
   .services-lane-image {
