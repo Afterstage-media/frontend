@@ -50,7 +50,7 @@ function AdminDashboard() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const navigate = useNavigate();
   const load = () =>
     api("/api/content")
@@ -104,8 +104,8 @@ function AdminDashboard() {
           <button
             className="button ghost"
             onClick={() => {
-              localStorage.removeItem("medio-under-token");
-              window.dispatchEvent(new Event("medio-under-auth-changed"));
+              localStorage.removeItem("afterstage-token");
+              window.dispatchEvent(new Event("afterstage-auth-changed"));
               setAuthorized(false);
             }}
           >
@@ -740,7 +740,7 @@ function MediaKitForm({ mediaKit, onSaved }) {
 function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const [event, setEvent] = useState({
     name: "",
     artist: "",

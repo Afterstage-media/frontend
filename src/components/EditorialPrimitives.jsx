@@ -5,7 +5,7 @@ export function SignalTicker({
 }) {
   const repeatedItems = [...items, ...items];
   return (
-    <div className="scene-ticker" aria-label="Manifiesto de Medio Under">
+    <div className="scene-ticker" aria-label="Manifiesto de afterstage">
       <div className="scene-ticker-track">
         {repeatedItems.map((item, index) => (
           <span className="scene-ticker-item" key={`${item}-${index}`}>
@@ -47,7 +47,7 @@ export function SectionHeading({ eyebrow, title, to, linkLabel = "Ver todo" }) {
 
 export function EditorialPoster({ index = "N° 001", top = "COBERTURA", bottom = "REAL" }) {
   return (
-    <div className="hero-poster" aria-label="Identidad visual de Medio Under">
+    <div className="hero-poster" aria-label="Identidad visual de afterstage">
       <span className="poster-index">{index}</span>
       <span className="poster-word poster-word-top">{top}</span>
       <span className="poster-word poster-word-bottom">{bottom}</span>

@@ -13,7 +13,7 @@ export function ContentCard({ item, index = 0 }) {
       <div className="card-meta">
         <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
         <small>
-          {item.type || "Nota"} · {item.author || "Medio Under"}
+          {item.type || "Nota"} · {item.author || "afterstage"}
         </small>
       </div>
       <h2>{item.title}</h2>
