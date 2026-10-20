@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
@@ -67,10 +67,10 @@ const lanes = [
   },
 ];
 
-function ServiceOffering({ product }) {
+function ServiceOffering({ product, index }) {
   if (!product) return null;
   return (
-    <article className="service-offering">
+    <article className="service-offering" data-reveal style={{ "--reveal-delay": `${index * 70}ms` }}>
       <div>
         <span className="service-offering-price">
           {product.priceArs == null ? "Consultar" : `$${product.priceArs.toLocaleString("es-AR")}`}
@@ -87,9 +87,11 @@ function ServiceOffering({ product }) {
 }
 
 export function ServicesPage() {
+  const pageRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeLane, setActiveLane] = useState("entradas");
 
   const load = () => {
     setLoading(true);
@@ -102,78 +104,143 @@ export function ServicesPage() {
 
   useEffect(load, []);
 
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return undefined;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion || !("IntersectionObserver" in window)) return undefined;
+
+    page.classList.add("services-page--motion");
+    const parallaxNodes = [...page.querySelectorAll("[data-parallax]")];
+    const revealNodes = [...page.querySelectorAll("[data-reveal]")];
+    const laneNodes = [...page.querySelectorAll(".services-lane")];
+    let frame = 0;
+
+    const updateParallax = () => {
+      frame = 0;
+      const viewportCenter = window.innerHeight / 2;
+      parallaxNodes.forEach((node) => {
+        const bounds = node.getBoundingClientRect();
+        const speed = Number(node.dataset.parallax || 0);
+        const offset = Math.max(-38, Math.min(38, -(bounds.top + bounds.height / 2 - viewportCenter) * speed));
+        node.style.setProperty("--parallax-y", `${Math.round(offset)}px`);
+      });
+    };
+
+    const scheduleParallax = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateParallax);
+    };
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("is-visible");
+        });
+      },
+      { rootMargin: "0px 0px -8%", threshold: 0.12 },
+    );
+
+    const laneObserver = new IntersectionObserver(
+      (entries) => {
+        const visibleLane = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+        if (visibleLane) setActiveLane(visibleLane.target.id);
+      },
+      { rootMargin: "-25% 0px -55%", threshold: [0.15, 0.4, 0.7] },
+    );
+
+    revealNodes.forEach((node) => revealObserver.observe(node));
+    laneNodes.forEach((node) => laneObserver.observe(node));
+    window.addEventListener("scroll", scheduleParallax, { passive: true });
+    window.addEventListener("resize", scheduleParallax);
+    scheduleParallax();
+
+    return () => {
+      window.removeEventListener("scroll", scheduleParallax);
+      window.removeEventListener("resize", scheduleParallax);
+      if (frame) window.cancelAnimationFrame(frame);
+      revealObserver.disconnect();
+      laneObserver.disconnect();
+    };
+  }, [loading]);
+
   const byId = new Map(products.map((product) => [product.id, product]));
 
   return (
     <Layout>
-      <section className="services-intro" aria-labelledby="services-title">
-        <div className="services-intro-copy">
-          <p className="eyebrow">Servicios para la escena</p>
-          <h1 id="services-title">
-            No todo empieza
-            <br /> con un show.
-          </h1>
-          <p>
-            Hay fechas que necesitan entradas, festivales que necesitan equipo, viajes que necesitan público y canciones
-            que necesitan una forma de circular.
-          </p>
-        </div>
-        <div className="services-intro-mark" aria-hidden="true">
-          <span>AFTER</span>
-          <strong>STAGE</strong>
-          <i>✳</i>
-        </div>
-      </section>
+      <div className="services-page" ref={pageRef}>
+        <section className="services-intro" data-parallax="0.05" aria-labelledby="services-title">
+          <div className="services-intro-copy" data-reveal>
+            <p className="eyebrow">Servicios para la escena</p>
+            <h1 id="services-title">
+              No todo empieza
+              <br /> con un show.
+            </h1>
+            <p>
+              Hay fechas que necesitan entradas, festivales que necesitan equipo, viajes que necesitan público y
+              canciones que necesitan una forma de circular.
+            </p>
+          </div>
+          <div className="services-intro-mark" data-parallax="0.12" data-reveal aria-hidden="true">
+            <span>AFTER</span>
+            <strong>STAGE</strong>
+            <i>✳</i>
+          </div>
+        </section>
 
-      <nav className="services-jump-nav" aria-label="Secciones de servicios">
-        {lanes.map((lane) => (
-          <a href={`#${lane.id}`} key={lane.id}>
-            <span>{lane.number}</span> {lane.eyebrow}
-          </a>
-        ))}
-      </nav>
+        <nav className="services-jump-nav" aria-label="Secciones de servicios">
+          {lanes.map((lane) => (
+            <a aria-current={activeLane === lane.id ? "true" : undefined} href={`#${lane.id}`} key={lane.id}>
+              <span>{lane.number}</span> {lane.eyebrow}
+            </a>
+          ))}
+        </nav>
 
-      {loading ? (
-        <LoadingState label="Ordenando los servicios…" />
-      ) : error ? (
-        <ErrorState message="No pudimos cargar el catálogo de servicios." onRetry={load} />
-      ) : (
-        <div className="services-lanes">
-          {lanes.map((lane) => {
-            const laneProducts = lane.productIds.map((id) => byId.get(id)).filter(Boolean);
-            return (
-              <section className={`services-lane ${lane.className}`} id={lane.id} key={lane.id}>
-                <div
-                  className="services-lane-image"
-                  style={{ backgroundImage: `url(${lane.image})` }}
-                  role="img"
-                  aria-label={lane.eyebrow}
-                >
-                  <span>{lane.number}</span>
-                </div>
-                <div className="services-lane-content">
-                  <p className="eyebrow">{lane.eyebrow}</p>
-                  <h2>{lane.title}</h2>
-                  <p className="services-lane-description">{lane.description}</p>
-                  <div className="service-offerings">
-                    {laneProducts.map((product) => (
-                      <ServiceOffering key={product.id} product={product} />
-                    ))}
+        {loading ? (
+          <LoadingState label="Ordenando los servicios…" />
+        ) : error ? (
+          <ErrorState message="No pudimos cargar el catálogo de servicios." onRetry={load} />
+        ) : (
+          <div className="services-lanes">
+            {lanes.map((lane) => {
+              const laneProducts = lane.productIds.map((id) => byId.get(id)).filter(Boolean);
+              return (
+                <section className={`services-lane ${lane.className}`} data-reveal id={lane.id} key={lane.id}>
+                  <div
+                    className="services-lane-image"
+                    data-parallax="0.04"
+                    style={{ backgroundImage: `url(${lane.image})` }}
+                    role="img"
+                    aria-label={lane.eyebrow}
+                  >
+                    <span>{lane.number}</span>
                   </div>
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      )}
+                  <div className="services-lane-content">
+                    <p className="eyebrow">{lane.eyebrow}</p>
+                    <h2>{lane.title}</h2>
+                    <p className="services-lane-description">{lane.description}</p>
+                    <div className="service-offerings">
+                      {laneProducts.map((product, index) => (
+                        <ServiceOffering key={product.id} index={index} product={product} />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
 
-      <section className="services-closer">
-        <p className="eyebrow">¿Tenés otra idea?</p>
-        <h2>Contanos qué querés poner en movimiento.</h2>
-        <Link className="button dark" to="/contratar">
-          Abrir una conversación ↗
-        </Link>
-      </section>
+        <section className="services-closer" data-reveal>
+          <p className="eyebrow">¿Tenés otra idea?</p>
+          <h2>Contanos qué querés poner en movimiento.</h2>
+          <Link className="button dark" to="/contratar">
+            Abrir una conversación ↗
+          </Link>
+        </section>
+      </div>
     </Layout>
   );
 }
