@@ -23,7 +23,7 @@ const validatePromotionForm = (values) => {
   if (!values.customerName.trim()) return "Ingresá tu nombre y apellido.";
   if (!values.customerEmail.trim()) return "Ingresá un email para poder contactarte.";
   if (!isEmail(values.customerEmail.trim())) return "Ingresá un email válido para poder contactarte.";
-  if (!values.title.trim()) return "Ingresá el título del evento o lanzamiento.";
+  if (!values.title.trim()) return "Ingresá un título para tu propuesta.";
   if (values.description.trim().length < 10) return "La descripción debe tener al menos 10 caracteres.";
   return "";
 };
@@ -99,11 +99,11 @@ export function MonetizationPage() {
   return (
     <Layout>
       <section className="page-intro">
-        <p className="eyebrow">Promocioná tu proyecto</p>
-        <h1>Hacé que tu próxima fecha se vea.</h1>
+        <p className="eyebrow">Servicios para la escena</p>
+        <h1>Hacé que tu próxima fecha se mueva.</h1>
         <p>
-          Servicios simples para bandas, eventos, salas y productoras. Todo el contenido pago está identificado como
-          promocionado.
+          Soluciones para bandas, festivales, salas, productoras y proyectos de viaje. Elegí una propuesta y contanos
+          qué querés poner en movimiento. Todo el contenido pago está identificado como promocionado.
         </p>
       </section>
       <section className="monetization-layout">
@@ -131,7 +131,7 @@ export function MonetizationPage() {
             ["customerName", "Nombre y apellido", "text", true],
             ["customerEmail", "Email", "email", true],
             ["organization", "Banda, proyecto u organización", "text"],
-            ["title", "Título del evento o lanzamiento", "text", true],
+            ["title", "Título de tu propuesta", "text", true],
             ["city", "Ciudad", "text"],
             ["eventDate", "Fecha", "date"],
             ["instagram", "Instagram", "text"],

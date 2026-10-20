@@ -31,6 +31,7 @@ assert.match(countdown, /horas/);
 assert.match(countdown, /min/);
 assert.match(layout, /skip-link/);
 assert.match(layout, /aria-label="Navegación principal"/);
+assert.match(layout, /<NavLink to="\/contratar">Servicios para la escena<\/NavLink>/);
 assert.doesNotMatch(layout, />Búsquedas</);
 assert.match(layout, /can\("admin", "editor", "community"\).*Comunidad/s);
 assert.match(auth, /auth-form/);
@@ -51,7 +52,6 @@ assert.match(monetization, /normalizePromotionForm/);
 assert.match(monetization, /onInvalid=\{invalid\}/);
 assert.match(monetization, /type="button" className="button dark" disabled=\{loading \|\| !selected\} onClick=\{submit\}/);
 assert.match(monetization, /noValidate onInvalid=\{invalid\} onSubmit=\{submit\}/);
-assert.match(layout, /<NavLink to="\/contratar">Promocioná tu proyecto<\/NavLink>/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");
