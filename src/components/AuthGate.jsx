@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../services/api.js";
+import { api, encryptAuthSecret } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
 
-const tokenKey = "medio-under-token";
+const tokenKey = "afterstage-token";
 
 export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator = true }) {
   const [identifier, setIdentifier] = useState("");
@@ -20,12 +20,18 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
     setError("");
     try {
       if (registering && password !== passwordConfirmation) throw new Error("Las contraseñas no coinciden");
+      const encryptionKey = await api("/api/auth/public-key");
+      const passwordCiphertext = await encryptAuthSecret(password, encryptionKey.publicKey);
       const result = await api(registering ? "/api/auth/register" : "/api/auth/login", {
         method: "POST",
-        body: JSON.stringify(registering ? { email: identifier, password } : { identifier, password }),
+        body: JSON.stringify(
+          registering
+            ? { email: identifier, keyId: encryptionKey.keyId, passwordCiphertext }
+            : { identifier, keyId: encryptionKey.keyId, passwordCiphertext },
+        ),
       });
       localStorage.setItem(tokenKey, result.accessToken);
-      window.dispatchEvent(new Event("medio-under-auth-changed"));
+      window.dispatchEvent(new Event("afterstage-auth-changed"));
       onReady(result.user);
     } catch (requestError) {
       setError(requestError.message);
@@ -177,5 +183,5 @@ export function AuthGate({ allowedRoles, children }) {
       </Layout>
     );
 
-  return children;
+  return typeof children === "function" ? children(user) : children;
 }

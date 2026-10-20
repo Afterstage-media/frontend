@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -57,8 +57,8 @@ const toPayload = (data) => ({
     youtube: data.youtube,
     tiktok: data.tiktok,
     spotify: data.spotify,
-    x: "",
-    other: [],
+    x: data.socials?.x || "",
+    other: data.socials?.other || [],
   },
   contacts: String(data.contacts || "")
     .split("\n")
@@ -69,128 +69,592 @@ const toPayload = (data) => ({
       return { name, role, email, phone, socials: {}, notes: "" };
     }),
 });
-
+const formFromItem = (item) => ({
+  ...empty,
+  ...item,
+  aliases: (item.aliases || []).join(", "),
+  latitude: item.latitude ?? "",
+  longitude: item.longitude ?? "",
+  instagram: item.socials?.instagram || "",
+  facebook: item.socials?.facebook || "",
+  youtube: item.socials?.youtube || "",
+  tiktok: item.socials?.tiktok || "",
+  spotify: item.socials?.spotify || "",
+  phones: (item.phones || []).join(", "),
+  emails: (item.emails || []).join(", "),
+  contacts: (item.contacts || [])
+    .map((contact) => [contact.name, contact.role, contact.email, contact.phone].filter(Boolean).join(" | "))
+    .join("\n"),
+  tags: (item.tags || []).join(", "),
+});
 const verificationLabels = {
   unverified: "Sin verificar",
-  verified: "Correcto",
+  verified: "Verificado",
   stale: "Dato viejo",
-  incorrect: "Incorrecto",
+  incorrect: "Revisar",
 };
 
-function Cards({ items, onVerify, scores = {}, onScoreChange }) {
+function voteSummary(item) {
+  const reliable = item.reliableVotes ?? 0;
+  const unreliable = item.unreliableVotes ?? 0;
+  const total = reliable + unreliable;
+  if (!total) return "Todavía no hay votos";
+  return `${Math.round((reliable / total) * 100)}% la considera confiable · ${total} ${total === 1 ? "voto" : "votos"}`;
+}
+
+function DirectoryCard({ item, onOpen, featured = false }) {
+  const open = () => onOpen(item);
   return (
-    <div className="cards">
-      {items.map((item) => (
-        <article className="card" key={item.id}>
-          <small>
-            {kinds[item.kind] || item.kind} · {item.city || item.country}
-            {item.distanceKm !== undefined ? ` · ${item.distanceKm} km` : ""}
-          </small>
-          <p className={`verification-badge verification-${item.verificationStatus}`}>
-            {verificationLabels[item.verificationStatus] || "Sin verificar"} · {item.reliabilityScore ?? 0}% fiable
-          </p>
-          <h2>{item.name}</h2>
-          <p>{item.description}</p>
-          {item.website && (
-            <a href={item.website} target="_blank" rel="noreferrer">
-              Sitio ↗
-            </a>
-          )}
-          <div className="muted">
-            {Object.entries(item.socials || {})
-              .filter(([, value]) => value && !Array.isArray(value))
-              .map(([key, value]) => (
-                <span key={key}>
-                  {" "}
-                  · {key}: {value}
-                </span>
-              ))}
-          </div>
-          {onVerify && (
-            <div className="verification-actions">
-              <label>
-                Fiabilidad %
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={scores[item.id] ?? item.reliabilityScore ?? 0}
-                  onChange={(event) => onScoreChange(item.id, event.target.value)}
-                />
-              </label>
-              <button type="button" className="button" onClick={() => onVerify(item.id, "verified")}>
-                Correcto
-              </button>
-              <button type="button" className="button ghost" onClick={() => onVerify(item.id, "stale")}>
-                Marcar viejo
-              </button>
-              <button type="button" className="button ghost" onClick={() => onVerify(item.id, "incorrect")}>
-                Incorrecto
-              </button>
-            </div>
-          )}
-        </article>
-      ))}
+    <article
+      className={`directory-card${featured ? " directory-card-featured" : ""}`}
+      onClick={open}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open();
+        }
+      }}
+      role="button"
+      tabIndex="0"
+    >
+      <div className="directory-card-topline">
+        <span>{kinds[item.kind] || item.kind}</span>
+        <span>{item.city || item.country || "Ubicación no informada"}</span>
+      </div>
+      <div className="directory-card-status">
+        <span className={`verification-dot verification-dot-${item.verificationStatus || "unverified"}`} />
+        {verificationLabels[item.verificationStatus] || "Sin verificar"}
+        <span aria-hidden="true">·</span>
+        {item.reliabilityScore ?? 0}% editorial
+      </div>
+      <h2>{item.name}</h2>
+      <p>{item.description || "Esta ficha todavía necesita una descripción."}</p>
+      <div className="directory-card-bottom">
+        <span className="directory-card-votes">{voteSummary(item)}</span>
+        <span className="directory-card-link">
+          Ver ficha <span aria-hidden="true">↗</span>
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function DetailField({ label, children }) {
+  return (
+    <div className="detail-field">
+      <dt>{label}</dt>
+      <dd>{children || <span className="muted">No informado</span>}</dd>
     </div>
   );
 }
 
-function DirectoryBrowser() {
+function DirectoryEditForm({ item, onCancel, onSaved }) {
+  const [form, setForm] = useState(() => formFromItem(item));
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const updated = await api(`/api/directory/${item.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(toPayload(form)),
+      });
+      onSaved(updated);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <form className="directory-edit-form" onSubmit={submit}>
+      <div className="detail-panel-heading">
+        <div>
+          <p className="eyebrow">Editar ficha</p>
+          <h2>Actualizar datos</h2>
+        </div>
+        <button className="icon-button" onClick={onCancel} type="button" aria-label="Cerrar edición">
+          ×
+        </button>
+      </div>
+      <p className="muted">
+        Los cambios se guardan en el directorio interno. Revisá especialmente contactos y enlaces.
+      </p>
+      <div className="edit-grid">
+        <label>
+          Nombre
+          <input required value={form.name} onChange={(event) => update("name", event.target.value)} />
+        </label>
+        <label>
+          Tipo
+          <select value={form.kind} onChange={(event) => update("kind", event.target.value)}>
+            {Object.entries(kinds).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Ciudad
+          <input value={form.city} onChange={(event) => update("city", event.target.value)} />
+        </label>
+        <label>
+          País
+          <input value={form.country} onChange={(event) => update("country", event.target.value)} />
+        </label>
+      </div>
+      <label>
+        Descripción
+        <textarea rows="4" value={form.description} onChange={(event) => update("description", event.target.value)} />
+      </label>
+      <label>
+        Sitio web
+        <input
+          type="url"
+          value={form.website}
+          onChange={(event) => update("website", event.target.value)}
+          placeholder="https://"
+        />
+      </label>
+      <div className="edit-grid">
+        <label>
+          Teléfonos
+          <input
+            value={form.phones}
+            onChange={(event) => update("phones", event.target.value)}
+            placeholder="Separados por coma"
+          />
+        </label>
+        <label>
+          Emails
+          <input
+            value={form.emails}
+            onChange={(event) => update("emails", event.target.value)}
+            placeholder="Separados por coma"
+          />
+        </label>
+      </div>
+      <label>
+        Contactos
+        <textarea
+          rows="3"
+          value={form.contacts}
+          onChange={(event) => update("contacts", event.target.value)}
+          placeholder="Nombre | rol | email | teléfono (una línea por persona)"
+        />
+      </label>
+      <label>
+        Etiquetas
+        <input
+          value={form.tags}
+          onChange={(event) => update("tags", event.target.value)}
+          placeholder="Separadas por coma"
+        />
+      </label>
+      <ErrorMessage error={error} />
+      <div className="detail-actions">
+        <button className="button dark" disabled={saving} type="submit">
+          {saving ? "Guardando…" : "Guardar cambios"}
+        </button>
+        <button className="button ghost" onClick={onCancel} type="button">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
+  const closeButtonRef = useRef(null);
+  const [detail, setDetail] = useState(item);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [voting, setVoting] = useState(false);
+  const [voteMessage, setVoteMessage] = useState("");
+  const [myVote, setMyVote] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("afterstage-directory-votes") || "{}")[item.id] || "";
+    } catch {
+      return "";
+    }
+  });
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKeyDown);
+    let cancelled = false;
+    api(`/api/directory/${item.id}`)
+      .then((fullItem) => {
+        if (!cancelled) setDetail(fullItem);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [item.id, onClose]);
+  const saveUpdated = (updated) => {
+    setDetail(updated);
+    setEditing(false);
+    onUpdated(updated);
+  };
+  const submitVote = async (vote) => {
+    if (myVote) return;
+    setVoting(true);
+    setVoteMessage("");
+    try {
+      const updated = await api(`/api/directory/${detail.id}/vote`, { method: "POST", body: JSON.stringify({ vote }) });
+      const votes = JSON.parse(localStorage.getItem("afterstage-directory-votes") || "{}");
+      votes[detail.id] = vote;
+      localStorage.setItem("afterstage-directory-votes", JSON.stringify(votes));
+      setMyVote(vote);
+      setDetail(updated);
+      onUpdated(updated);
+      setVoteMessage("Gracias. Tu voto ayuda a mantener este mapa actualizado.");
+    } catch (requestError) {
+      setVoteMessage(requestError.message);
+    } finally {
+      setVoting(false);
+    }
+  };
+  const socials = Object.entries(detail.socials || {}).filter(([, value]) => value && !Array.isArray(value));
+  const totalVotes = (detail.reliableVotes ?? 0) + (detail.unreliableVotes ?? 0);
+  return (
+    <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <aside aria-labelledby="directory-detail-title" aria-modal="true" className="detail-panel" role="dialog">
+        {editing ? (
+          <DirectoryEditForm item={detail} onCancel={() => setEditing(false)} onSaved={saveUpdated} />
+        ) : (
+          <>
+            <div className="detail-panel-heading">
+              <div>
+                <p className="eyebrow">Ficha de directorio</p>
+                <p className="detail-kind">
+                  {kinds[detail.kind] || detail.kind} {detail.city ? `· ${detail.city}` : ""}
+                </p>
+              </div>
+              <button
+                ref={closeButtonRef}
+                className="icon-button"
+                onClick={onClose}
+                type="button"
+                aria-label="Cerrar ficha"
+              >
+                ×
+              </button>
+            </div>
+            <h2 id="directory-detail-title" className="detail-title">
+              {detail.name}
+            </h2>
+            {detail.aliases?.length > 0 && (
+              <p className="detail-aliases">También conocido como {detail.aliases.join(" · ")}</p>
+            )}
+            <div className={`detail-verification detail-verification-${detail.verificationStatus || "unverified"}`}>
+              <span className="verification-dot" />
+              <div>
+                <strong>{verificationLabels[detail.verificationStatus] || "Sin verificar"}</strong>
+                <span>{detail.reliabilityScore ?? 0}% de confiabilidad editorial</span>
+              </div>
+            </div>
+            {loading ? (
+              <p className="muted">Cargando datos completos…</p>
+            ) : (
+              <>
+                <p className="detail-description">
+                  {detail.description || "No hay una descripción cargada para esta ficha."}
+                </p>
+                <dl className="detail-fields">
+                  <DetailField label="Ubicación">
+                    {[detail.city, detail.country].filter(Boolean).join(", ")}
+                  </DetailField>
+                  <DetailField label="Coordenadas">
+                    {detail.latitude !== null && detail.longitude !== null
+                      ? `${detail.latitude}, ${detail.longitude}`
+                      : ""}
+                  </DetailField>
+                  <DetailField label="Teléfonos">{detail.phones?.join(" · ")}</DetailField>
+                  <DetailField label="Emails">{detail.emails?.join(" · ")}</DetailField>
+                  <DetailField label="Fuente">{detail.source}</DetailField>
+                  <DetailField label="Última actualización">
+                    {detail.updatedAt ? new Date(detail.updatedAt).toLocaleDateString("es-AR") : ""}
+                  </DetailField>
+                </dl>
+                {detail.website && (
+                  <p className="detail-website">
+                    <a href={detail.website} target="_blank" rel="noreferrer">
+                      Visitar sitio web ↗
+                    </a>
+                  </p>
+                )}
+                {detail.contacts?.length > 0 && (
+                  <section className="detail-section">
+                    <h3>Contactos</h3>
+                    <div className="contact-list">
+                      {detail.contacts.map((contact, index) => (
+                        <div className="contact-row" key={`${contact.name}-${index}`}>
+                          <strong>{contact.name}</strong>
+                          <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {socials.length > 0 && (
+                  <section className="detail-section">
+                    <h3>Enlaces</h3>
+                    <div className="detail-links">
+                      {socials.map(([key, value]) => (
+                        <a
+                          href={String(value).startsWith("http") ? value : undefined}
+                          key={key}
+                          target={String(value).startsWith("http") ? "_blank" : undefined}
+                          rel="noreferrer"
+                        >
+                          {key} <span>{value}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {detail.tags?.length > 0 && (
+                  <div className="tag-list">
+                    {detail.tags.map((tag) => (
+                      <span key={tag}>#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            <section className="trust-box">
+              <div>
+                <p className="eyebrow">Señal de la comunidad</p>
+                <h3>¿Estos datos siguen siendo confiables?</h3>
+                <p>{voteSummary(detail)}</p>
+              </div>
+              <div
+                className="vote-meter"
+                aria-label={`${detail.reliableVotes ?? 0} votos confiables y ${detail.unreliableVotes ?? 0} votos para revisar`}
+              >
+                <span style={{ width: `${totalVotes ? ((detail.reliableVotes ?? 0) / totalVotes) * 100 : 0}%` }} />
+              </div>
+              <div className="vote-actions">
+                <button
+                  className={`vote-button ${myVote === "reliable" ? "is-selected" : ""}`}
+                  disabled={Boolean(myVote) || voting}
+                  onClick={() => submitVote("reliable")}
+                  type="button"
+                >
+                  <span>↑</span> Sí, es confiable
+                </button>
+                <button
+                  className={`vote-button ${myVote === "needs_review" ? "is-selected is-negative" : ""}`}
+                  disabled={Boolean(myVote) || voting}
+                  onClick={() => submitVote("needs_review")}
+                  type="button"
+                >
+                  <span>↓</span> Necesita revisión
+                </button>
+              </div>
+              {myVote ? <p className="vote-note">Ya registraste tu voto para esta ficha.</p> : null}
+              {voteMessage ? <p className="vote-note">{voteMessage}</p> : null}
+            </section>
+            <div className="detail-actions">
+              <button className="button dark" disabled={!canEdit} onClick={() => setEditing(true)} type="button">
+                Editar datos
+              </button>
+              <button className="button ghost" onClick={onClose} type="button">
+                Cerrar
+              </button>
+            </div>
+            {!canEdit && (
+              <p className="detail-permission-note">Solo los roles de directorio pueden editar esta ficha.</p>
+            )}
+          </>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+function DirectoryBrowser({ user }) {
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
-  const [location, setLocation] = useState({
-    lat: "",
-    lng: "",
-    radiusKm: "50",
-  });
+  const [kind, setKind] = useState("all");
+  const [location, setLocation] = useState({ lat: "", lng: "", radiusKm: "50" });
+  const [selected, setSelected] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const closeDetail = useCallback(() => setSelected(null), []);
+  const canEdit = (user?.roles || []).some((role) => ["admin", "editor", "press", "directory"].includes(role));
   const load = () => {
     const geo =
       location.lat && location.lng ? `&lat=${location.lat}&lng=${location.lng}&radiusKm=${location.radiusKm}` : "";
+    setLoading(true);
     api(`/api/public/directory?q=${encodeURIComponent(query)}${geo}`)
       .then(setItems)
-      .catch((e) => setError(e.message));
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setLoading(false));
   };
   useEffect(() => {
     load();
   }, [query]);
+  const updateItem = (updated) => {
+    setItems((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+    setSelected((current) => (current?.id === updated.id ? { ...current, ...updated } : current));
+  };
+  const visibleItems = kind === "all" ? items : items.filter((item) => item.kind === kind);
+  const availableKinds = Object.entries(kinds).filter(([value]) => items.some((item) => item.kind === value));
+  const verifiedCount = visibleItems.filter((item) => item.verificationStatus === "verified").length;
+  const voteCount = visibleItems.reduce(
+    (sum, item) => sum + (item.reliableVotes ?? 0) + (item.unreliableVotes ?? 0),
+    0,
+  );
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Escena</p>
-        <h1>Directorio.</h1>
-        <p>Bandas, artistas, managers, salas, bares, festivales y organizaciones de la escena musical.</p>
-        <div className="actions editor-tools">
-          <input
-            aria-label="Buscar directorio"
-            placeholder="Buscar por nombre, ciudad o etiqueta"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <input
-            placeholder="Latitud"
-            value={location.lat}
-            onChange={(e) => setLocation({ ...location, lat: e.target.value })}
-          />
-          <input
-            placeholder="Longitud"
-            value={location.lng}
-            onChange={(e) => setLocation({ ...location, lng: e.target.value })}
-          />
-          <input
-            type="number"
-            min="1"
-            placeholder="Radio km"
-            value={location.radiusKm}
-            onChange={(e) => setLocation({ ...location, radiusKm: e.target.value })}
-          />
-          <button className="button" onClick={load}>
-            Filtrar distancia
-          </button>
+      <section className="directory-intro">
+        <div className="directory-intro-copy">
+          <p className="eyebrow">Escena · datos colaborativos</p>
+          <h1>
+            El mapa vivo
+            <br />
+            <em>de la escena.</em>
+          </h1>
+          <p>
+            Un directorio para encontrar a quienes hacen, producen y sostienen la música independiente. Abrí cada ficha
+            para consultar los datos completos, corregirlos o dejar una señal.
+          </p>
+        </div>
+        <div className="directory-intro-note">
+          <span className="intro-note-mark">✦</span>
+          <p>La información se revisa desde redacción y también se construye con la mirada de la comunidad.</p>
+          <span className="intro-note-caption">Una herramienta de Afterstage</span>
+        </div>
+      </section>
+      <section className="directory-workspace">
+        <div className="directory-stats">
+          <div>
+            <strong>{visibleItems.length}</strong>
+            <span>{kind === "all" ? "fichas en esta búsqueda" : `${kinds[kind]} en esta búsqueda`}</span>
+          </div>
+          <div>
+            <strong>{verifiedCount}</strong>
+            <span>con revisión editorial</span>
+          </div>
+          <div>
+            <strong>{voteCount}</strong>
+            <span>señales de la comunidad</span>
+          </div>
+        </div>
+        <div className="directory-toolbar">
+          <label className="directory-search">
+            <span>Buscar en el directorio</span>
+            <input
+              aria-label="Buscar en el directorio"
+              placeholder="Nombre, ciudad, tipo o etiqueta"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <div className="directory-type-filter">
+            <span className="directory-filter-label">Filtrar por tipo</span>
+            <div className="directory-type-options" role="group" aria-label="Filtrar por tipo">
+              <button
+                aria-pressed={kind === "all"}
+                className={`directory-type-button ${kind === "all" ? "is-active" : ""}`}
+                onClick={() => setKind("all")}
+                type="button"
+              >
+                Todos <small>{items.length}</small>
+              </button>
+              {availableKinds.map(([value, label]) => {
+                const count = items.filter((item) => item.kind === value).length;
+                return (
+                  <button
+                    aria-pressed={kind === value}
+                    className={`directory-type-button ${kind === value ? "is-active" : ""}`}
+                    key={value}
+                    onClick={() => setKind(value)}
+                    type="button"
+                  >
+                    {label} <small>{count}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <details className="distance-filter">
+            <summary>Buscar por distancia</summary>
+            <div className="distance-fields">
+              <label>
+                Latitud
+                <input
+                  inputMode="decimal"
+                  value={location.lat}
+                  onChange={(event) => setLocation({ ...location, lat: event.target.value })}
+                />
+              </label>
+              <label>
+                Longitud
+                <input
+                  inputMode="decimal"
+                  value={location.lng}
+                  onChange={(event) => setLocation({ ...location, lng: event.target.value })}
+                />
+              </label>
+              <label>
+                Radio km
+                <input
+                  type="number"
+                  min="1"
+                  value={location.radiusKm}
+                  onChange={(event) => setLocation({ ...location, radiusKm: event.target.value })}
+                />
+              </label>
+              <button className="button" onClick={load} type="button">
+                Aplicar
+              </button>
+            </div>
+          </details>
         </div>
         <ErrorMessage error={error} />
+        {loading ? (
+          <div className="directory-empty">
+            <span className="ui-state-dot" />
+            <p>Cargando fichas…</p>
+          </div>
+        ) : items.length && visibleItems.length ? (
+          <div className="directory-grid">
+            {visibleItems.map((item, index) => (
+              <DirectoryCard featured={index === 0} item={item} key={item.id} onOpen={setSelected} />
+            ))}
+          </div>
+        ) : (
+          <div className="directory-empty">
+            <strong>{items.length ? "No hay fichas de este tipo." : "No encontramos esa ficha."}</strong>
+            <p>
+              {items.length
+                ? "Probá con otro filtro o volvé a ver todos los tipos."
+                : "Probá con otro nombre, ciudad o etiqueta."}
+            </p>
+            {items.length > 0 && visibleItems.length === 0 && (
+              <button className="button button-secondary" onClick={() => setKind("all")} type="button">
+                Ver todos los tipos
+              </button>
+            )}
+          </div>
+        )}
       </section>
-      <Cards items={items} />
+      {selected && <DirectoryDetail canEdit={canEdit} item={selected} onClose={closeDetail} onUpdated={updateItem} />}
     </Layout>
   );
 }
@@ -198,13 +662,53 @@ function DirectoryBrowser() {
 export function DirectoryPage() {
   return (
     <AuthGate allowedRoles={["admin", "editor", "press", "directory", "auditor"]}>
-      <DirectoryBrowser />
+      {(user) => <DirectoryBrowser user={user} />}
     </AuthGate>
   );
 }
 
+function AdminCards({ items, onVerify, scores = {}, onScoreChange }) {
+  return (
+    <div className="cards">
+      {items.map((item) => (
+        <article className="card" key={item.id}>
+          <small>
+            {kinds[item.kind] || item.kind} · {item.city || item.country}
+          </small>
+          <p className={`verification-badge verification-${item.verificationStatus}`}>
+            {verificationLabels[item.verificationStatus] || "Sin verificar"} · {item.reliabilityScore ?? 0}% editorial
+          </p>
+          <h2>{item.name}</h2>
+          <p>{item.description}</p>
+          <div className="verification-actions">
+            <label>
+              Fiabilidad %
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={scores[item.id] ?? item.reliabilityScore ?? 0}
+                onChange={(event) => onScoreChange(item.id, event.target.value)}
+              />
+            </label>
+            <button type="button" className="button" onClick={() => onVerify(item.id, "verified")}>
+              Correcto
+            </button>
+            <button type="button" className="button ghost" onClick={() => onVerify(item.id, "stale")}>
+              Marcar viejo
+            </button>
+            <button type="button" className="button ghost" onClick={() => onVerify(item.id, "incorrect")}>
+              Incorrecto
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function AdminDirectoryEditor() {
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(empty);
   const [query, setQuery] = useState("");
@@ -226,10 +730,7 @@ function AdminDirectoryEditor() {
   const submit = async (event) => {
     event.preventDefault();
     try {
-      await api("/api/directory", {
-        method: "POST",
-        body: JSON.stringify(toPayload(form)),
-      });
+      await api("/api/directory", { method: "POST", body: JSON.stringify(toPayload(form)) });
       setForm(empty);
       load();
     } catch (e) {
@@ -241,10 +742,7 @@ function AdminDirectoryEditor() {
       const item = items.find((entry) => entry.id === id);
       await api(`/api/directory/${id}/verification`, {
         method: "POST",
-        body: JSON.stringify({
-          status,
-          reliabilityScore: Number(scores[id] ?? item?.reliabilityScore ?? 0),
-        }),
+        body: JSON.stringify({ status, reliabilityScore: Number(scores[id] ?? item?.reliabilityScore ?? 0) }),
       });
       load();
     } catch (e) {
@@ -299,7 +797,7 @@ function AdminDirectoryEditor() {
       <div className="actions editor-tools">
         <input placeholder="Buscar directorio" value={query} onChange={(e) => setQuery(e.target.value)} />
       </div>
-      <Cards
+      <AdminCards
         items={items}
         onVerify={verify}
         scores={scores}

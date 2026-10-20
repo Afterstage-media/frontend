@@ -16,7 +16,7 @@ export function ArticlePage() {
   }, [slug]);
   useEffect(() => {
     if (!item) return undefined;
-    const title = `${item.seoTitle || item.title} — Medio Under`;
+    const title = `${item.seoTitle || item.title} — afterstage`;
     document.title = title;
     const description = item.seoDescription || item.summary;
     const upsertMeta = (selector, attributes, content) => {
@@ -39,7 +39,7 @@ export function ArticlePage() {
     }
     canonical.setAttribute("href", item.canonicalUrl || window.location.href.split("?")[0]);
     return () => {
-      document.title = "Medio Under";
+      document.title = "afterstage";
     };
   }, [item]);
   if (error)
@@ -80,7 +80,7 @@ export function ArticlePage() {
     <Layout>
       <article className="article">
         <small>
-          {item.type || "Nota"} · {item.author || "Medio Under"}
+          {item.type || "Nota"} · {item.author || "afterstage"}
         </small>
         <h1>{item.title}</h1>
         <p className="lead">{item.summary}</p>

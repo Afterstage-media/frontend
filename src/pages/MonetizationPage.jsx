@@ -17,6 +17,22 @@ const initial = {
   contactPreference: "email",
 };
 
+const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const validatePromotionForm = (values) => {
+  if (!values.customerName.trim()) return "Ingresá tu nombre y apellido.";
+  if (!values.customerEmail.trim()) return "Ingresá un email para poder contactarte.";
+  if (!isEmail(values.customerEmail.trim())) return "Ingresá un email válido para poder contactarte.";
+  if (!values.title.trim()) return "Ingresá el título del evento o lanzamiento.";
+  if (values.description.trim().length < 10) return "La descripción debe tener al menos 10 caracteres.";
+  return "";
+};
+
+const normalizePromotionForm = (values) =>
+  Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]),
+  );
+
 export function MonetizationPage() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(initial);
@@ -35,10 +51,18 @@ export function MonetizationPage() {
   const change = (event) => setForm({ ...form, [event.target.name]: event.target.value });
   const submit = async (event) => {
     event.preventDefault();
+    const validationError = validatePromotionForm(form);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const data = await api("/api/public/promotions", { method: "POST", body: JSON.stringify(form) });
+      const data = await api("/api/public/promotions", {
+        method: "POST",
+        body: JSON.stringify(normalizePromotionForm(form)),
+      });
       setResult(data);
       if (data.paymentUrl) window.location.assign(data.paymentUrl);
     } catch (e) {
@@ -53,7 +77,7 @@ export function MonetizationPage() {
         <section className="page-intro">
           <p className="eyebrow">Solicitud recibida</p>
           <h1>Ya estamos en contacto.</h1>
-          <p>Guardamos tu pedido. El equipo de Medio Under te va a escribir para coordinar el servicio y el pago.</p>
+          <p>Guardamos tu pedido. El equipo de afterstage te va a escribir para coordinar el servicio y el pago.</p>
           <p className="muted">Código: {result.id}</p>
         </section>
       </Layout>
@@ -86,7 +110,7 @@ export function MonetizationPage() {
             </button>
           ))}
         </div>
-        <form className="form editor-form" onSubmit={submit}>
+        <form className="form editor-form" noValidate onSubmit={submit}>
           <h2>{selected?.name || "Elegí un servicio"}</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
           {[

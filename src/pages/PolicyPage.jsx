@@ -4,7 +4,7 @@ export function PolicyPage() {
   return (
     <Layout>
       <article className="article">
-        <p className="eyebrow">Medio Under</p>
+        <p className="eyebrow">afterstage</p>
         <h1>Política editorial.</h1>
         <p className="lead">
           Periodismo musical independiente con fuentes claras, créditos completos y respeto por las escenas que
@@ -39,7 +39,7 @@ export function CreditsPage() {
   return (
     <Layout>
       <article className="article">
-        <p className="eyebrow">Medio Under</p>
+        <p className="eyebrow">afterstage</p>
         <h1>Código de créditos.</h1>
         <p className="lead">Reconocemos a las personas y organizaciones que hacen posible cada cobertura.</p>
         <h2>Fotografía y video</h2>

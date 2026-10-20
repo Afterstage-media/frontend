@@ -13,6 +13,7 @@ import { ReplacementsPage, AdminReplacementsPage } from "../pages/ReplacementsPa
 import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { MonetizationPage, AdminMonetizationPage } from "../pages/MonetizationPage.jsx";
+import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
 
 function NotFoundPage() {
@@ -61,6 +62,7 @@ export function App() {
       <Route path="/admin/prensa" element={<PressPage />} />
       <Route path="/admin/reemplazos" element={<AdminReplacementsPage />} />
       <Route path="/admin/directorio" element={<AdminDirectoryPage />} />
+      <Route path="/cuenta/accesos-ia" element={<AiAccessPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

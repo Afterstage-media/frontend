@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { api } from "../services/api.js";
 
-const themeStorageKey = "medio-under-theme-v2";
+const themeStorageKey = "afterstage-theme-v2";
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
@@ -26,7 +26,7 @@ export function Layout({ children }) {
 
   useEffect(() => {
     const refreshRoles = () => {
-      if (!localStorage.getItem("medio-under-token")) {
+      if (!localStorage.getItem("afterstage-token")) {
         setRoles([]);
         return;
       }
@@ -35,8 +35,8 @@ export function Layout({ children }) {
         .catch(() => setRoles([]));
     };
     refreshRoles();
-    window.addEventListener("medio-under-auth-changed", refreshRoles);
-    return () => window.removeEventListener("medio-under-auth-changed", refreshRoles);
+    window.addEventListener("afterstage-auth-changed", refreshRoles);
+    return () => window.removeEventListener("afterstage-auth-changed", refreshRoles);
   }, []);
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export function Layout({ children }) {
           <span className="pointer-glow" />
         </div>
         <Link className="brand" to="/">
-          <span className="mark" /> MEDIO UNDER
+          <span className="mark" /> AFTERSTAGE
         </Link>
         <button
           aria-expanded={menuOpen}
@@ -162,7 +162,8 @@ export function Layout({ children }) {
           {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
           {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
           {can("admin", "editor", "press", "community", "social") && <NavLink to="/reemplazos">Reemplazos</NavLink>}
-          <NavLink aria-label="Buscar en Medio Under" className="header-search" to="/notas">
+          {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+          <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
             ⌕
           </NavLink>
           {can("admin", "editor") && (
@@ -178,7 +179,7 @@ export function Layout({ children }) {
       </header>
       <main id="main-content">{children}</main>
       <footer>
-        <strong>MEDIO UNDER</strong>
+        <strong>AFTERSTAGE</strong>
         <span>Periodismo musical para la escena que hace.</span>
         <span>
           <Link to="/politica-editorial">Política editorial</Link> · <Link to="/codigo-de-creditos">Créditos</Link>

@@ -59,7 +59,7 @@ export function HomeHero() {
 
 export function HomeQuickLinks() {
   return (
-    <nav className="home-quick-links" aria-label="Explorar Medio Under">
+    <nav className="home-quick-links" aria-label="Explorar afterstage">
       {quickLinks.map((item) => (
         <Link className={`quick-link ${item.className}`} key={item.title} to={item.to}>
           <span className="quick-link-sheet">

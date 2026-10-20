@@ -45,7 +45,7 @@ export function HomePage() {
         ) : (
           <EmptyState
             title="El archivo está tomando forma."
-            message="Encontrar un plan en la agenda también es parte de la escena. Conocé cómo podés ser parte de Medio Under."
+            message="Encontrar un plan en la agenda también es parte de la escena. Conocé cómo podés ser parte de afterstage."
             action={
               <Link className="button ghost" to="/colaborador">
                 Sumate a la escena ↗

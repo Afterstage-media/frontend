@@ -1,0 +1,323 @@
+.ai-access-hero {
+  align-items: end;
+  border-bottom: var(--border);
+  display: flex;
+  gap: var(--space-xl);
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1180px;
+  min-height: 360px;
+  padding: 80px var(--gutter) 66px;
+  position: relative;
+}
+
+.ai-access-hero::after {
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+  content: "";
+  height: 300px;
+  opacity: 0.55;
+  position: absolute;
+  right: -135px;
+  top: -140px;
+  width: 300px;
+}
+
+.ai-access-hero h1 {
+  font-size: clamp(4rem, 10vw, 8rem);
+  letter-spacing: var(--tracking-tight);
+  line-height: 0.82;
+  margin: 0 0 28px;
+  max-width: 8ch;
+}
+
+.ai-access-lede {
+  color: var(--color-muted);
+  font-size: 1.05rem;
+  margin: 0;
+  max-width: 56ch;
+}
+
+.ai-access-counter {
+  border-left: 1px solid var(--color-ink);
+  display: grid;
+  gap: 3px;
+  min-width: 155px;
+  padding-left: var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.ai-access-counter strong {
+  font-family: var(--font-display);
+  font-size: 4.4rem;
+  letter-spacing: var(--tracking-tight);
+  line-height: 0.8;
+}
+
+.ai-access-counter span,
+.ai-access-scopes-label,
+.ai-access-date {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.ai-access-main {
+  display: grid;
+  gap: clamp(32px, 7vw, 90px);
+  grid-template-columns: minmax(190px, 0.34fr) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 74px var(--gutter) 110px;
+}
+
+.ai-access-aside {
+  border-top: 2px solid var(--color-ink);
+  padding-top: var(--space-md);
+}
+
+.ai-access-index {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.ai-access-aside h2,
+.ai-access-list-heading h2 {
+  font-size: clamp(1.75rem, 3vw, 2.8rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 0.95;
+  margin: 16px 0;
+}
+
+.ai-access-aside p {
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 30ch;
+}
+
+.ai-access-rule {
+  border-top: var(--border-soft);
+  margin: 48px 0 20px;
+  width: 100%;
+}
+
+.ai-access-list-heading {
+  align-items: end;
+  border-bottom: var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: var(--space-md);
+}
+
+.ai-access-list-heading h2 {
+  margin-bottom: 0;
+}
+
+.ai-access-list-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.ai-access-connections {
+  display: grid;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+}
+
+.ai-access-connection {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  padding: clamp(18px, 3vw, 28px);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.ai-access-connection:hover {
+  border-color: var(--color-ink);
+  box-shadow: 6px 6px 0 var(--color-accent);
+  transform: translate(-2px, -2px);
+}
+
+.ai-access-connection-topline,
+.ai-access-connection-body {
+  align-items: center;
+  display: flex;
+  gap: var(--space-md);
+  justify-content: space-between;
+}
+
+.ai-access-status {
+  align-items: center;
+  color: var(--color-success);
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 7px;
+  text-transform: uppercase;
+}
+
+.ai-access-status span {
+  background: currentColor;
+  border-radius: 50%;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.ai-access-connection-body {
+  align-items: end;
+  border-bottom: var(--border-soft);
+  padding: 26px 0 22px;
+}
+
+.ai-access-connection h3 {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 0.9;
+  margin: 0 0 10px;
+}
+
+.ai-access-connection-body p,
+.ai-access-expiry {
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.button.danger {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+.button.danger:hover {
+  background: var(--color-danger);
+  box-shadow: 5px 5px 0 var(--color-ink);
+  color: var(--color-on-ink);
+}
+
+.ai-access-scopes {
+  display: grid;
+  gap: 12px;
+  padding: 20px 0 16px;
+}
+
+.ai-access-scopes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ai-access-scope {
+  border: 1px solid color-mix(in srgb, var(--color-accent) 60%, var(--color-ink));
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  padding: 6px 9px;
+}
+
+.ai-access-expiry {
+  color: var(--color-muted);
+}
+
+.ai-access-state {
+  align-items: center;
+  border: var(--border-dashed);
+  color: var(--color-muted);
+  display: flex;
+  gap: 12px;
+  margin-top: var(--space-md);
+  min-height: 170px;
+  padding: var(--space-xl);
+}
+
+.ai-access-pulse {
+  animation: ai-access-pulse 1.2s ease-in-out infinite;
+  background: var(--color-accent);
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+}
+
+.ai-access-empty {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+}
+
+.ai-access-empty strong {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  letter-spacing: var(--tracking-heading);
+}
+
+.ai-access-empty p {
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 50ch;
+}
+
+.ai-access-state-mark {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 3rem;
+  line-height: 0.7;
+}
+
+@keyframes ai-access-pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.55);
+  }
+}
+
+@media (max-width: 750px) {
+  .ai-access-hero {
+    align-items: start;
+    display: grid;
+    min-height: 0;
+    padding-bottom: 46px;
+    padding-top: 58px;
+  }
+
+  .ai-access-hero h1 {
+    font-size: clamp(3.6rem, 18vw, 6rem);
+  }
+
+  .ai-access-counter {
+    border-left: 0;
+    border-top: var(--border);
+    padding-left: 0;
+    padding-top: 14px;
+  }
+
+  .ai-access-main {
+    display: block;
+    padding-bottom: 70px;
+    padding-top: 48px;
+  }
+
+  .ai-access-aside {
+    margin-bottom: 52px;
+  }
+
+  .ai-access-rule {
+    margin-top: 28px;
+  }
+
+  .ai-access-connection-topline,
+  .ai-access-connection-body {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .ai-access-connection-body .button {
+    width: 100%;
+  }
+}

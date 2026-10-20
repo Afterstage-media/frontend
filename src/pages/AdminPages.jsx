@@ -1,20 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
-const nextStatuses = {
-  idea: ["idea", "draft"],
-  draft: ["draft", "idea", "review"],
-  review: ["review", "draft", "approved"],
-  approved: ["approved", "draft", "scheduled", "publishing"],
-  scheduled: ["scheduled", "approved", "publishing"],
-  publishing: ["publishing", "published", "failed"],
-  published: ["published"],
-  failed: ["failed", "draft", "approved", "publishing"],
-};
 const labels = {
   idea: "Idea",
   draft: "Borrador",
@@ -23,6 +13,17 @@ const labels = {
   scheduled: "Programado",
   published: "Publicado",
   failed: "Error",
+};
+const workflowStages = [
+  { key: "draft", label: "Borrador", description: "Escribí y guardá la pieza." },
+  { key: "review", label: "Revisión", description: "Dejala lista para validar." },
+  { key: "publish", label: "Publicación", description: "Publicá o programá los canales." },
+];
+
+const workflowStageFor = (status) => {
+  if (["review", "approved"].includes(status)) return "review";
+  if (["scheduled", "publishing", "published"].includes(status)) return "publish";
+  return "draft";
 };
 export function TokenGate({ onReady }) {
   return <LoginForm onReady={onReady} />;
@@ -49,7 +50,7 @@ function AdminDashboard({ actor }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const navigate = useNavigate();
   const load = () =>
     api("/api/content")
@@ -108,8 +109,8 @@ function AdminDashboard({ actor }) {
           <button
             className="button ghost"
             onClick={() => {
-              localStorage.removeItem("medio-under-token");
-              window.dispatchEvent(new Event("medio-under-auth-changed"));
+              localStorage.removeItem("afterstage-token");
+              window.dispatchEvent(new Event("afterstage-auth-changed"));
               setAuthorized(false);
             }}
           >
@@ -212,11 +213,24 @@ function NewContentEditor() {
   };
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Redacción</p>
-        <h1>Nueva publicación.</h1>
+      <section className="editor-page editor-page-create">
+        <div className="editor-page-header">
+          <div>
+            <Link className="editor-back" to="/admin">
+              ← Volver a redacción
+            </Link>
+            <div className="editor-kicker">
+              <span>Redacción</span>
+              <span className="status-badge status-draft">Nuevo borrador</span>
+            </div>
+            <h1>Nueva publicación</h1>
+            <p className="editor-header-copy">Abrí una nueva pieza editorial y dejala lista para revisar.</p>
+          </div>
+        </div>
+        <div className="editor-layout editor-layout-single">
+          <ContentForm onSubmit={submit} error={error} status={status} submitLabel="Crear borrador" />
+        </div>
       </section>
-      <ContentForm onSubmit={submit} error={error} status={status} submitLabel="Crear borrador" />
     </Layout>
   );
 }
@@ -229,74 +243,228 @@ export function NewContentPage() {
   );
 }
 
-function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cambios" }) {
+function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cambios", formRef }) {
   const scheduled = item?.scheduledAt ? new Date(item.scheduledAt).toISOString().slice(0, 16) : "";
   return (
-    <form className="form editor-form" onSubmit={onSubmit}>
-      <label>
-        Tipo
-        <select name="type" defaultValue={item?.type || "article"}>
-          <option value="article">Nota</option>
-          <option value="post">Post</option>
-          <option value="carousel">Carrusel</option>
-          <option value="reel">Reel</option>
-          <option value="story">Story</option>
-        </select>
-      </label>
-      <label>
-        Título
-        <input name="title" required defaultValue={item?.title || ""} />
-      </label>
-      <label>
-        Bajada
-        <textarea name="summary" rows="3" defaultValue={item?.summary || ""} />
-      </label>
-      <label>
-        Cuerpo
-        <textarea name="body" required rows="12" defaultValue={item?.body || ""} />
-      </label>
-      <label>
-        Copy Instagram
-        <textarea name="instagramCopy" rows="4" defaultValue={item?.instagramCopy || ""} />
-      </label>
-      <label>
-        Copy Facebook
-        <textarea name="facebookCopy" rows="4" defaultValue={item?.facebookCopy || ""} />
-      </label>
-      <label>
-        Autor
-        <input name="author" defaultValue={item?.author || ""} />
-      </label>
-      <label>
-        Fotógrafo
-        <input name="photographer" defaultValue={item?.photographer || ""} />
-      </label>
-      <label>
-        Fuente
-        <input name="source" defaultValue={item?.source || ""} />
-      </label>
-      <label>
-        Programar publicación
-        <input name="scheduledAt" type="datetime-local" defaultValue={scheduled} />
-      </label>
-      <label>
-        Etiquetas
-        <input name="tags" defaultValue={(item?.tags || []).join(", ")} placeholder="música, under, recital" />
-      </label>
-      <fieldset>
-        <legend>Canales</legend>
-        <label>
-          <input type="checkbox" name="instagram" defaultChecked={item?.channels?.includes("instagram") ?? true} />{" "}
-          Instagram
-        </label>
-        <label>
-          <input type="checkbox" name="facebook" defaultChecked={item?.channels?.includes("facebook")} /> Facebook
-        </label>
-      </fieldset>
-      <button className="button dark">{submitLabel}</button>
-      <ErrorMessage error={error} />
-      {status && <p className="success">{status}</p>}
+    <form className="form editor-form" onSubmit={onSubmit} ref={formRef}>
+      <section className="editor-card editor-card-main">
+        <div className="editor-card-heading">
+          <div>
+            <p className="eyebrow">Contenido</p>
+            <h2>La pieza editorial</h2>
+          </div>
+          <span className="editor-card-index">01</span>
+        </div>
+        <div className="editor-form-grid">
+          <label className="field field-half">
+            <span>Formato</span>
+            <select name="type" defaultValue={item?.type || "article"}>
+              <option value="article">Nota</option>
+              <option value="post">Post</option>
+              <option value="carousel">Carrusel</option>
+              <option value="reel">Reel</option>
+              <option value="story">Story</option>
+            </select>
+          </label>
+          <label className="field field-half">
+            <span>Etiquetas</span>
+            <input name="tags" defaultValue={(item?.tags || []).join(", ")} placeholder="música, under, recital" />
+          </label>
+          <label className="field field-wide field-title">
+            <span>
+              Título <small>Obligatorio</small>
+            </span>
+            <input
+              name="title"
+              required
+              defaultValue={item?.title || ""}
+              placeholder="Un título claro, directo y con ritmo"
+            />
+          </label>
+          <label className="field field-wide">
+            <span>
+              Bajada <small>Resumen visible en la portada</small>
+            </span>
+            <textarea
+              name="summary"
+              rows="3"
+              defaultValue={item?.summary || ""}
+              placeholder="Una frase que ubique la historia y dé ganas de seguir leyendo."
+            />
+          </label>
+          <label className="field field-wide field-body">
+            <span>
+              Cuerpo <small>Podés escribir en texto plano</small>
+            </span>
+            <textarea
+              name="body"
+              required
+              rows="16"
+              defaultValue={item?.body || ""}
+              placeholder="Desarrollá la historia acá…"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="editor-card">
+        <div className="editor-card-heading">
+          <div>
+            <p className="eyebrow">Distribución</p>
+            <h2>Copys y créditos</h2>
+          </div>
+          <span className="editor-card-index">02</span>
+        </div>
+        <div className="editor-form-grid">
+          <label className="field field-half">
+            <span>Copy para Instagram</span>
+            <textarea
+              name="instagramCopy"
+              rows="5"
+              defaultValue={item?.instagramCopy || ""}
+              placeholder="Texto para acompañar la publicación…"
+            />
+          </label>
+          <label className="field field-half">
+            <span>Copy para Facebook</span>
+            <textarea
+              name="facebookCopy"
+              rows="5"
+              defaultValue={item?.facebookCopy || ""}
+              placeholder="Texto para compartir la nota…"
+            />
+          </label>
+          <label className="field field-third">
+            <span>Autor</span>
+            <input name="author" defaultValue={item?.author || ""} placeholder="Nombre y apellido" />
+          </label>
+          <label className="field field-third">
+            <span>Fotógrafo</span>
+            <input name="photographer" defaultValue={item?.photographer || ""} placeholder="Nombre y apellido" />
+          </label>
+          <label className="field field-third">
+            <span>Fuente</span>
+            <input name="source" defaultValue={item?.source || ""} placeholder="Link o referencia" />
+          </label>
+        </div>
+      </section>
+
+      <section className="editor-card editor-card-last">
+        <div className="editor-card-heading">
+          <div>
+            <p className="eyebrow">Configuración</p>
+            <h2>Salida y canales</h2>
+          </div>
+          <span className="editor-card-index">03</span>
+        </div>
+        <div className="editor-form-grid editor-form-grid-meta">
+          <label className="field field-half">
+            <span>Programar publicación</span>
+            <input name="scheduledAt" type="datetime-local" defaultValue={scheduled} />
+          </label>
+          <fieldset className="channels-fieldset field-half">
+            <legend>Canales de distribución</legend>
+            <label>
+              <input type="checkbox" name="instagram" defaultChecked={item?.channels?.includes("instagram") ?? true} />
+              Instagram
+            </label>
+            <label>
+              <input type="checkbox" name="facebook" defaultChecked={item?.channels?.includes("facebook")} />
+              Facebook
+            </label>
+          </fieldset>
+        </div>
+        <div className="editor-form-footer">
+          <div>
+            <ErrorMessage error={error} />
+            {status && <p className="success">{status}</p>}
+          </div>
+          <button className="button dark">{submitLabel}</button>
+        </div>
+      </section>
     </form>
+  );
+}
+
+function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
+  const currentStage = workflowStageFor(item.status);
+  const currentIndex = workflowStages.findIndex((stage) => stage.key === currentStage);
+  const isPublished = item.status === "published";
+  const canPublish = ["approved", "scheduled", "failed"].includes(item.status);
+
+  return (
+    <section className="editor-side-card editor-workflow-card">
+      <div className="editor-side-heading">
+        <div>
+          <p className="eyebrow">Flujo editorial</p>
+          <h2>Qué sigue</h2>
+        </div>
+        <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
+      </div>
+      <ol className="workflow-steps" aria-label="Progreso editorial">
+        {workflowStages.map((stage, index) => (
+          <li
+            className={`${index < currentIndex ? "is-complete" : ""} ${index === currentIndex ? "is-current" : ""}`}
+            key={stage.key}
+          >
+            <span className="workflow-step-number">{index < currentIndex ? "✓" : index + 1}</span>
+            <span>
+              <strong>{stage.label}</strong>
+              <small>{stage.description}</small>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="workflow-next">
+        <span>Estado actual</span>
+        <strong>{isPublished ? "La nota ya está publicada" : workflowStages[currentIndex]?.label}</strong>
+        <p>
+          {isPublished
+            ? "Podés editar el contenido sin volver a recorrer el flujo."
+            : "Guardá los cambios antes de avanzar al próximo paso."}
+        </p>
+      </div>
+      <div className="workflow-actions">
+        {item.status === "idea" && (
+          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+            Empezar borrador
+          </button>
+        )}
+        {["draft", "failed"].includes(item.status) && (
+          <button className="button dark button-wide" onClick={() => onTransition("review")} type="button">
+            Enviar a revisión
+          </button>
+        )}
+        {item.status === "review" && (
+          <>
+            <button className="button dark button-wide" onClick={() => onTransition("approved")} type="button">
+              Aprobar nota
+            </button>
+            <button className="button ghost button-wide" onClick={() => onTransition("draft")} type="button">
+              Volver a borrador
+            </button>
+          </>
+        )}
+        {item.status === "approved" && item.scheduledAt && (
+          <button className="button ghost button-wide" onClick={() => onTransition("scheduled")} type="button">
+            Programar publicación
+          </button>
+        )}
+        {canPublish && (
+          <button className="button dark button-wide" onClick={() => onPublish(false)} type="button">
+            Publicar ahora
+          </button>
+        )}
+        {item.status === "publishing" && <p className="publish-hint">La publicación está en proceso.</p>}
+        {isPublished && <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>}
+      </div>
+      <details className="editor-advanced-actions">
+        <summary>Acciones avanzadas</summary>
+        <button className="button ghost button-wide" onClick={onPreview} type="button">
+          Simular publicación
+        </button>
+      </details>
+    </section>
   );
 }
 
@@ -307,6 +475,7 @@ function ContentEditorPage() {
   const [status, setStatus] = useState("");
   const [instructions, setInstructions] = useState("");
   const [files, setFiles] = useState([]);
+  const formRef = useRef(null);
   const navigate = useNavigate();
   const load = () =>
     api(`/api/content/${id}`)
@@ -324,34 +493,38 @@ function ContentEditorPage() {
         </section>
       </Layout>
     );
+  const saveCurrent = async () => {
+    if (!formRef.current) return;
+    const data = new FormData(formRef.current);
+    await api(`/api/content/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        type: data.get("type"),
+        title: data.get("title"),
+        summary: data.get("summary"),
+        body: data.get("body"),
+        instagramCopy: data.get("instagramCopy"),
+        facebookCopy: data.get("facebookCopy"),
+        scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
+        author: data.get("author"),
+        photographer: data.get("photographer"),
+        source: data.get("source"),
+        tags: String(data.get("tags") || "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+        channels: [
+          "website",
+          ...(data.get("instagram") ? ["instagram"] : []),
+          ...(data.get("facebook") ? ["facebook"] : []),
+        ],
+      }),
+    });
+  };
   const update = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
     try {
-      await api(`/api/content/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          type: data.get("type"),
-          title: data.get("title"),
-          summary: data.get("summary"),
-          body: data.get("body"),
-          instagramCopy: data.get("instagramCopy"),
-          facebookCopy: data.get("facebookCopy"),
-          scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
-          author: data.get("author"),
-          photographer: data.get("photographer"),
-          source: data.get("source"),
-          tags: String(data.get("tags") || "")
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean),
-          channels: [
-            "website",
-            ...(data.get("instagram") ? ["instagram"] : []),
-            ...(data.get("facebook") ? ["facebook"] : []),
-          ],
-        }),
-      });
+      await saveCurrent();
       setStatus("Cambios guardados.");
       load();
     } catch (e) {
@@ -360,6 +533,7 @@ function ContentEditorPage() {
   };
   const transition = async (next) => {
     try {
+      await saveCurrent();
       await api(`/api/content/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status: next }),
@@ -413,58 +587,99 @@ function ContentEditorPage() {
   };
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Editor · {labels[item.status] || item.status}</p>
-        <h1>{item.title}</h1>
-        <button className="button ghost" onClick={() => navigate("/admin")}>
-          ← Volver
-        </button>
-      </section>
-      <ContentForm item={item} onSubmit={update} error={error} status={status} />
-      <section className="editor-tools">
-        <h2>Asistencia y publicación</h2>
-        <textarea
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          placeholder="Indicaciones para la IA (opcional)"
-          rows="3"
-        />
-        <div className="actions">
-          <button className="button" onClick={() => generate("full_article")}>
-            Generar nota
-          </button>
-          <button className="button" onClick={() => generate("social_copy")}>
-            Generar copys
-          </button>
-          <button className="button" onClick={() => generate("improve")}>
-            Mejorar texto
-          </button>
+      <section className="editor-page">
+        <div className="editor-page-header">
+          <div>
+            <button className="editor-back" onClick={() => navigate("/admin")} type="button">
+              ← Volver a redacción
+            </button>
+            <div className="editor-kicker">
+              <span>Editor</span>
+              <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
+            </div>
+            <h1>Editar publicación</h1>
+            <p className="editor-header-copy">Revisá el contenido, prepará los canales y dejalo listo para publicar.</p>
+          </div>
+          <div className="editor-header-meta">
+            <span className="editor-meta-label">Último cambio</span>
+            <strong>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString("es-AR") : "Sin registrar"}</strong>
+          </div>
         </div>
-        <label className="upload">
-          Imágenes o videos
-          <input type="file" accept="image/*,video/*" multiple onChange={(e) => setFiles(e.target.files)} />
-        </label>
-        <button className="button" onClick={upload} disabled={!files.length}>
-          Subir medios
-        </button>
-        <div className="actions">
-          <select value={item.status} onChange={(e) => transition(e.target.value)}>
-            {(nextStatuses[item.status] || statuses).map((s) => (
-              <option key={s} value={s}>
-                {labels[s]}
-              </option>
-            ))}
-          </select>
-          <button className="button ghost" onClick={() => publish(true)}>
-            Simular publicación
-          </button>
-          <button
-            className="button dark"
-            disabled={!["approved", "scheduled", "failed"].includes(item.status)}
-            onClick={() => publish(false)}
-          >
-            Publicar ahora
-          </button>
+        <div className="editor-layout">
+          <ContentForm
+            key={item.updatedAt}
+            item={item}
+            onSubmit={update}
+            error={error}
+            status={status}
+            formRef={formRef}
+          />
+          <aside className="editor-sidebar">
+            <section className="editor-side-card editor-ai-card">
+              <div className="editor-side-heading">
+                <div>
+                  <p className="eyebrow">Asistencia</p>
+                  <h2>Trabajá con IA</h2>
+                </div>
+                <span className="ai-mark">✦</span>
+              </div>
+              <p className="editor-side-copy">Dale una indicación breve y aplicá el resultado sobre este borrador.</p>
+              <label className="sr-only" htmlFor="ai-instructions">
+                Indicaciones para la IA
+              </label>
+              <textarea
+                id="ai-instructions"
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="Ej.: hacé la bajada más directa y cercana"
+                rows="5"
+              />
+              <div className="editor-ai-actions">
+                <button className="button" onClick={() => generate("full_article")} type="button">
+                  Generar nota
+                </button>
+                <button className="button" onClick={() => generate("social_copy")} type="button">
+                  Generar copys
+                </button>
+                <button className="button ghost" onClick={() => generate("improve")} type="button">
+                  Mejorar texto
+                </button>
+              </div>
+            </section>
+
+            <section className="editor-side-card">
+              <div className="editor-side-heading">
+                <div>
+                  <p className="eyebrow">Recursos</p>
+                  <h2>Medios</h2>
+                </div>
+              </div>
+              <label className="upload upload-dropzone">
+                <span className="upload-icon">＋</span>
+                <strong>
+                  {files.length
+                    ? files.length +
+                      " archivo" +
+                      (files.length > 1 ? "s" : "") +
+                      " seleccionado" +
+                      (files.length > 1 ? "s" : "")
+                    : "Agregar imágenes o videos"}
+                </strong>
+                <small>JPG, PNG, WEBP o MP4</small>
+                <input type="file" accept="image/*,video/*" multiple onChange={(e) => setFiles(e.target.files)} />
+              </label>
+              <button className="button ghost button-wide" onClick={upload} disabled={!files.length} type="button">
+                Subir medios
+              </button>
+            </section>
+
+            <EditorialWorkflow
+              item={item}
+              onTransition={transition}
+              onPublish={publish}
+              onPreview={() => publish(true)}
+            />
+          </aside>
         </div>
       </section>
     </Layout>
@@ -526,7 +741,7 @@ function MediaKitForm({ mediaKit, onSaved }) {
 function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("medio-under-token")));
+  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const [event, setEvent] = useState({
     name: "",
     artist: "",
