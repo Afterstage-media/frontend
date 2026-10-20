@@ -16,6 +16,7 @@ const app = await read("src/app/App.jsx");
 const article = await read("src/pages/ArticlePage.jsx");
 const admin = await read("src/pages/AdminPages.jsx");
 const replacements = await read("src/pages/ReplacementsPage.jsx");
+const monetization = await read("src/pages/MonetizationPage.jsx");
 const styles = await read("src/styles/responsive.css");
 
 assert.match(home, /LoadingState/);
@@ -43,6 +44,9 @@ assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "press"\]\}>/);
 assert.match(replacements, /useEffect\(\(\) => \{/);
 assert.match(replacements, /Todavía no hay búsquedas abiertas/);
+assert.match(monetization, /Ingresá un email para poder contactarte/);
+assert.match(monetization, /normalizePromotionForm/);
+assert.match(monetization, /noValidate onSubmit={submit}/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");
