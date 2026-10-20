@@ -159,7 +159,7 @@ export function MonetizationPage() {
             </select>
           </label>
           <ErrorMessage error={error} />
-          <button className="button dark" disabled={loading || !selected}>
+          <button className="button dark" disabled={loading || !selected} onClick={submit}>
             {loading ? "Enviando…" : selected?.priceArs ? "Continuar al pago ↗" : "Pedir presupuesto"}
           </button>
         </form>
