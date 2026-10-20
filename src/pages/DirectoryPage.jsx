@@ -489,6 +489,7 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
 function DirectoryBrowser({ user }) {
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
+  const [kind, setKind] = useState("all");
   const [location, setLocation] = useState({ lat: "", lng: "", radiusKm: "50" });
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState("");
@@ -511,8 +512,13 @@ function DirectoryBrowser({ user }) {
     setItems((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
     setSelected((current) => (current?.id === updated.id ? { ...current, ...updated } : current));
   };
-  const verifiedCount = items.filter((item) => item.verificationStatus === "verified").length;
-  const voteCount = items.reduce((sum, item) => sum + (item.reliableVotes ?? 0) + (item.unreliableVotes ?? 0), 0);
+  const visibleItems = kind === "all" ? items : items.filter((item) => item.kind === kind);
+  const availableKinds = Object.entries(kinds).filter(([value]) => items.some((item) => item.kind === value));
+  const verifiedCount = visibleItems.filter((item) => item.verificationStatus === "verified").length;
+  const voteCount = visibleItems.reduce(
+    (sum, item) => sum + (item.reliableVotes ?? 0) + (item.unreliableVotes ?? 0),
+    0,
+  );
   return (
     <Layout>
       <section className="directory-intro">
@@ -537,8 +543,8 @@ function DirectoryBrowser({ user }) {
       <section className="directory-workspace">
         <div className="directory-stats">
           <div>
-            <strong>{items.length}</strong>
-            <span>fichas en esta búsqueda</span>
+            <strong>{visibleItems.length}</strong>
+            <span>{kind === "all" ? "fichas en esta búsqueda" : `${kinds[kind]} en esta búsqueda`}</span>
           </div>
           <div>
             <strong>{verifiedCount}</strong>
@@ -559,6 +565,33 @@ function DirectoryBrowser({ user }) {
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
+          <div className="directory-type-filter">
+            <span className="directory-filter-label">Filtrar por tipo</span>
+            <div className="directory-type-options" role="group" aria-label="Filtrar por tipo">
+              <button
+                aria-pressed={kind === "all"}
+                className={`directory-type-button ${kind === "all" ? "is-active" : ""}`}
+                onClick={() => setKind("all")}
+                type="button"
+              >
+                Todos <small>{items.length}</small>
+              </button>
+              {availableKinds.map(([value, label]) => {
+                const count = items.filter((item) => item.kind === value).length;
+                return (
+                  <button
+                    aria-pressed={kind === value}
+                    className={`directory-type-button ${kind === value ? "is-active" : ""}`}
+                    key={value}
+                    onClick={() => setKind(value)}
+                    type="button"
+                  >
+                    {label} <small>{count}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <details className="distance-filter">
             <summary>Buscar por distancia</summary>
             <div className="distance-fields">
@@ -599,16 +632,25 @@ function DirectoryBrowser({ user }) {
             <span className="ui-state-dot" />
             <p>Cargando fichas…</p>
           </div>
-        ) : items.length ? (
+        ) : items.length && visibleItems.length ? (
           <div className="directory-grid">
-            {items.map((item, index) => (
+            {visibleItems.map((item, index) => (
               <DirectoryCard featured={index === 0} item={item} key={item.id} onOpen={setSelected} />
             ))}
           </div>
         ) : (
           <div className="directory-empty">
-            <strong>No encontramos esa ficha.</strong>
-            <p>Probá con otro nombre, ciudad o etiqueta.</p>
+            <strong>{items.length ? "No hay fichas de este tipo." : "No encontramos esa ficha."}</strong>
+            <p>
+              {items.length
+                ? "Probá con otro filtro o volvé a ver todos los tipos."
+                : "Probá con otro nombre, ciudad o etiqueta."}
+            </p>
+            {items.length > 0 && visibleItems.length === 0 && (
+              <button className="button button-secondary" onClick={() => setKind("all")} type="button">
+                Ver todos los tipos
+              </button>
+            )}
           </div>
         )}
       </section>

@@ -136,6 +136,62 @@
   padding: 24px 0;
 }
 
+.directory-type-filter {
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  display: grid;
+  gap: 10px;
+  grid-column: 1 / -1;
+  padding-top: 18px;
+}
+
+.directory-filter-label {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.directory-type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.directory-type-button {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 35%, transparent);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.directory-type-button:hover,
+.directory-type-button:focus-visible,
+.directory-type-button.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.directory-type-button small {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+.directory-type-button:hover small,
+.directory-type-button:focus-visible small,
+.directory-type-button.is-active small {
+  color: var(--color-accent);
+}
+
 .directory-search,
 .distance-fields label {
   display: grid;
@@ -686,6 +742,10 @@
 
   .directory-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .directory-type-filter {
+    grid-column: auto;
   }
 
   .distance-filter {
