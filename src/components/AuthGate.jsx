@@ -183,5 +183,5 @@ export function AuthGate({ allowedRoles, children }) {
       </Layout>
     );
 
-  return children;
+  return typeof children === "function" ? children(user) : children;
 }
