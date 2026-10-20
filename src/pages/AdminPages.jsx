@@ -1,20 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
-const nextStatuses = {
-  idea: ["idea", "draft"],
-  draft: ["draft", "idea", "review"],
-  review: ["review", "draft", "approved"],
-  approved: ["approved", "draft", "scheduled", "publishing"],
-  scheduled: ["scheduled", "approved", "publishing"],
-  publishing: ["publishing", "published", "failed"],
-  published: ["published"],
-  failed: ["failed", "draft", "approved", "publishing"],
-};
 const labels = {
   idea: "Idea",
   draft: "Borrador",
@@ -23,6 +13,17 @@ const labels = {
   scheduled: "Programado",
   published: "Publicado",
   failed: "Error",
+};
+const workflowStages = [
+  { key: "draft", label: "Borrador", description: "Escribí y guardá la pieza." },
+  { key: "review", label: "Revisión", description: "Dejala lista para validar." },
+  { key: "publish", label: "Publicación", description: "Publicá o programá los canales." },
+];
+
+const workflowStageFor = (status) => {
+  if (["review", "approved"].includes(status)) return "review";
+  if (["scheduled", "publishing", "published"].includes(status)) return "publish";
+  return "draft";
 };
 export function TokenGate({ onReady }) {
   return <LoginForm onReady={onReady} />;
@@ -241,10 +242,10 @@ export function NewContentPage() {
   );
 }
 
-function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cambios" }) {
+function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cambios", formRef }) {
   const scheduled = item?.scheduledAt ? new Date(item.scheduledAt).toISOString().slice(0, 16) : "";
   return (
-    <form className="form editor-form" onSubmit={onSubmit}>
+    <form className="form editor-form" onSubmit={onSubmit} ref={formRef}>
       <section className="editor-card editor-card-main">
         <div className="editor-card-heading">
           <div>
@@ -384,6 +385,83 @@ function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cam
   );
 }
 
+function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
+  const currentStage = workflowStageFor(item.status);
+  const currentIndex = workflowStages.findIndex((stage) => stage.key === currentStage);
+  const isPublished = item.status === "published";
+  const canPublish = ["approved", "scheduled", "failed"].includes(item.status);
+
+  return (
+    <section className="editor-side-card editor-workflow-card">
+      <div className="editor-side-heading">
+        <div>
+          <p className="eyebrow">Flujo editorial</p>
+          <h2>Qué sigue</h2>
+        </div>
+        <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
+      </div>
+      <ol className="workflow-steps" aria-label="Progreso editorial">
+        {workflowStages.map((stage, index) => (
+          <li
+            className={`${index < currentIndex ? "is-complete" : ""} ${index === currentIndex ? "is-current" : ""}`}
+            key={stage.key}
+          >
+            <span className="workflow-step-number">{index < currentIndex ? "✓" : index + 1}</span>
+            <span>
+              <strong>{stage.label}</strong>
+              <small>{stage.description}</small>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="workflow-next">
+        <span>Estado actual</span>
+        <strong>{isPublished ? "La nota ya está publicada" : workflowStages[currentIndex]?.label}</strong>
+        <p>
+          {isPublished
+            ? "Podés editar el contenido sin volver a recorrer el flujo."
+            : "Guardá los cambios antes de avanzar al próximo paso."}
+        </p>
+      </div>
+      <div className="workflow-actions">
+        {item.status === "idea" && (
+          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+            Empezar borrador
+          </button>
+        )}
+        {["draft", "failed"].includes(item.status) && (
+          <button className="button dark button-wide" onClick={() => onTransition("review")} type="button">
+            Enviar a revisión
+          </button>
+        )}
+        {item.status === "review" && (
+          <>
+            <button className="button dark button-wide" onClick={() => onTransition("approved")} type="button">
+              Aprobar nota
+            </button>
+            <button className="button ghost button-wide" onClick={() => onTransition("draft")} type="button">
+              Volver a borrador
+            </button>
+          </>
+        )}
+        {canPublish && (
+          <button className="button dark button-wide" onClick={() => onPublish(false)} type="button">
+            Publicar ahora
+          </button>
+        )}
+        {item.status === "publishing" && <p className="publish-hint">La publicación está en proceso.</p>}
+        {isPublished && <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>}
+      </div>
+      <details className="editor-advanced-actions">
+        <summary>Acciones avanzadas</summary>
+        <button className="button ghost button-wide" onClick={onPreview} type="button">
+          Simular publicación
+        </button>
+      </details>
+    </section>
+  );
+}
+
 function ContentEditorPage() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
@@ -391,6 +469,7 @@ function ContentEditorPage() {
   const [status, setStatus] = useState("");
   const [instructions, setInstructions] = useState("");
   const [files, setFiles] = useState([]);
+  const formRef = useRef(null);
   const navigate = useNavigate();
   const load = () =>
     api(`/api/content/${id}`)
@@ -408,34 +487,38 @@ function ContentEditorPage() {
         </section>
       </Layout>
     );
+  const saveCurrent = async () => {
+    if (!formRef.current) return;
+    const data = new FormData(formRef.current);
+    await api(`/api/content/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        type: data.get("type"),
+        title: data.get("title"),
+        summary: data.get("summary"),
+        body: data.get("body"),
+        instagramCopy: data.get("instagramCopy"),
+        facebookCopy: data.get("facebookCopy"),
+        scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
+        author: data.get("author"),
+        photographer: data.get("photographer"),
+        source: data.get("source"),
+        tags: String(data.get("tags") || "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+        channels: [
+          "website",
+          ...(data.get("instagram") ? ["instagram"] : []),
+          ...(data.get("facebook") ? ["facebook"] : []),
+        ],
+      }),
+    });
+  };
   const update = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
     try {
-      await api(`/api/content/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          type: data.get("type"),
-          title: data.get("title"),
-          summary: data.get("summary"),
-          body: data.get("body"),
-          instagramCopy: data.get("instagramCopy"),
-          facebookCopy: data.get("facebookCopy"),
-          scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
-          author: data.get("author"),
-          photographer: data.get("photographer"),
-          source: data.get("source"),
-          tags: String(data.get("tags") || "")
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean),
-          channels: [
-            "website",
-            ...(data.get("instagram") ? ["instagram"] : []),
-            ...(data.get("facebook") ? ["facebook"] : []),
-          ],
-        }),
-      });
+      await saveCurrent();
       setStatus("Cambios guardados.");
       load();
     } catch (e) {
@@ -444,6 +527,7 @@ function ContentEditorPage() {
   };
   const transition = async (next) => {
     try {
+      await saveCurrent();
       await api(`/api/content/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status: next }),
@@ -516,7 +600,14 @@ function ContentEditorPage() {
           </div>
         </div>
         <div className="editor-layout">
-          <ContentForm item={item} onSubmit={update} error={error} status={status} />
+          <ContentForm
+            key={item.updatedAt}
+            item={item}
+            onSubmit={update}
+            error={error}
+            status={status}
+            formRef={formRef}
+          />
           <aside className="editor-sidebar">
             <section className="editor-side-card editor-ai-card">
               <div className="editor-side-heading">
@@ -576,38 +667,12 @@ function ContentEditorPage() {
               </button>
             </section>
 
-            <section className="editor-side-card editor-publish-card">
-              <div className="editor-side-heading">
-                <div>
-                  <p className="eyebrow">Flujo editorial</p>
-                  <h2>Publicación</h2>
-                </div>
-              </div>
-              <label className="status-control">
-                <span>Estado actual</span>
-                <select value={item.status} onChange={(e) => transition(e.target.value)}>
-                  {(nextStatuses[item.status] || statuses).map((s) => (
-                    <option key={s} value={s}>
-                      {labels[s]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button className="button ghost button-wide" onClick={() => publish(true)} type="button">
-                Simular publicación
-              </button>
-              <button
-                className="button dark button-wide"
-                disabled={!["approved", "scheduled", "failed"].includes(item.status)}
-                onClick={() => publish(false)}
-                type="button"
-              >
-                Publicar ahora
-              </button>
-              {!["approved", "scheduled", "failed"].includes(item.status) && (
-                <small className="publish-hint">La publicación se habilita cuando el contenido esté aprobado.</small>
-              )}
-            </section>
+            <EditorialWorkflow
+              item={item}
+              onTransition={transition}
+              onPublish={publish}
+              onPreview={() => publish(true)}
+            />
           </aside>
         </div>
       </section>
