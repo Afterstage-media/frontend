@@ -43,7 +43,7 @@ function ContentCard({ item, onSelect }) {
   );
 }
 
-function AdminDashboard() {
+function AdminDashboard({ actor }) {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -100,6 +100,11 @@ function AdminDashboard() {
           <Link className="button" to="/admin/monetizacion">
             Monetización ↗
           </Link>
+          {actor.roles.includes("admin") && (
+            <Link className="button accent-outline" to="/admin/usuarios">
+              Usuarios ↗
+            </Link>
+          )}
           <button
             className="button ghost"
             onClick={() => {
@@ -163,11 +168,7 @@ function AdminDashboard() {
 }
 
 export function AdminPage() {
-  return (
-    <AuthGate allowedRoles={["admin", "editor"]}>
-      <AdminDashboard />
-    </AuthGate>
-  );
+  return <AuthGate allowedRoles={["admin", "editor"]}>{(actor) => <AdminDashboard actor={actor} />}</AuthGate>;
 }
 
 function NewContentEditor() {
