@@ -221,6 +221,10 @@ export function ServicesPage() {
                     <p className="eyebrow">{lane.eyebrow}</p>
                     <h2>{lane.title}</h2>
                     <p className="services-lane-description">{lane.description}</p>
+                    <div className="service-offerings-heading" aria-hidden="true">
+                      <span>Propuestas disponibles</span>
+                      <span>{String(laneProducts.length).padStart(2, "0")} opciones</span>
+                    </div>
                     <div className="service-offerings">
                       {laneProducts.map((product, index) => (
                         <ServiceOffering key={product.id} index={index} product={product} />

@@ -212,11 +212,11 @@
 
 .services-lane h2 {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 5.8rem);
+  font-size: clamp(2.25rem, 3.8vw, 4.6rem);
   letter-spacing: -0.075em;
   line-height: 0.84;
-  margin: 22px 0 24px;
-  max-width: 560px;
+  margin: 16px 0 20px;
+  max-width: 470px;
 }
 
 .services-lane-description {
@@ -227,6 +227,33 @@
   max-width: 540px;
 }
 
+.service-offerings-heading {
+  align-items: center;
+  border-bottom: 1px solid currentColor;
+  display: flex;
+  font-family: var(--font-display);
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.service-offerings-heading span:first-child {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.service-offerings-heading span:last-child {
+  color: var(--color-muted);
+  font-size: 0.66rem;
+}
+
+.services-lane-entradas .service-offerings-heading span:last-child,
+.services-lane-merch .service-offerings-heading span:last-child {
+  color: color-mix(in srgb, var(--color-on-ink) 72%, transparent);
+}
+
 .services-lane-entradas .services-lane-description,
 .services-lane-merch .services-lane-description {
   color: color-mix(in srgb, var(--color-on-ink) 75%, transparent);
@@ -234,18 +261,19 @@
 
 .service-offerings {
   display: grid;
-  gap: 0 18px;
+  gap: 10px 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .service-offering {
-  border-top: 1px solid currentColor;
+  background: color-mix(in srgb, var(--color-paper) 54%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 42%, transparent);
   display: flex;
   flex-direction: column;
   gap: 18px;
   justify-content: space-between;
-  min-height: 175px;
-  padding: 16px 0 4px;
+  min-height: 190px;
+  padding: 16px;
   transition: transform 220ms ease;
 }
 
@@ -263,7 +291,7 @@
 }
 
 .service-offering h3 {
-  font-size: 1.2rem;
+  font-size: clamp(1.25rem, 1.7vw, 1.65rem);
   letter-spacing: -0.04em;
   line-height: 1;
   margin: 10px 0 8px;
@@ -507,7 +535,7 @@
   }
 
   .services-lane h2 {
-    font-size: clamp(2.9rem, 14vw, 4.6rem);
+    font-size: clamp(2.65rem, 11vw, 4rem);
   }
 
   .service-offerings {
