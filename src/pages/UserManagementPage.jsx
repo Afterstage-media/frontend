@@ -247,6 +247,7 @@ function UserManagement() {
 
   const loadUsers = () => {
     setLoading(true);
+    setError("");
     api("/api/admin/users")
       .then(({ users: nextUsers }) => setUsers(nextUsers))
       .catch((requestError) => setError(requestError.message))
@@ -295,13 +296,9 @@ function UserManagement() {
               ← Volver al panel
             </Link>
             <p className="eyebrow">Administración · acceso interno</p>
-            <h1>
-              Las personas
-              <br />
-              que mueven el medio.
-            </h1>
+            <h1>Gestión de usuarios</h1>
             <p className="users-hero-copy">
-              Gestioná identidades, roles y accesos desde un solo lugar. Cada cambio queda bajo control de
+              Administrá identidades, roles y accesos desde un solo lugar. Los cambios quedan bajo control de
               administración.
             </p>
           </div>
@@ -367,8 +364,15 @@ function UserManagement() {
               </select>
             </label>
           </div>
-          <ErrorMessage error={error} />
-          {loading ? (
+          {error ? (
+            <div className="users-empty users-empty-error" role="alert">
+              <strong>{error}</strong>
+              <span>Revisá la conexión e intentá cargar el directorio nuevamente.</span>
+              <button className="button ghost" onClick={loadUsers} type="button">
+                Reintentar
+              </button>
+            </div>
+          ) : loading ? (
             <div className="users-empty">Cargando usuarios…</div>
           ) : visibleUsers.length ? (
             <div className="users-table-wrap">
