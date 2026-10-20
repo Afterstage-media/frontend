@@ -18,6 +18,8 @@ const admin = await read("src/pages/AdminPages.jsx");
 const replacements = await read("src/pages/ReplacementsPage.jsx");
 const monetization = await read("src/pages/MonetizationPage.jsx");
 const services = await read("src/pages/ServicesPage.jsx");
+const servicesStyles = await read("src/styles/pages/services.css");
+const navigationStyles = await read("src/styles/navigation.css");
 const styles = await read("src/styles/responsive.css");
 
 assert.match(home, /LoadingState/);
@@ -63,6 +65,9 @@ assert.match(services, /Propuestas disponibles/);
 assert.match(services, /data-parallax/);
 assert.match(services, /IntersectionObserver/);
 assert.match(services, /prefers-reduced-motion/);
+assert.match(servicesStyles, /top: var\(--services-header-offset\)/);
+assert.match(servicesStyles, /scroll-margin-top/);
+assert.match(navigationStyles, /position: sticky/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");
