@@ -46,7 +46,8 @@ assert.match(replacements, /useEffect\(\(\) => \{/);
 assert.match(replacements, /Todavía no hay búsquedas abiertas/);
 assert.match(monetization, /Ingresá un email para poder contactarte/);
 assert.match(monetization, /normalizePromotionForm/);
-assert.match(monetization, /noValidate onSubmit={submit}/);
+assert.match(monetization, /onInvalid=\{invalid\}/);
+assert.match(monetization, /noValidate onInvalid=\{invalid\} onSubmit=\{submit\}/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");

@@ -33,6 +33,13 @@ const normalizePromotionForm = (values) =>
     Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]),
   );
 
+const invalidFieldMessages = {
+  customerName: "Ingresá tu nombre y apellido.",
+  customerEmail: "Ingresá un email para poder contactarte.",
+  title: "Ingresá el título del evento o lanzamiento.",
+  description: "La descripción debe tener al menos 10 caracteres.",
+};
+
 export function MonetizationPage() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(initial);
@@ -48,7 +55,14 @@ export function MonetizationPage() {
       .catch((e) => setError(e.message));
   }, []);
   const selected = products.find((product) => product.id === form.productId);
-  const change = (event) => setForm({ ...form, [event.target.name]: event.target.value });
+  const change = (event) => {
+    setError("");
+    setForm({ ...form, [event.target.name]: event.target.value });
+  };
+  const invalid = (event) => {
+    event.preventDefault();
+    setError(invalidFieldMessages[event.target.name] || "Completá los campos obligatorios.");
+  };
   const submit = async (event) => {
     event.preventDefault();
     const validationError = validatePromotionForm(form);
@@ -110,7 +124,7 @@ export function MonetizationPage() {
             </button>
           ))}
         </div>
-        <form className="form editor-form" noValidate onSubmit={submit}>
+        <form className="form editor-form" noValidate onInvalid={invalid} onSubmit={submit}>
           <h2>{selected?.name || "Elegí un servicio"}</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
           {[
