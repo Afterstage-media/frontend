@@ -15,6 +15,7 @@
 
 .services-page {
   --parallax-y: 0px;
+  --services-header-offset: 86px;
 }
 
 .services-intro::before {
@@ -110,8 +111,8 @@
   overflow-x: auto;
   padding: 16px var(--gutter);
   position: sticky;
-  top: 0;
-  z-index: 4;
+  top: var(--services-header-offset);
+  z-index: 9;
   background: color-mix(in srgb, var(--color-paper) 90%, transparent);
   backdrop-filter: blur(12px);
   white-space: nowrap;
@@ -147,6 +148,7 @@
   display: grid;
   grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
   min-height: 460px;
+  scroll-margin-top: calc(var(--services-header-offset) + 62px);
 }
 
 .services-lane:nth-child(even) .services-lane-image {
@@ -511,6 +513,10 @@
 }
 
 @media (max-width: 560px) {
+  .services-page {
+    --services-header-offset: 72px;
+  }
+
   .services-intro {
     padding-left: var(--gutter-mobile);
     padding-right: var(--gutter-mobile);
