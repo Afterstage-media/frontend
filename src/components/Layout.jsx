@@ -171,6 +171,7 @@ export function Layout({ children }) {
               Redacción
             </NavLink>
           )}
+          {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
         </nav>
         <NavLink className="button header-join" to="/colaborador">
           Sumate

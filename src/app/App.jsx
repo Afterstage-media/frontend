@@ -14,6 +14,7 @@ import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { MonetizationPage, AdminMonetizationPage } from "../pages/MonetizationPage.jsx";
 import { AiAccessPage } from "../pages/AiAccessPage.jsx";
+import { UserManagementPage } from "../pages/UserManagementPage.jsx";
 
 function NotFoundPage() {
   return (
@@ -55,6 +56,7 @@ export function App() {
           </AuthGate>
         }
       />
+      <Route path="/admin/usuarios" element={<UserManagementPage />} />
       <Route path="/admin/nueva" element={<NewContentPage />} />
       <Route path="/admin/contenido/:id" element={<ContentPage />} />
       <Route path="/admin/prensa" element={<PressPage />} />
