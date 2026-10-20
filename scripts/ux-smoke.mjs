@@ -59,6 +59,9 @@ assert.match(monetization, /useSearchParams/);
 assert.match(services, /pasarela-entradas/);
 assert.match(services, /organizacion-festivales/);
 assert.match(services, /tienda-merch/);
+assert.match(services, /data-parallax/);
+assert.match(services, /IntersectionObserver/);
+assert.match(services, /prefers-reduced-motion/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");
