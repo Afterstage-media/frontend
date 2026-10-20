@@ -59,6 +59,7 @@ assert.match(monetization, /useSearchParams/);
 assert.match(services, /pasarela-entradas/);
 assert.match(services, /organizacion-festivales/);
 assert.match(services, /tienda-merch/);
+assert.match(services, /Propuestas disponibles/);
 assert.match(services, /data-parallax/);
 assert.match(services, /IntersectionObserver/);
 assert.match(services, /prefers-reduced-motion/);
