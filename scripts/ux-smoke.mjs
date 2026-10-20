@@ -36,6 +36,8 @@ assert.match(layout, /can\("admin", "editor", "community"\).*Comunidad/s);
 assert.match(auth, /auth-form/);
 assert.match(auth, /accessDenied/);
 assert.match(app, /<Route path="\*" element={<NotFoundPage \/>} \/>/);
+assert.match(app, /<Route path="\/contratar" element={<MonetizationPage \/>} \/>/);
+assert.match(app, /<Route path="\/monetizar" element={<Navigate to="\/contratar" replace \/>} \/>/);
 assert.doesNotMatch(app, /path="\/busquedas"/);
 assert.match(article, /document\.title/);
 assert.match(article, /Nota no disponible/);
@@ -49,6 +51,7 @@ assert.match(monetization, /normalizePromotionForm/);
 assert.match(monetization, /onInvalid=\{invalid\}/);
 assert.match(monetization, /type="button" className="button dark" disabled=\{loading \|\| !selected\} onClick=\{submit\}/);
 assert.match(monetization, /noValidate onInvalid=\{invalid\} onSubmit=\{submit\}/);
+assert.match(layout, /<NavLink to="\/contratar">Promocioná tu proyecto<\/NavLink>/);
 assert.match(styles, /\.auth-form/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");

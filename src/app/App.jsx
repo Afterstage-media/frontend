@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "../components/Layout.jsx";
 import { HomePage } from "../pages/HomePage.jsx";
 import { NotesPage } from "../pages/NotesPage.jsx";
@@ -47,7 +47,8 @@ export function App() {
       <Route path="/codigo-de-creditos" element={<CreditsPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/colaborador" element={<CollaboratorPage />} />
-      <Route path="/monetizar" element={<MonetizationPage />} />
+      <Route path="/contratar" element={<MonetizationPage />} />
+      <Route path="/monetizar" element={<Navigate to="/contratar" replace />} />
       <Route
         path="/admin/monetizacion"
         element={
