@@ -47,7 +47,7 @@ assert.match(replacements, /Todavía no hay búsquedas abiertas/);
 assert.match(monetization, /Ingresá un email para poder contactarte/);
 assert.match(monetization, /normalizePromotionForm/);
 assert.match(monetization, /onInvalid=\{invalid\}/);
-assert.match(monetization, /disabled=\{loading \|\| !selected\} onClick=\{submit\}/);
+assert.match(monetization, /type="button" className="button dark" disabled=\{loading \|\| !selected\} onClick=\{submit\}/);
 assert.match(monetization, /noValidate onInvalid=\{invalid\} onSubmit=\{submit\}/);
 assert.match(styles, /\.auth-form/);
 
