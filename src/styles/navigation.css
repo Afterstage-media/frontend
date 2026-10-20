@@ -342,6 +342,60 @@ html[data-theme="light"] .pointer-glow::after {
   text-decoration: none;
 }
 
+.nav-more {
+  position: relative;
+}
+
+.nav-more summary {
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  list-style: none;
+  padding: 5px 0;
+}
+
+.nav-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-more summary::after {
+  content: " ↓";
+  color: var(--color-accent);
+}
+
+.nav-more[open] summary,
+.nav-more summary:hover,
+.nav-more summary:focus-visible {
+  border-bottom-color: currentColor;
+}
+
+.nav-more-menu {
+  background: var(--color-paper);
+  border: var(--border);
+  box-shadow: var(--shadow-hard);
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  z-index: 5;
+}
+
+.nav-more-menu a {
+  border: 0 !important;
+  display: block;
+  padding: 8px 10px !important;
+}
+
+.nav-more-menu a:hover,
+.nav-more-menu a:focus-visible,
+.nav-more-menu a.active {
+  background: var(--color-accent);
+  color: var(--color-on-ink);
+}
+
 .theme-toggle {
   background: transparent;
   border: var(--border);

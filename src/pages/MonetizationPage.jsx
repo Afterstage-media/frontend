@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 
@@ -36,11 +37,12 @@ const normalizePromotionForm = (values) =>
 const invalidFieldMessages = {
   customerName: "Ingresá tu nombre y apellido.",
   customerEmail: "Ingresá un email para poder contactarte.",
-  title: "Ingresá el título del evento o lanzamiento.",
+  title: "Ingresá un título para tu propuesta.",
   description: "La descripción debe tener al menos 10 caracteres.",
 };
 
 export function MonetizationPage() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(initial);
   const [result, setResult] = useState(null);
@@ -50,7 +52,12 @@ export function MonetizationPage() {
     api("/api/public/monetization/products")
       .then((items) => {
         setProducts(items);
-        setForm((current) => ({ ...current, productId: current.productId || items[0]?.id || "" }));
+        const requestedProductId = searchParams.get("service");
+        const requestedProduct = items.find((item) => item.id === requestedProductId);
+        setForm((current) => ({
+          ...current,
+          productId: current.productId || requestedProduct?.id || items[0]?.id || "",
+        }));
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -98,34 +105,35 @@ export function MonetizationPage() {
     );
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Servicios para la escena</p>
-        <h1>Hacé que tu próxima fecha se mueva.</h1>
-        <p>
-          Soluciones para bandas, festivales, salas, productoras y proyectos de viaje. Elegí una propuesta y contanos
-          qué querés poner en movimiento. Todo el contenido pago está identificado como promocionado.
-        </p>
+      <section className="page-intro service-request-intro">
+        <Link className="service-back-link" to="/servicios">
+          ← Volver a servicios
+        </Link>
+        <p className="eyebrow">Abrir una conversación</p>
+        <h1>{selected?.name || "Pongamos algo en movimiento."}</h1>
+        <p>{selected?.description || "Elegí un servicio y contanos qué necesitás para hacerlo realidad."}</p>
       </section>
-      <section className="monetization-layout">
-        <div className="product-grid">
-          {products.map((product) => (
-            <button
-              type="button"
-              className={`product-card ${form.productId === product.id ? "selected" : ""}`}
-              key={product.id}
-              onClick={() => setForm({ ...form, productId: product.id })}
-            >
-              <span className="eyebrow">
-                {product.priceArs == null ? "Consultar" : `$${product.priceArs.toLocaleString("es-AR")}`}
-              </span>
-              <h2>{product.name}</h2>
-              <p>{product.description}</p>
-              <small>{product.delivery}</small>
-            </button>
-          ))}
-        </div>
-        <form className="form editor-form" noValidate onInvalid={invalid} onSubmit={submit}>
+      <section className="service-request-layout">
+        <aside className="service-request-note">
+          <p className="eyebrow">Tu pedido</p>
           <h2>{selected?.name || "Elegí un servicio"}</h2>
+          <p>{selected?.delivery || "Te respondemos con el próximo paso."}</p>
+          <label>
+            Cambiar servicio
+            <select name="productId" value={form.productId} onChange={change}>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Link className="text-link" to="/servicios">
+            Ver cómo se distribuyen los servicios <span>↗</span>
+          </Link>
+        </aside>
+        <form className="form editor-form" noValidate onInvalid={invalid} onSubmit={submit}>
+          <h2>Contanos un poco más.</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
           {[
             ["customerName", "Nombre y apellido", "text", true],
