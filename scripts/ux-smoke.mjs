@@ -49,6 +49,8 @@ assert.match(article, /document\.title/);
 assert.match(article, /Nota no disponible/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
+assert.match(admin, /Quitar de la nota/);
+assert.match(admin, /assets: item\.assets\.filter/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "press"\]\}>/);
 assert.match(replacements, /useEffect\(\(\) => \{/);
 assert.match(replacements, /Todavía no hay búsquedas abiertas/);
