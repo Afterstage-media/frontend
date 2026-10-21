@@ -16,6 +16,26 @@ const kinds = {
   media: "Medio",
   other: "Otro",
 };
+const directoryFieldLabels = {
+  aliases: "También conocido como",
+  description: "Descripción",
+  city: "Ciudad",
+  country: "País",
+  latitude: "Latitud",
+  longitude: "Longitud",
+  website: "Sitio web",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  spotify: "Spotify",
+  phones: "Teléfonos",
+  emails: "Emails",
+  contacts: "Contactos",
+  tags: "Etiquetas",
+  notes: "Notas internas",
+  source: "Fuente",
+};
 const empty = {
   kind: "band",
   name: "",
@@ -774,7 +794,7 @@ function AdminDirectoryEditor() {
           .filter((key) => key !== "kind")
           .map((key) => (
             <label key={key}>
-              {key}
+              {directoryFieldLabels[key] || key}
               {["description", "notes", "contacts"].includes(key) ? (
                 <textarea
                   rows="3"

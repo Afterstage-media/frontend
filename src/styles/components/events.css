@@ -120,6 +120,7 @@
 }
 
 .agenda-search {
+  color: var(--color-ink);
   display: grid;
   flex: 1 1 360px;
   font-size: 0.76rem;

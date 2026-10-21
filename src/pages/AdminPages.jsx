@@ -21,6 +21,41 @@ const typeLabels = {
   reel: "Reel",
   story: "Story",
 };
+const mediaKitFieldLabels = {
+  name: "Nombre del medio",
+  tagline: "Bajada",
+  mission: "Misión",
+  audience: "Audiencia",
+  team: "Equipo",
+  services: "Servicios",
+  email: "Email de contacto",
+  website: "Sitio web",
+  instagram: "Instagram",
+};
+const eventFieldLabels = {
+  name: "Nombre del evento",
+  artist: "Artista o banda",
+  venue: "Sala o espacio",
+  address: "Dirección del lugar",
+  city: "Ciudad",
+  startsAt: "Fecha y hora",
+  url: "URL oficial",
+};
+const contactFieldLabels = {
+  name: "Nombre del contacto",
+  organization: "Organización",
+  email: "Email",
+  type: "Tipo de contacto",
+};
+const contactTypeLabels = {
+  promoter: "Productora",
+  venue: "Sala o espacio",
+  label: "Sello",
+  agency: "Agencia",
+  press: "Prensa",
+  artist: "Artista o banda",
+  other: "Otro",
+};
 const socialPresets = {
   "weekly-band": {
     type: "post",
@@ -58,7 +93,18 @@ export function TokenGate({ onReady }) {
 
 function ContentCard({ item, onSelect }) {
   return (
-    <article className="admin-record" onClick={() => onSelect(item)}>
+    <article
+      className="admin-record"
+      onClick={() => onSelect(item)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(item);
+        }
+      }}
+      role="button"
+      tabIndex="0"
+    >
       <div>
         <small>
           {labels[item.status] || item.status} · {typeLabels[item.type] || item.type}
@@ -212,7 +258,18 @@ function AdminDashboard({ actor }) {
 function SocialContentCard({ item, onSelect }) {
   const media = item.assets?.[0];
   return (
-    <article className="social-record" onClick={() => onSelect(item)}>
+    <article
+      className="social-record"
+      onClick={() => onSelect(item)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(item);
+        }
+      }}
+      role="button"
+      tabIndex="0"
+    >
       <div className="social-record-media">
         {media?.mediaType === "video" ? (
           <video muted preload="metadata" src={media.url} />
@@ -1068,7 +1125,7 @@ function MediaKitForm({ mediaKit, onSaved }) {
       <h2>Dossier del medio</h2>
       {["name", "tagline", "mission", "audience", "team", "services", "email", "website", "instagram"].map((key) => (
         <label key={key}>
-          {key}
+          {mediaKitFieldLabels[key]}
           {["mission", "audience", "team", "services"].includes(key) ? (
             <textarea
               rows="3"
@@ -1208,7 +1265,7 @@ function PressDashboard() {
               <h2>Nuevo evento</h2>
               {Object.entries(event).map(([key, value]) => (
                 <label key={key}>
-                  {key === "address" ? "Dirección del lugar" : key}
+                  {eventFieldLabels[key]}
                   <input
                     required={key === "name"}
                     type={key === "startsAt" ? "datetime-local" : key === "url" ? "url" : "text"}
@@ -1236,13 +1293,23 @@ function PressDashboard() {
               <h2>Nuevo contacto</h2>
               {Object.entries(contact).map(([key, value]) => (
                 <label key={key}>
-                  {key}
-                  <input
-                    required={key === "name"}
-                    type={key === "email" ? "email" : "text"}
-                    value={value}
-                    onChange={(e) => setContact({ ...contact, [key]: e.target.value })}
-                  />
+                  {contactFieldLabels[key]}
+                  {key === "type" ? (
+                    <select value={value} onChange={(e) => setContact({ ...contact, [key]: e.target.value })}>
+                      {Object.entries(contactTypeLabels).map(([optionValue, optionLabel]) => (
+                        <option key={optionValue} value={optionValue}>
+                          {optionLabel}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      required={key === "name"}
+                      type={key === "email" ? "email" : "text"}
+                      value={value}
+                      onChange={(e) => setContact({ ...contact, [key]: e.target.value })}
+                    />
+                  )}
                 </label>
               ))}
               <button className="button dark">Guardar contacto</button>
