@@ -17,6 +17,7 @@ import { MonetizationPage, AdminMonetizationPage } from "../pages/MonetizationPa
 import { ServicesPage } from "../pages/ServicesPage.jsx";
 import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
+import { AboutPage } from "../pages/AboutPage.jsx";
 
 function NotFoundPage() {
   return (
@@ -41,6 +42,7 @@ export function App() {
       <Route path="/notas/:slug" element={<ArticlePage />} />
       <Route path="/agenda" element={<AgendaPage />} />
       <Route path="/agenda/evento/:id" element={<EventPage />} />
+      <Route path="/como-funciona" element={<AboutPage />} />
       <Route path="/directorio" element={<DirectoryPage />} />
       <Route path="/comunidad" element={<CommunityPage />} />
       <Route path="/publicar" element={<PublishPage />} />

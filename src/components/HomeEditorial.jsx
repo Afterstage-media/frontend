@@ -75,3 +75,30 @@ export function HomeQuickLinks() {
     </nav>
   );
 }
+
+export function HomeMission() {
+  return (
+    <section className="home-mission" aria-labelledby="home-mission-title">
+      <div className="home-mission-lede">
+        <p className="eyebrow">Más que un medio</p>
+        <h2 id="home-mission-title">
+          La escena se cuenta <em>en red.</em>
+        </h2>
+      </div>
+      <div className="home-mission-copy">
+        <p>
+          Afterstage conecta historias, coberturas y producción para que fotógrafos, noteros, videógrafos, artistas y
+          espacios puedan hacer crecer la escena juntos.
+        </p>
+        <div className="actions">
+          <Link className="button dark" to="/como-funciona">
+            Cómo funciona ↗
+          </Link>
+          <Link className="button ghost" to="/colaborador">
+            Sumate a la red
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
