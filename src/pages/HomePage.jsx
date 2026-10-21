@@ -4,7 +4,7 @@ import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ContentCard } from "../components/ContentCard.jsx";
 import { SectionHeading } from "../components/EditorialPrimitives.jsx";
-import { HomeHero, HomeQuickLinks } from "../components/HomeEditorial.jsx";
+import { HomeHero, HomeMission, HomeQuickLinks } from "../components/HomeEditorial.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function HomePage() {
   const [items, setItems] = useState([]);
@@ -25,6 +25,7 @@ export function HomePage() {
     <Layout>
       <HomeHero />
       <HomeQuickLinks />
+      <HomeMission />
       <section className="section">
         <SectionHeading
           eyebrow="Desde adentro"
