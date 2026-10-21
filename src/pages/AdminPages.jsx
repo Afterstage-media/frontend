@@ -423,7 +423,7 @@ function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cam
   );
 }
 
-function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
+function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram, onPreview }) {
   const currentStage = workflowStageFor(item.status);
   const currentIndex = workflowStages.findIndex((stage) => stage.key === currentStage);
   const isPublished = item.status === "published";
@@ -493,7 +493,16 @@ function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
           </button>
         )}
         {item.status === "publishing" && <p className="publish-hint">La publicación está en proceso.</p>}
-        {isPublished && <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>}
+        {isPublished && (
+          <>
+            <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>
+            {item.channels?.includes("instagram") && (
+              <button className="button ghost button-wide" onClick={onRepublishInstagram} type="button">
+                Recompartir en Instagram
+              </button>
+            )}
+          </>
+        )}
       </div>
       <details className="editor-advanced-actions">
         <summary>Acciones avanzadas</summary>
@@ -586,6 +595,19 @@ function ContentEditorPage() {
         body: JSON.stringify({ dryRun }),
       });
       setStatus(dryRun ? "Simulación completada." : "Publicación enviada.");
+      load();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+  const repostInstagram = async () => {
+    if (!window.confirm("¿Querés volver a publicar esta nota en Instagram? Se va a crear un post nuevo.")) return;
+    try {
+      await api(`/api/content/${id}/repost/instagram`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      setStatus("Nota recompartida en Instagram.");
       load();
     } catch (e) {
       setError(e.message);
@@ -688,6 +710,7 @@ function ContentEditorPage() {
               item={item}
               onTransition={transition}
               onPublish={publish}
+              onRepublishInstagram={repostInstagram}
               onPreview={() => publish(true)}
             />
           </aside>
