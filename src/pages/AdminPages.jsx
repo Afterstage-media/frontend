@@ -248,6 +248,47 @@ export function NewContentPage() {
   );
 }
 
+function ExistingMedia({ assets = [] }) {
+  return (
+    <div className="existing-media" aria-label="Medios asociados">
+      <div className="existing-media-heading">
+        <strong>
+          {assets.length
+            ? `${assets.length} medio${assets.length === 1 ? "" : "s"} asociado${assets.length === 1 ? "" : "s"}`
+            : "Sin medios asociados"}
+        </strong>
+        {assets.length > 0 && <span>Se guardan junto con la publicación.</span>}
+      </div>
+      {assets.length > 0 ? (
+        <div className="existing-media-list">
+          {assets.map((asset, index) => {
+            const label = asset.mediaType === "video" ? "Video" : "Imagen";
+            const key = asset.id || `${asset.url}-${index}`;
+            return (
+              <figure className="existing-media-item" key={key}>
+                {asset.mediaType === "video" ? (
+                  <video controls preload="metadata" src={asset.url} />
+                ) : (
+                  <img src={asset.url} alt={asset.altText || `Medio adjunto ${index + 1}`} loading="lazy" />
+                )}
+                <figcaption>
+                  <span>{label}</span>
+                  {asset.credit && <small>Crédito: {asset.credit}</small>}
+                  <a href={asset.url} target="_blank" rel="noreferrer">
+                    Abrir medio ↗
+                  </a>
+                </figcaption>
+              </figure>
+            );
+          })}
+        </div>
+      ) : (
+        <span className="existing-media-empty">Todavía no se adjuntó ninguna imagen o video.</span>
+      )}
+    </div>
+  );
+}
+
 function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cambios", formRef }) {
   const scheduled = item?.scheduledAt ? new Date(item.scheduledAt).toISOString().slice(0, 16) : "";
   return (
@@ -659,6 +700,7 @@ function ContentEditorPage() {
                   <h2>Medios</h2>
                 </div>
               </div>
+              <ExistingMedia assets={item?.assets} />
               <label className="upload upload-dropzone">
                 <span className="upload-icon">＋</span>
                 <strong>
