@@ -17,6 +17,7 @@ const kinds = {
   other: "Otro",
 };
 const directoryFieldLabels = {
+  name: "Nombre",
   aliases: "También conocido como",
   description: "Descripción",
   city: "Ciudad",
@@ -35,6 +36,27 @@ const directoryFieldLabels = {
   tags: "Etiquetas",
   notes: "Notas internas",
   source: "Fuente",
+};
+const directoryFieldWidths = {
+  name: "half",
+  aliases: "half",
+  description: "wide",
+  city: "quarter",
+  country: "quarter",
+  latitude: "quarter",
+  longitude: "quarter",
+  website: "half",
+  instagram: "third",
+  facebook: "third",
+  youtube: "third",
+  tiktok: "third",
+  spotify: "third",
+  phones: "half",
+  emails: "half",
+  contacts: "wide",
+  tags: "half",
+  notes: "wide",
+  source: "wide",
 };
 const empty = {
   kind: "band",
@@ -689,13 +711,13 @@ export function DirectoryPage() {
 
 function AdminCards({ items, onVerify, scores = {}, onScoreChange }) {
   return (
-    <div className="cards">
+    <div className="directory-admin-cards">
       {items.map((item) => (
-        <article className="card" key={item.id}>
-          <small>
+        <article className="directory-admin-card" key={item.id}>
+          <div className="directory-admin-card-meta">
             {kinds[item.kind] || item.kind} · {item.city || item.country}
-          </small>
-          <p className={`verification-badge verification-${item.verificationStatus}`}>
+          </div>
+          <p className={`directory-admin-card-status verification-badge verification-${item.verificationStatus}`}>
             {verificationLabels[item.verificationStatus] || "Sin verificar"} · {item.reliabilityScore ?? 0}% editorial
           </p>
           <h2>{item.name}</h2>
@@ -778,51 +800,71 @@ function AdminDirectoryEditor() {
         <Link to="/admin">← Volver al panel</Link>
         <ErrorMessage error={error} />
       </section>
-      <form className="form editor-form" onSubmit={submit}>
-        <h2>Nueva entrada</h2>
-        <label>
-          Tipo
-          <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
-            {Object.entries(kinds).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        {Object.keys(empty)
-          .filter((key) => key !== "kind")
-          .map((key) => (
-            <label key={key}>
-              {directoryFieldLabels[key] || key}
-              {["description", "notes", "contacts"].includes(key) ? (
-                <textarea
-                  rows="3"
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  placeholder={key === "contacts" ? "Nombre | rol | email | teléfono (una línea por persona)" : ""}
-                />
-              ) : (
-                <input
-                  type={key === "website" ? "url" : "text"}
-                  required={key === "name"}
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                />
-              )}
+      <section className="admin-directory-content">
+        <form className="admin-directory-form" onSubmit={submit}>
+          <div className="admin-directory-form-heading">
+            <div>
+              <p className="eyebrow">Carga editorial</p>
+              <h2>Nueva entrada</h2>
+            </div>
+            <p>Completá sólo lo que esté confirmado. El resto puede quedar para una próxima revisión.</p>
+          </div>
+          <div className="admin-directory-fields">
+            <label className="admin-directory-field admin-directory-field-half">
+              Tipo
+              <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+                {Object.entries(kinds).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </label>
-          ))}
-        <button className="button dark">Guardar entrada</button>
-      </form>
-      <div className="actions editor-tools">
-        <input placeholder="Buscar directorio" value={query} onChange={(e) => setQuery(e.target.value)} />
-      </div>
-      <AdminCards
-        items={items}
-        onVerify={verify}
-        scores={scores}
-        onScoreChange={(id, value) => setScores((current) => ({ ...current, [id]: value }))}
-      />
+            {Object.keys(empty)
+              .filter((key) => key !== "kind")
+              .map((key) => (
+                <label
+                  className={`admin-directory-field admin-directory-field-${directoryFieldWidths[key] || "wide"}`}
+                  key={key}
+                >
+                  {directoryFieldLabels[key] || key}
+                  {["description", "notes", "contacts"].includes(key) ? (
+                    <textarea
+                      rows="3"
+                      value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      placeholder={key === "contacts" ? "Nombre | rol | email | teléfono (una línea por persona)" : ""}
+                    />
+                  ) : (
+                    <input
+                      type={key === "website" ? "url" : "text"}
+                      required={key === "name"}
+                      value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    />
+                  )}
+                </label>
+              ))}
+          </div>
+          <div className="admin-directory-form-actions">
+            <p>Los datos quedan disponibles para revisión editorial antes de publicarse.</p>
+            <button className="button dark">Guardar entrada</button>
+          </div>
+        </form>
+        <div className="admin-directory-toolbar">
+          <label>
+            <span>Buscar en el directorio</span>
+            <input placeholder="Nombre, ciudad o tipo" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </label>
+          <span>{items.length} entradas cargadas</span>
+        </div>
+        <AdminCards
+          items={items}
+          onVerify={verify}
+          scores={scores}
+          onScoreChange={(id, value) => setScores((current) => ({ ...current, [id]: value }))}
+        />
+      </section>
     </Layout>
   );
 }
