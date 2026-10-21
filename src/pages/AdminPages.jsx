@@ -470,7 +470,7 @@ export function NewContentPage() {
   );
 }
 
-function ExistingMedia({ assets = [] }) {
+function ExistingMedia({ assets = [], onRemove, removingAssetKey }) {
   return (
     <div className="existing-media" aria-label="Medios asociados">
       <div className="existing-media-heading">
@@ -486,6 +486,7 @@ function ExistingMedia({ assets = [] }) {
           {assets.map((asset, index) => {
             const label = asset.mediaType === "video" ? "Video" : "Imagen";
             const key = asset.id || `${asset.url}-${index}`;
+            const isRemoving = removingAssetKey === (asset.id || asset.url);
             return (
               <figure className="existing-media-item" key={key}>
                 {asset.mediaType === "video" ? (
@@ -499,6 +500,16 @@ function ExistingMedia({ assets = [] }) {
                   <a href={asset.url} target="_blank" rel="noreferrer">
                     Abrir medio ↗
                   </a>
+                  {onRemove && (
+                    <button
+                      className="existing-media-remove"
+                      disabled={isRemoving}
+                      onClick={() => onRemove(asset)}
+                      type="button"
+                    >
+                      {isRemoving ? "Quitando…" : "Quitar de la nota"}
+                    </button>
+                  )}
                 </figcaption>
               </figure>
             );
@@ -684,7 +695,7 @@ function ContentForm({
   );
 }
 
-function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
+function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram, onPreview }) {
   const currentStage = workflowStageFor(item.status);
   const currentIndex = workflowStages.findIndex((stage) => stage.key === currentStage);
   const isPublished = item.status === "published";
@@ -754,7 +765,16 @@ function EditorialWorkflow({ item, onTransition, onPublish, onPreview }) {
           </button>
         )}
         {item.status === "publishing" && <p className="publish-hint">La publicación está en proceso.</p>}
-        {isPublished && <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>}
+        {isPublished && (
+          <>
+            <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>
+            {item.channels?.includes("instagram") && (
+              <button className="button ghost button-wide" onClick={onRepublishInstagram} type="button">
+                Recompartir en Instagram
+              </button>
+            )}
+          </>
+        )}
       </div>
       <details className="editor-advanced-actions">
         <summary>Acciones avanzadas</summary>
@@ -773,6 +793,7 @@ function ContentEditorPage() {
   const [status, setStatus] = useState("");
   const [instructions, setInstructions] = useState("");
   const [files, setFiles] = useState([]);
+  const [removingAssetKey, setRemovingAssetKey] = useState("");
   const formRef = useRef(null);
   const navigate = useNavigate();
   const load = () =>
@@ -864,6 +885,19 @@ function ContentEditorPage() {
       setError(e.message);
     }
   };
+  const repostInstagram = async () => {
+    if (!window.confirm("¿Querés volver a publicar esta nota en Instagram? Se va a crear un post nuevo.")) return;
+    try {
+      await api(`/api/content/${id}/repost/instagram`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      setStatus("Nota recompartida en Instagram.");
+      load();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
   const upload = async () => {
     if (!files.length) return;
     const data = new FormData();
@@ -879,6 +913,25 @@ function ContentEditorPage() {
       load();
     } catch (e) {
       setError(e.message);
+    }
+  };
+  const removeAsset = async (asset) => {
+    const assetKey = asset.id || asset.url;
+    if (!window.confirm("¿Querés quitar este medio de la nota? El archivo no se borra del almacenamiento.")) return;
+    setRemovingAssetKey(assetKey);
+    try {
+      await api(`/api/content/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          assets: item.assets.filter((candidate) => (candidate.id || candidate.url) !== assetKey),
+        }),
+      });
+      setStatus("Medio quitado de la nota.");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setRemovingAssetKey("");
     }
   };
   return (
@@ -951,7 +1004,7 @@ function ContentEditorPage() {
                   <h2>Medios</h2>
                 </div>
               </div>
-              <ExistingMedia assets={item?.assets} />
+              <ExistingMedia assets={item?.assets} onRemove={removeAsset} removingAssetKey={removingAssetKey} />
               <label className="upload upload-dropzone">
                 <span className="upload-icon">＋</span>
                 <strong>
@@ -975,6 +1028,7 @@ function ContentEditorPage() {
               item={item}
               onTransition={transition}
               onPublish={publish}
+              onRepublishInstagram={repostInstagram}
               onPreview={() => publish(true)}
             />
           </aside>
