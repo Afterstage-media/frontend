@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../services/api.js";
 
 const themeStorageKey = "afterstage-theme-v2";
@@ -23,6 +23,8 @@ export function Layout({ children }) {
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const isAdminPath = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const refreshRoles = () => {
@@ -116,13 +118,18 @@ export function Layout({ children }) {
   }, []);
 
   const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
+  const logOut = () => {
+    localStorage.removeItem("afterstage-token");
+    window.dispatchEvent(new Event("afterstage-auth-changed"));
+    navigate("/");
+  };
 
   return (
     <>
       <a className="skip-link" href="#main-content">
         Ir al contenido
       </a>
-      <header className="header">
+      <header className={`header ${isAdminPath ? "header-admin" : "header-public"}`}>
         <div aria-hidden="true" className="reflector-stage" ref={reflectorStageRef}>
           {[0, 1, 2, 3, 4].map((reflector) => (
             <span
@@ -141,6 +148,7 @@ export function Layout({ children }) {
         <Link className="brand" to="/">
           <span className="mark" /> AFTERSTAGE
         </Link>
+        {isAdminPath && <span className="header-workspace-label">ADMIN / STUDIO</span>}
         <button
           aria-expanded={menuOpen}
           aria-controls="site-navigation"
@@ -152,38 +160,69 @@ export function Layout({ children }) {
           <span /> <span /> <span />
         </button>
         <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
-          <NavLink end to="/">
-            Inicio
-          </NavLink>
-          <NavLink to="/notas">Notas</NavLink>
-          {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
-          <NavLink to="/agenda">Agenda</NavLink>
-          <NavLink to="/servicios">Servicios</NavLink>
-          {roles?.length > 0 && (
-            <details className="nav-more">
-              <summary>Más</summary>
-              <div className="nav-more-menu">
-                {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-                {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-                {can("admin", "editor", "press", "community", "social") && (
-                  <NavLink to="/reemplazos">Reemplazos</NavLink>
-                )}
-                <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>
-                {can("admin", "editor") && <NavLink to="/admin">Redacción</NavLink>}
-                {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
-              </div>
-            </details>
+          {isAdminPath ? (
+            <>
+              <span className="nav-group-label">Publicar</span>
+              <NavLink end to="/admin">
+                Contenido
+              </NavLink>
+              <NavLink to="/admin/redes">Redes</NavLink>
+              <NavLink to="/admin/prensa">Prensa</NavLink>
+              <span className="nav-divider" aria-hidden="true" />
+              <span className="nav-group-label">Gestionar</span>
+              <NavLink to="/admin/directorio">Directorio</NavLink>
+              <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
+              <NavLink to="/admin/monetizacion">Monetización</NavLink>
+              {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
+              {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
+              <span className="nav-divider" aria-hidden="true" />
+              <NavLink className="nav-site-link" to="/">
+                Ver sitio ↗
+              </NavLink>
+              <button className="nav-logout" onClick={logOut} type="button">
+                Salir
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="nav-group-label">Explorar</span>
+              <NavLink end to="/">
+                Inicio
+              </NavLink>
+              <NavLink to="/notas">Notas</NavLink>
+              <NavLink to="/agenda">Agenda</NavLink>
+              {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
+              <details className="nav-more">
+                <summary>Más</summary>
+                <div className="nav-more-panel">
+                  <NavLink to="/servicios">Servicios</NavLink>
+                  {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+                  {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+                  {can("admin", "editor", "press", "community", "social") && (
+                    <NavLink to="/reemplazos">Reemplazos</NavLink>
+                  )}
+                  {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+                </div>
+              </details>
+              <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
+                ⌕
+              </NavLink>
+              {can("admin", "editor") && (
+                <NavLink className="nav-admin-link" to="/admin">
+                  Admin ↗
+                </NavLink>
+              )}
+            </>
           )}
-          <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
-            ⌕
-          </NavLink>
         </nav>
-        <NavLink className="button header-join" to="/colaborador">
-          Sumate
-        </NavLink>
+        {!isAdminPath && (
+          <NavLink className="button header-join" to="/colaborador">
+            Sumate
+          </NavLink>
+        )}
       </header>
       <main id="main-content">{children}</main>
-      <footer>
+      <footer className={isAdminPath ? "admin-footer" : undefined}>
         <strong>AFTERSTAGE</strong>
         <span>Periodismo musical para la escena que hace.</span>
         <span>
