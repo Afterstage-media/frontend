@@ -6,7 +6,7 @@ import { ArticlePage } from "../pages/ArticlePage.jsx";
 import { AgendaPage } from "../pages/AgendaPage.jsx";
 import { EventPage } from "../pages/EventPage.jsx";
 import { CommunityPage, PublishPage } from "../pages/PublicPages.jsx";
-import { AdminPage, NewContentPage, ContentPage, PressPage } from "../pages/AdminPages.jsx";
+import { AdminPage, NewContentPage, ContentPage, PressPage, SocialPage } from "../pages/AdminPages.jsx";
 import { InstagramSettingsPage } from "../pages/InstagramSettingsPage.jsx";
 import { PolicyPage, CreditsPage } from "../pages/PolicyPage.jsx";
 import { DirectoryPage, AdminDirectoryPage } from "../pages/DirectoryPage.jsx";
@@ -50,6 +50,7 @@ export function App() {
       <Route path="/politica-editorial" element={<PolicyPage />} />
       <Route path="/codigo-de-creditos" element={<CreditsPage />} />
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/admin/redes" element={<SocialPage />} />
       <Route path="/admin/instagram" element={<InstagramSettingsPage />} />
       <Route path="/colaborador" element={<CollaboratorPage />} />
       <Route path="/servicios" element={<ServicesPage />} />
