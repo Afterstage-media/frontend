@@ -14,6 +14,7 @@ function InstagramSettings() {
   const [connections, setConnections] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [removingAccountId, setRemovingAccountId] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -24,6 +25,27 @@ function InstagramSettings() {
   };
 
   useEffect(load, []);
+
+  const removeConnection = async (accountId) => {
+    if (
+      !window.confirm(
+        "¿Querés remover esta conexión de Instagram? Se borrará el acceso guardado en Afterstage y podrás volver a conectarla después.",
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setRemovingAccountId(accountId);
+    try {
+      await api(`/api/integrations/instagram/${encodeURIComponent(accountId)}`, { method: "DELETE" });
+      setConnections((current) => current.filter((connection) => connection.accountId !== accountId));
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setRemovingAccountId("");
+    }
+  };
 
   return (
     <Layout>
@@ -53,7 +75,17 @@ function InstagramSettings() {
                 <p>Conectada el {formatExpiry(connection.connectedAt)}.</p>
                 <p>Token válido hasta: {formatExpiry(connection.expiresAt)}.</p>
               </div>
-              <span>{connection.scopes?.length || 0} permisos</span>
+              <div className="actions">
+                <span>{connection.scopes?.length || 0} permisos</span>
+                <button
+                  className="button ghost"
+                  type="button"
+                  disabled={removingAccountId === connection.accountId}
+                  onClick={() => removeConnection(connection.accountId)}
+                >
+                  {removingAccountId === connection.accountId ? "Removiendo…" : "Remover conexión"}
+                </button>
+              </div>
             </article>
           ))}
         </div>
