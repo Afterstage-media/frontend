@@ -102,6 +102,11 @@ function AdminDashboard({ actor }) {
             Monetización ↗
           </Link>
           {actor.roles.includes("admin") && (
+            <Link className="button" to="/admin/instagram">
+              Instagram ↗
+            </Link>
+          )}
+          {actor.roles.includes("admin") && (
             <Link className="button accent-outline" to="/admin/usuarios">
               Usuarios ↗
             </Link>
