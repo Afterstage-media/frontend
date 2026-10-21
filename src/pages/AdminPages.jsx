@@ -84,7 +84,7 @@ function AdminDashboard({ actor }) {
       <section className="page-intro">
         <p className="eyebrow">Redacción</p>
         <h1>Gestor editorial.</h1>
-        <p>Creá, revisá, generá con IA y publicá desde un solo lugar.</p>
+        <p>Creá, revisá y publicá desde un solo lugar.</p>
         <div className="actions">
           <Link className="button" to="/admin/nueva">
             Nueva publicación ↗
@@ -192,8 +192,6 @@ function NewContentEditor() {
           title: data.get("title"),
           summary: data.get("summary"),
           body: data.get("body"),
-          instagramCopy: data.get("instagramCopy"),
-          facebookCopy: data.get("facebookCopy"),
           scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
           author: data.get("author"),
           photographer: data.get("photographer"),
@@ -368,29 +366,11 @@ function ContentForm({ item, onSubmit, error, status, submitLabel = "Guardar cam
         <div className="editor-card-heading">
           <div>
             <p className="eyebrow">Distribución</p>
-            <h2>Copys y créditos</h2>
+            <h2>Créditos</h2>
           </div>
           <span className="editor-card-index">02</span>
         </div>
         <div className="editor-form-grid">
-          <label className="field field-half">
-            <span>Copy para Instagram</span>
-            <textarea
-              name="instagramCopy"
-              rows="5"
-              defaultValue={item?.instagramCopy || ""}
-              placeholder="Texto para acompañar la publicación…"
-            />
-          </label>
-          <label className="field field-half">
-            <span>Copy para Facebook</span>
-            <textarea
-              name="facebookCopy"
-              rows="5"
-              defaultValue={item?.facebookCopy || ""}
-              placeholder="Texto para compartir la nota…"
-            />
-          </label>
           <label className="field field-third">
             <span>Autor</span>
             <input name="author" defaultValue={item?.author || ""} placeholder="Nombre y apellido" />
@@ -530,7 +510,6 @@ function ContentEditorPage() {
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [instructions, setInstructions] = useState("");
   const [files, setFiles] = useState([]);
   const [removingAssetKey, setRemovingAssetKey] = useState("");
   const formRef = useRef(null);
@@ -561,8 +540,6 @@ function ContentEditorPage() {
         title: data.get("title"),
         summary: data.get("summary"),
         body: data.get("body"),
-        instagramCopy: data.get("instagramCopy"),
-        facebookCopy: data.get("facebookCopy"),
         scheduledAt: data.get("scheduledAt") ? new Date(data.get("scheduledAt")).toISOString() : null,
         author: data.get("author"),
         photographer: data.get("photographer"),
@@ -597,18 +574,6 @@ function ContentEditorPage() {
         body: JSON.stringify({ status: next }),
       });
       setStatus(`Estado actualizado: ${labels[next]}`);
-      load();
-    } catch (e) {
-      setError(e.message);
-    }
-  };
-  const generate = async (kind) => {
-    try {
-      await api(`/api/content/${id}/generate`, {
-        method: "POST",
-        body: JSON.stringify({ kind, instructions }),
-      });
-      setStatus("Contenido generado con IA.");
       load();
     } catch (e) {
       setError(e.message);
@@ -692,38 +657,6 @@ function ContentEditorPage() {
             formRef={formRef}
           />
           <aside className="editor-sidebar">
-            <section className="editor-side-card editor-ai-card">
-              <div className="editor-side-heading">
-                <div>
-                  <p className="eyebrow">Asistencia</p>
-                  <h2>Trabajá con IA</h2>
-                </div>
-                <span className="ai-mark">✦</span>
-              </div>
-              <p className="editor-side-copy">Dale una indicación breve y aplicá el resultado sobre este borrador.</p>
-              <label className="sr-only" htmlFor="ai-instructions">
-                Indicaciones para la IA
-              </label>
-              <textarea
-                id="ai-instructions"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Ej.: hacé la bajada más directa y cercana"
-                rows="5"
-              />
-              <div className="editor-ai-actions">
-                <button className="button" onClick={() => generate("full_article")} type="button">
-                  Generar nota
-                </button>
-                <button className="button" onClick={() => generate("social_copy")} type="button">
-                  Generar copys
-                </button>
-                <button className="button ghost" onClick={() => generate("improve")} type="button">
-                  Mejorar texto
-                </button>
-              </div>
-            </section>
-
             <section className="editor-side-card">
               <div className="editor-side-heading">
                 <div>
