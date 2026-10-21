@@ -462,6 +462,73 @@
   width: 100%;
 }
 
+.existing-media {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.existing-media-heading {
+  display: grid;
+  gap: 3px;
+}
+
+.existing-media-heading strong {
+  font-size: 0.82rem;
+}
+
+.existing-media-heading span,
+.existing-media-empty {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.existing-media-list {
+  display: grid;
+  gap: 10px;
+}
+
+.existing-media-item {
+  background: var(--color-paper);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 8px;
+}
+
+.existing-media-item img,
+.existing-media-item video {
+  aspect-ratio: 4 / 3;
+  background: var(--color-surface-muted);
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.existing-media-item figcaption {
+  display: grid;
+  gap: 3px;
+}
+
+.existing-media-item figcaption span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.existing-media-item figcaption small {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+}
+
+.existing-media-item figcaption a {
+  color: var(--color-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .upload-dropzone {
   align-items: center;
   background: var(--color-paper);
