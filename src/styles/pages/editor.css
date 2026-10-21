@@ -529,6 +529,24 @@
   text-decoration: underline;
 }
 
+.existing-media-remove {
+  background: transparent;
+  border: 0;
+  color: var(--color-danger, #a13f3f);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.existing-media-remove:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .upload-dropzone {
   align-items: center;
   background: var(--color-paper);
