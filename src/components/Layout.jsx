@@ -31,12 +31,15 @@ export function Layout({ children }) {
 
   useEffect(() => {
     const refreshRoles = () => {
-      if (!localStorage.getItem("afterstage-token")) {
+      const token = localStorage.getItem("afterstage-token");
+      if (!token) {
         setRoles([]);
         return;
       }
       api("/api/auth/me")
-        .then(({ user }) => setRoles(user.roles || []))
+        .then(({ user }) => {
+          if (localStorage.getItem("afterstage-token") === token) setRoles(user.roles || []);
+        })
         .catch(() => setRoles([]));
     };
     refreshRoles();
