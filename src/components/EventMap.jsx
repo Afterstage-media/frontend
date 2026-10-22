@@ -37,7 +37,15 @@ const mergeEventDates = (group) => {
   return [...dates.values()].sort();
 };
 
-export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = false }) {
+export function EventMap({
+  events,
+  latitude,
+  longitude,
+  radiusKm,
+  hasLocation = false,
+  centerPickerActive = false,
+  onCenterSelect,
+}) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
@@ -131,14 +139,21 @@ export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = 
       bounds.extend(location);
     });
 
-    if (bounds.isValid()) {
+    if (centerPickerActive) {
+      map.invalidateSize();
+    } else if (bounds.isValid()) {
       map.fitBounds(bounds, { maxZoom: hasLocation ? 13 : 12, padding: [18, 18] });
     } else {
       map.setView([latitude, longitude], hasLocation ? 11 : 10);
     }
     map.invalidateSize();
     return () => layers.remove();
-  }, [events, latitude, longitude, radiusKm, hasLocation, mapReady]);
+  }, [events, latitude, longitude, radiusKm, hasLocation, centerPickerActive, mapReady]);
+
+  const selectCurrentCenter = () => {
+    const center = mapRef.current?.getCenter();
+    if (center && onCenterSelect) onCenterSelect({ lat: center.lat, lng: center.lng });
+  };
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -147,7 +162,7 @@ export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = 
   }, [expanded]);
 
   return (
-    <div className={`event-map-shell${expanded ? " is-expanded" : ""}`}>
+    <div className={`event-map-shell${expanded ? " is-expanded" : ""}${centerPickerActive ? " is-picking" : ""}`}>
       <button
         type="button"
         className="event-map-expand"
@@ -156,6 +171,14 @@ export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = 
       >
         {expanded ? "Achicar mapa" : "Agrandar mapa"}
       </button>
+      {centerPickerActive && (
+        <div className="event-map-picker">
+          <span>Mové el mapa hasta el lugar del viaje</span>
+          <button className="button dark" type="button" onClick={selectCurrentCenter}>
+            Usar este centro
+          </button>
+        </div>
+      )}
       <div
         aria-label={hasLocation ? `Mapa de eventos en un radio de ${radiusKm} kilómetros` : "Mapa de todos los eventos"}
         className="event-map"

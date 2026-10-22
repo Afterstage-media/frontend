@@ -38,6 +38,8 @@ const eventFieldLabels = {
   venue: "Sala o espacio",
   address: "Dirección del lugar",
   city: "Ciudad",
+  genres: "Géneros",
+  tags: "Tags",
   dates: "Fechas del evento",
   url: "URL oficial",
 };
@@ -1250,6 +1252,8 @@ function PressDashboard() {
     venue: "",
     address: "",
     city: "",
+    genres: "",
+    tags: "",
     dates: [""],
     url: "",
   });
@@ -1283,6 +1287,14 @@ function PressDashboard() {
     try {
       const payload = { ...value };
       if (path === "/api/press/events") {
+        payload.genres = String(payload.genres || "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean);
+        payload.tags = String(payload.tags || "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean);
         payload.dates = payload.dates.filter(Boolean).map((date) => new Date(date).toISOString());
         payload.startsAt = payload.dates[0] ?? null;
         payload.endsAt = null;
@@ -1415,6 +1427,8 @@ function PressDashboard() {
                         venue: "",
                         address: "",
                         city: "",
+                        genres: "",
+                        tags: "",
                         dates: [""],
                         url: "",
                       }),
