@@ -27,6 +27,7 @@ function LayoutShell({ children }) {
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchScope, setSearchScope] = useState("notes");
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
   const location = useLocation();
@@ -55,6 +56,11 @@ function LayoutShell({ children }) {
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/agenda")) setSearchScope("events");
+    if (location.pathname.startsWith("/notas")) setSearchScope("notes");
+  }, [location.pathname]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -140,7 +146,8 @@ function LayoutShell({ children }) {
   const submitSearch = (event) => {
     event.preventDefault();
     const query = searchQuery.trim();
-    navigate(query ? `/notas?q=${encodeURIComponent(query)}` : "/notas");
+    const destination = searchScope === "events" ? "/agenda" : "/notas";
+    navigate(query ? `${destination}?q=${encodeURIComponent(query)}` : destination);
   };
 
   const WorkspaceLink = ({ to, children, end = false }) => (
@@ -191,13 +198,24 @@ function LayoutShell({ children }) {
             <span aria-hidden="true" className="header-search-icon">
               ⌕
             </span>
+            <label className="header-search-scope">
+              <span className="sr-only">Buscar en</span>
+              <select
+                aria-label="Buscar en"
+                onChange={(event) => setSearchScope(event.target.value)}
+                value={searchScope}
+              >
+                <option value="notes">Notas</option>
+                <option value="events">Eventos</option>
+              </select>
+            </label>
             <input
-              aria-label="Buscar notas"
+              aria-label={`Buscar ${searchScope === "events" ? "eventos" : "notas"}`}
               onChange={(event) => setSearchQuery(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") submitSearch(event);
               }}
-              placeholder="Buscar notas"
+              placeholder={`Buscar ${searchScope === "events" ? "eventos" : "notas"}`}
               type="search"
               value={searchQuery}
             />
