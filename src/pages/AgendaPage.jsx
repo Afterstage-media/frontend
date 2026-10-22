@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { EventCard } from "../components/EventCard.jsx";
 import { EventMap } from "../components/EventMap.jsx";
@@ -24,10 +25,12 @@ const groupAgendaEvents = (items) => {
 };
 
 export function AgendaPage() {
+  const [searchParams] = useSearchParams();
+  const queryFromUrl = searchParams.get("q")?.trim() || "";
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
-    query: "",
+    query: queryFromUrl,
     dateRange: "all",
     lat: "",
     lng: "",
@@ -66,6 +69,12 @@ export function AgendaPage() {
   useEffect(() => {
     load();
   }, []);
+  useEffect(() => {
+    if (queryFromUrl === filters.query) return;
+    const nextFilters = { ...filters, query: queryFromUrl };
+    setFilters(nextFilters);
+    load(nextFilters);
+  }, [queryFromUrl]);
   useEffect(() => {
     let frame = 0;
     const onScroll = () => {
