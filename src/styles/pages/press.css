@@ -185,6 +185,37 @@
   grid-column: 1 / -1;
 }
 
+.event-dates-fieldset {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.event-dates-fieldset legend {
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.event-dates-fieldset > p {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.event-date-row {
+  align-items: end;
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.event-date-row label {
+  min-width: 0;
+}
+
+.event-date-row .button {
+  margin-bottom: 0;
+}
+
 .press-form-actions {
   align-items: center;
   display: flex;

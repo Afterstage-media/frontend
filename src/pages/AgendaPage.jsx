@@ -5,6 +5,7 @@ import { EventMap } from "../components/EventMap.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { eventMatchesDateRange } from "../utils/eventDates.js";
 export function AgendaPage() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
@@ -29,30 +30,13 @@ export function AgendaPage() {
       .then((items) => {
         const query = nextFilters.query.trim().toLowerCase();
         const now = new Date();
-        const endOfToday = new Date(now);
-        endOfToday.setHours(23, 59, 59, 999);
-        const endOfWeek = new Date(endOfToday);
-        endOfWeek.setDate(endOfWeek.getDate() + 7);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
         setEvents(
           items.filter((event) => {
             const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
               .filter(Boolean)
               .join(" ")
               .toLowerCase();
-            const startsAt = event.startsAt ? new Date(event.startsAt) : null;
-            const endsAt = event.endsAt ? new Date(event.endsAt) : startsAt;
-            const dateLimit =
-              nextFilters.dateRange === "today"
-                ? endOfToday
-                : nextFilters.dateRange === "week"
-                  ? endOfWeek
-                  : nextFilters.dateRange === "month"
-                    ? endOfMonth
-                    : null;
-            const matchesDate =
-              nextFilters.dateRange === "all" ||
-              Boolean(startsAt && endsAt && dateLimit && endsAt >= now && startsAt <= dateLimit);
+            const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
             return (!query || searchable.includes(query)) && matchesDate;
           }),
         );

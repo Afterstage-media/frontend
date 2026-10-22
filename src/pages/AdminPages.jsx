@@ -38,8 +38,7 @@ const eventFieldLabels = {
   venue: "Sala o espacio",
   address: "Dirección del lugar",
   city: "Ciudad",
-  startsAt: "Fecha y hora",
-  endsAt: "Finaliza (opcional)",
+  dates: "Fechas del evento",
   url: "URL oficial",
 };
 const contactFieldLabels = {
@@ -1193,8 +1192,7 @@ function PressDashboard() {
     venue: "",
     address: "",
     city: "",
-    startsAt: "",
-    endsAt: "",
+    dates: [""],
     url: "",
   });
   const [contact, setContact] = useState({
@@ -1226,8 +1224,11 @@ function PressDashboard() {
   const create = async (path, value, reset) => {
     try {
       const payload = { ...value };
-      payload.startsAt = payload.startsAt ? new Date(payload.startsAt).toISOString() : null;
-      payload.endsAt = payload.endsAt ? new Date(payload.endsAt).toISOString() : null;
+      if (path === "/api/press/events") {
+        payload.dates = payload.dates.filter(Boolean).map((date) => new Date(date).toISOString());
+        payload.startsAt = payload.dates[0] ?? null;
+        payload.endsAt = null;
+      }
       payload.followUpAt = payload.followUpAt ? new Date(payload.followUpAt).toISOString() : null;
       await api(path, { method: "POST", body: JSON.stringify(payload) });
       reset();
@@ -1314,27 +1315,70 @@ function PressDashboard() {
                         venue: "",
                         address: "",
                         city: "",
-                        startsAt: "",
-                        endsAt: "",
+                        dates: [""],
                         url: "",
                       }),
                     );
                   }}
                 >
                   <h2>Nuevo evento</h2>
-                  {Object.entries(event).map(([key, value]) => (
-                    <label key={key}>
-                      {eventFieldLabels[key]}
-                      <input
-                        required={key === "name"}
-                        type={
-                          key === "startsAt" || key === "endsAt" ? "datetime-local" : key === "url" ? "url" : "text"
-                        }
-                        value={value}
-                        onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
-                      />
-                    </label>
-                  ))}
+                  {Object.entries(event).map(([key, value]) =>
+                    key === "dates" ? (
+                      <fieldset className="event-dates-fieldset" key={key}>
+                        <legend>{eventFieldLabels[key]}</legend>
+                        <p>Agregá cada fecha en la que ocurre. No tienen que ser consecutivas.</p>
+                        {value.map((date, index) => (
+                          <div className="event-date-row" key={`${index}-${date}`}>
+                            <label>
+                              <span>Fecha {index + 1}</span>
+                              <input
+                                required={index === 0}
+                                aria-label={`Fecha del evento ${index + 1}`}
+                                type="datetime-local"
+                                value={date}
+                                onChange={(e) =>
+                                  setEvent({
+                                    ...event,
+                                    dates: value.map((item, itemIndex) =>
+                                      itemIndex === index ? e.target.value : item,
+                                    ),
+                                  })
+                                }
+                              />
+                            </label>
+                            {value.length > 1 && (
+                              <button
+                                className="button ghost"
+                                type="button"
+                                onClick={() =>
+                                  setEvent({ ...event, dates: value.filter((_, itemIndex) => itemIndex !== index) })
+                                }
+                              >
+                                Quitar
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          className="button ghost"
+                          type="button"
+                          onClick={() => setEvent({ ...event, dates: [...value, ""] })}
+                        >
+                          + Agregar otra fecha
+                        </button>
+                      </fieldset>
+                    ) : (
+                      <label key={key}>
+                        {eventFieldLabels[key]}
+                        <input
+                          required={key === "name"}
+                          type={key === "url" ? "url" : "text"}
+                          value={value}
+                          onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
+                        />
+                      </label>
+                    ),
+                  )}
                   <button className="button dark" type="submit">
                     Guardar evento
                   </button>
