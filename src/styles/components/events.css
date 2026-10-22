@@ -101,11 +101,13 @@
 }
 
 .agenda-filter-dock {
+  box-sizing: border-box;
   margin: -64px auto 0;
   max-width: 1040px;
   padding: 0 var(--gutter) var(--space-md);
   position: sticky;
   top: 72px;
+  width: 100%;
   z-index: 20;
 }
 
@@ -115,7 +117,8 @@
 }
 
 .agenda-filter-dock.is-scrolled .agenda-search {
-  flex-basis: 230px;
+  flex: 1 1 220px;
+  min-width: 150px;
 }
 
 .agenda-filter-dock.is-scrolled .agenda-search > span,
@@ -137,7 +140,16 @@
 }
 
 .agenda-filter-dock.is-scrolled .agenda-radius {
-  flex-basis: 160px;
+  flex: 0 1 140px;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-filters .actions {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-filters select {
+  max-width: 150px;
 }
 
 .agenda-filters select {
