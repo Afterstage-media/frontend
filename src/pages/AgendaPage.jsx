@@ -94,7 +94,7 @@ export function AgendaPage() {
           <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
         </div>
       </section>
-      <div className="agenda-filter-dock">
+      <div className={`agenda-filter-dock${scrollOffset > 280 ? " is-scrolled" : ""}`}>
         <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
           <label className="agenda-search">
             <span>Encontrá tu próximo plan</span>

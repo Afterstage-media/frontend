@@ -109,6 +109,37 @@
   z-index: 20;
 }
 
+.agenda-filter-dock.is-scrolled .agenda-filters {
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-search {
+  flex-basis: 230px;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-search > span,
+.agenda-filter-dock.is-scrolled .agenda-location-status,
+.agenda-filter-dock.is-scrolled .agenda-radius-scale {
+  display: none;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-search input {
+  padding: 4px 0;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-filters select {
+  min-height: 34px;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-filters .button {
+  padding: 8px 10px;
+}
+
+.agenda-filter-dock.is-scrolled .agenda-radius {
+  flex-basis: 160px;
+}
+
 .agenda-filters select {
   background: var(--color-surface);
   border: var(--border);
@@ -601,6 +632,17 @@
     margin: -44px 0 0;
     padding: 0 var(--gutter-mobile) var(--space-md);
     top: 58px;
+  }
+
+  .agenda-filter-dock.is-scrolled .agenda-filters {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .agenda-filter-dock.is-scrolled .agenda-search > span,
+  .agenda-filter-dock.is-scrolled .agenda-location-status,
+  .agenda-filter-dock.is-scrolled .agenda-radius-scale {
+    display: none;
   }
 
   .agenda-filters .actions,
