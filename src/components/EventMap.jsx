@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { formatEventDates, getEventDates } from "../utils/eventDates.js";
 
@@ -55,35 +56,28 @@ export function EventMap({
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
-  const leafletRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    import("leaflet").then(({ default: L }) => {
-      if (cancelled || !containerRef.current) return;
-      const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView([latitude, longitude], 11);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
-      leafletRef.current = L;
-      mapRef.current = map;
-      setMapReady(true);
-    });
+    if (!containerRef.current) return undefined;
+    const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView([latitude, longitude], 11);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+    mapRef.current = map;
+    setMapReady(true);
     return () => {
-      cancelled = true;
-      mapRef.current?.remove();
+      map.remove();
       mapRef.current = null;
-      leafletRef.current = null;
+      setMapReady(false);
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    const L = leafletRef.current;
-    if (!map || !L || !mapReady) return;
+    if (!map || !mapReady) return;
     const eventIcon = markerIcon(L, "event-map-marker-event");
     const layers = L.layerGroup().addTo(map);
     const bounds = L.latLngBounds([]);
