@@ -4,6 +4,104 @@ import { api } from "../services/api.js";
 
 const themeStorageKey = "afterstage-theme-v2";
 const LayoutContext = createContext(false);
+const searchScopeOptions = [
+  { label: "Notas", value: "notes" },
+  { label: "Eventos", value: "events" },
+];
+
+function SearchScopeSelect({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const optionRefs = useRef([]);
+  const selectedOption = searchScopeOptions.find((option) => option.value === value) || searchScopeOptions[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!containerRef.current?.contains(event.target)) setOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    optionRefs.current[searchScopeOptions.findIndex((option) => option.value === value)]?.focus();
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open, value]);
+
+  const chooseOption = (nextValue) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setOpen(true);
+    }
+  };
+
+  const handleOptionKeyDown = (event, index) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const nextIndex =
+        event.key === "ArrowDown"
+          ? (index + 1) % searchScopeOptions.length
+          : (index - 1 + searchScopeOptions.length) % searchScopeOptions.length;
+      optionRefs.current[nextIndex]?.focus();
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      chooseOption(searchScopeOptions[index].value);
+    }
+  };
+
+  return (
+    <div className={`header-search-scope${open ? " is-open" : ""}`} ref={containerRef}>
+      <span className="sr-only" id="search-scope-label">
+        Buscar en
+      </span>
+      <button
+        aria-controls="search-scope-options"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-labelledby="search-scope-label"
+        className="header-search-scope-trigger"
+        onClick={() => setOpen((isOpen) => !isOpen)}
+        onKeyDown={handleTriggerKeyDown}
+        type="button"
+      >
+        {selectedOption.label}
+        <span aria-hidden="true" className="header-search-scope-chevron">
+          ↓
+        </span>
+      </button>
+      {open && (
+        <div aria-label="Buscar en" className="header-search-scope-menu" id="search-scope-options" role="listbox">
+          {searchScopeOptions.map((option, index) => (
+            <button
+              aria-selected={option.value === value}
+              className="header-search-scope-option"
+              key={option.value}
+              onClick={() => chooseOption(option.value)}
+              onKeyDown={(event) => handleOptionKeyDown(event, index)}
+              ref={(element) => {
+                optionRefs.current[index] = element;
+              }}
+              role="option"
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
@@ -198,17 +296,7 @@ function LayoutShell({ children }) {
             <span aria-hidden="true" className="header-search-icon">
               ⌕
             </span>
-            <label className="header-search-scope">
-              <span className="sr-only">Buscar en</span>
-              <select
-                aria-label="Buscar en"
-                onChange={(event) => setSearchScope(event.target.value)}
-                value={searchScope}
-              >
-                <option value="notes">Notas</option>
-                <option value="events">Eventos</option>
-              </select>
-            </label>
+            <SearchScopeSelect onChange={setSearchScope} value={searchScope} />
             <input
               aria-label={`Buscar ${searchScope === "events" ? "eventos" : "notas"}`}
               onChange={(event) => setSearchQuery(event.target.value)}
