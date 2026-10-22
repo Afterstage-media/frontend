@@ -182,7 +182,6 @@ export function Layout({ children }) {
                 <span className="nav-group-label">Gestionar</span>
                 <NavLink to="/admin/directorio">Directorio</NavLink>
                 <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
-                <NavLink to="/admin/monetizacion">Monetización</NavLink>
                 {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
                 {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
                 <span className="nav-divider" aria-hidden="true" />
