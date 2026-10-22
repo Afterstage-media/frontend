@@ -502,8 +502,14 @@ function NewContentEditor() {
                 : "Abrí una nueva pieza editorial y dejala lista para revisar."}
             </p>
           </div>
+          <div className="editor-header-meta">
+            <span className="editor-meta-label">Destino</span>
+            <strong>{socialMode ? "Instagram" : "Sitio web"}</strong>
+            <span className="editor-meta-label">Estado</span>
+            <strong>Borrador</strong>
+          </div>
         </div>
-        <div className="editor-layout editor-layout-single">
+        <div className="editor-layout editor-layout-create">
           <ContentForm
             onSubmit={submit}
             error={error}
@@ -512,9 +518,60 @@ function NewContentEditor() {
             socialMode={socialMode}
             preset={{ ...preset, ...(requestedType ? { type: requestedType } : {}) }}
           />
+          <NewContentGuide socialMode={socialMode} requestedType={requestedType} />
         </div>
       </section>
     </Layout>
+  );
+}
+
+function NewContentGuide({ socialMode, requestedType }) {
+  const formatLabels = { carousel: "Carrusel", reel: "Reel", story: "Story", post: "Post" };
+  const format = formatLabels[requestedType] || (socialMode ? "Pieza social" : "Nota");
+  return (
+    <aside className="editor-sidebar editor-create-sidebar">
+      <section className="editor-side-card editor-create-guide">
+        <div className="editor-side-heading">
+          <div>
+            <p className="eyebrow">Ruta rápida</p>
+            <h2>Armá la pieza</h2>
+          </div>
+          <span className="editor-card-index">01</span>
+        </div>
+        <ol className="create-guide-steps">
+          <li>
+            <strong>Definí la idea</strong>
+            <span>Título, formato y etiquetas.</span>
+          </li>
+          <li>
+            <strong>Sumá contexto</strong>
+            <span>Una bajada y el material de apoyo.</span>
+          </li>
+          <li>
+            <strong>Elegí la salida</strong>
+            <span>Canales y fecha de publicación.</span>
+          </li>
+        </ol>
+      </section>
+      <section className="editor-side-card editor-create-summary">
+        <p className="eyebrow">Configuración actual</p>
+        <dl>
+          <div>
+            <dt>Formato</dt>
+            <dd>{format}</dd>
+          </div>
+          <div>
+            <dt>Destino</dt>
+            <dd>{socialMode ? "Instagram" : "Sitio web"}</dd>
+          </div>
+          <div>
+            <dt>Se guarda como</dt>
+            <dd>Borrador</dd>
+          </div>
+        </dl>
+        <p className="publish-hint">Podés completar lo esencial ahora y editar el borrador después.</p>
+      </section>
+    </aside>
   );
 }
 

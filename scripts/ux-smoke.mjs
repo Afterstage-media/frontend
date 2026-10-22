@@ -85,6 +85,8 @@ assert.match(directory, /Crear ficha/);
 assert.match(directory, /DirectoryCreatePanel/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
+assert.match(admin, /NewContentGuide/);
+assert.match(admin, /editor-layout-create/);
 assert.match(admin, /Quitar de la nota/);
 assert.match(admin, /assets: item\.assets\.filter/);
 assert.match(admin, /Retirar del sitio/);
