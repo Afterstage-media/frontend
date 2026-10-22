@@ -93,6 +93,8 @@ export function AgendaPage() {
           <h1>Donde la escena se encuentra.</h1>
           <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
         </div>
+      </section>
+      <div className="agenda-filter-dock">
         <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
           <label className="agenda-search">
             <span>Encontrá tu próximo plan</span>
@@ -161,39 +163,40 @@ export function AgendaPage() {
             </p>
           )}
         </div>
-      </section>
+      </div>
       {error && (
         <ErrorState
           message="No pudimos actualizar la agenda. Tus filtros siguen disponibles para intentar otra vez."
           onRetry={() => load()}
         />
       )}
-      <div className={`agenda-results-layout${filters.lat && filters.lng ? " has-map" : ""}`}>
-        {filters.lat && filters.lng && (
-          <section className="event-map-section" aria-label="Mapa de eventos cercanos">
-            <div className="event-map-heading">
-              <div>
-                <p className="eyebrow">Mapa de cercanía</p>
-                <h2>Eventos en tu radio.</h2>
-              </div>
-              <span className="muted">{events.length} encontrados</span>
+      <div className="agenda-results-layout has-map">
+        <section className="event-map-section" aria-label="Mapa de eventos">
+          <div className="event-map-heading">
+            <div>
+              <p className="eyebrow">Mapa de eventos</p>
+              <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
             </div>
-            <EventMap
-              events={events}
-              latitude={Number(filters.lat)}
-              longitude={Number(filters.lng)}
-              radiusKm={filters.radiusKm}
-            />
-            <div className="event-map-legend">
+            <span className="muted">{events.length} encontrados</span>
+          </div>
+          <EventMap
+            events={events}
+            latitude={Number(filters.lat) || -34.6037}
+            longitude={Number(filters.lng) || -58.3816}
+            radiusKm={filters.radiusKm}
+            hasLocation={Boolean(filters.lat && filters.lng)}
+          />
+          <div className="event-map-legend">
+            {filters.lat && filters.lng && (
               <span>
                 <i className="event-map-legend-user" /> Tu ubicación
               </span>
-              <span>
-                <i className="event-map-legend-event" /> Evento encontrado
-              </span>
-            </div>
-          </section>
-        )}
+            )}
+            <span>
+              <i className="event-map-legend-event" /> Eventos en agenda
+            </span>
+          </div>
+        </section>
         <section className="events">
           <div className="events-heading">
             <p className="eyebrow">Lo que está pasando</p>

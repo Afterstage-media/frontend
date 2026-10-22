@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
+import { formatEventDates } from "../utils/eventDates.js";
 
 const markerIcon = (L, className) =>
   L.divIcon({
@@ -22,11 +23,14 @@ const escapeHtml = (value) =>
       })[character],
   );
 
-export function EventMap({ events, latitude, longitude, radiusKm }) {
+const eventCoordinates = (event) => event.latitude != null && event.longitude != null;
+
+export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = false }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,45 +57,84 @@ export function EventMap({ events, latitude, longitude, radiusKm }) {
     const map = mapRef.current;
     const L = leafletRef.current;
     if (!map || !L || !mapReady) return;
-    const userIcon = markerIcon(L, "event-map-marker-user");
     const eventIcon = markerIcon(L, "event-map-marker-event");
     const layers = L.layerGroup().addTo(map);
-    const circle = L.circle([latitude, longitude], {
-      color: "#7437ff",
-      fillColor: "#7437ff",
-      fillOpacity: 0.12,
-      radius: Number(radiusKm) * 1000,
-      weight: 2,
-    }).addTo(layers);
-    L.marker([latitude, longitude], { icon: userIcon })
-      .bindPopup(`<strong>Tu ubicación</strong><br>${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}`)
-      .addTo(layers);
+    const bounds = L.latLngBounds([]);
+    if (hasLocation) {
+      const circle = L.circle([latitude, longitude], {
+        color: "#7437ff",
+        fillColor: "#7437ff",
+        fillOpacity: 0.12,
+        radius: Number(radiusKm) * 1000,
+        weight: 2,
+      }).addTo(layers);
+      bounds.extend(circle.getBounds());
+      L.marker([latitude, longitude], { icon: markerIcon(L, "event-map-marker-user") })
+        .bindTooltip(
+          `<strong>Tu ubicación</strong><br>${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}`,
+          { className: "event-map-tooltip", direction: "top", sticky: true },
+        )
+        .addTo(layers);
+    }
 
-    events
-      .filter((event) => event.latitude != null && event.longitude != null)
-      .forEach((event) => {
-        const location = [event.latitude, event.longitude];
-        L.marker(location, { icon: eventIcon })
-          .bindPopup(
-            `<strong>${escapeHtml(event.name)}</strong><br>${escapeHtml(event.venue || event.city || "Evento")}`,
-          )
-          .addTo(layers);
-      });
+    const groupedEvents = new Map();
+    events.filter(eventCoordinates).forEach((event) => {
+      const key = `${Number(event.latitude).toFixed(4)},${Number(event.longitude).toFixed(4)}`;
+      const group = groupedEvents.get(key) || { latitude: event.latitude, longitude: event.longitude, events: [] };
+      group.events.push(event);
+      groupedEvents.set(key, group);
+    });
 
-    const bounds = circle.getBounds();
-    events
-      .filter((event) => event.latitude != null && event.longitude != null)
-      .forEach((event) => bounds.extend([event.latitude, event.longitude]));
-    map.fitBounds(bounds, { maxZoom: 13, padding: [24, 24] });
+    groupedEvents.forEach((group) => {
+      const location = [group.latitude, group.longitude];
+      const tooltip = group.events
+        .map(
+          (event) =>
+            `<div class="event-map-tooltip-item"><strong>${escapeHtml(event.name)}</strong><br><span>${escapeHtml(
+              [event.venue || event.city || "Evento", formatEventDates(event)].filter(Boolean).join(" · "),
+            )}</span></div>`,
+        )
+        .join("");
+      L.marker(location, { icon: eventIcon })
+        .bindTooltip(tooltip, {
+          className: "event-map-tooltip",
+          direction: "top",
+          sticky: true,
+        })
+        .addTo(layers);
+      bounds.extend(location);
+    });
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { maxZoom: hasLocation ? 13 : 12, padding: [18, 18] });
+    } else {
+      map.setView([latitude, longitude], hasLocation ? 11 : 10);
+    }
     map.invalidateSize();
     return () => layers.remove();
-  }, [events, latitude, longitude, radiusKm, mapReady]);
+  }, [events, latitude, longitude, radiusKm, hasLocation, mapReady]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const frame = requestAnimationFrame(() => mapRef.current?.invalidateSize());
+    return () => cancelAnimationFrame(frame);
+  }, [expanded]);
 
   return (
-    <div
-      aria-label={`Mapa de eventos en un radio de ${radiusKm} kilómetros`}
-      className="event-map"
-      ref={containerRef}
-    />
+    <div className={`event-map-shell${expanded ? " is-expanded" : ""}`}>
+      <button
+        type="button"
+        className="event-map-expand"
+        aria-pressed={expanded}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        {expanded ? "Achicar mapa" : "Agrandar mapa"}
+      </button>
+      <div
+        aria-label={hasLocation ? `Mapa de eventos en un radio de ${radiusKm} kilómetros` : "Mapa de todos los eventos"}
+        className="event-map"
+        ref={containerRef}
+      />
+    </div>
   );
 }
