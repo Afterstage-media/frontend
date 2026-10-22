@@ -6,6 +6,7 @@
 
 html {
   background: var(--color-paper);
+  overflow-x: clip;
 }
 
 body {
