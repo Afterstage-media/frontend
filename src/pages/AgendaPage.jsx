@@ -12,7 +12,7 @@ const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() ||
 const groupAgendaEvents = (items) => {
   const groups = new Map();
   items.forEach((event) => {
-    const key = [eventGroupLabel(event), event.venue || "", event.city || ""].join("|").toLowerCase();
+    const key = eventGroupLabel(event).toLowerCase();
     const group = groups.get(key) || { ...event, dates: [], endsAt: event.endsAt };
     const dates = new Map(group.dates.map((date) => [date, date]));
     getEventDates(event).forEach((date) => dates.set(date.toISOString(), date.toISOString()));
