@@ -168,6 +168,7 @@
 .agenda-filters .button {
   font-size: 0.78rem;
   padding: 10px 13px;
+  white-space: nowrap;
 }
 
 .filter-clear {
