@@ -144,7 +144,9 @@
 }
 
 .agenda-filter-dock.is-scrolled .agenda-filters .actions {
-  flex-wrap: wrap;
+  grid-template-columns:
+    max-content max-content max-content minmax(130px, 1fr) minmax(125px, 1fr) minmax(125px, 1fr)
+    minmax(160px, 1fr);
   min-width: 0;
 }
 
@@ -154,26 +156,40 @@
 
 .agenda-filters .actions {
   align-items: end;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns:
+    max-content max-content max-content minmax(145px, 1.15fr) minmax(135px, 1fr) minmax(135px, 1fr)
+    minmax(170px, 1.2fr);
   min-width: 0;
   width: 100%;
 }
 
 .agenda-filters .actions > label {
   display: grid;
-  flex: 1 1 145px;
   gap: 5px;
   min-width: 0;
 }
 
 .agenda-filters .actions > select {
-  flex: 1 1 160px;
   min-width: 0;
+  width: 100%;
 }
 
 .agenda-filters .actions > .button {
-  flex: 0 0 auto;
+  width: max-content;
+}
+
+.agenda-date-actions {
+  align-items: end;
+  display: flex;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.agenda-date-actions select {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .agenda-filters select {
@@ -296,6 +312,17 @@
 
 .agenda-search input:focus {
   outline: 0;
+}
+
+@media (max-width: 960px) and (min-width: 701px) {
+  .agenda-filters .actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .agenda-filters .actions > .agenda-radius,
+  .agenda-filters .actions > .agenda-date-actions {
+    grid-column: span 2;
+  }
 }
 
 .event-map-shell.is-picking .event-map {
@@ -763,9 +790,17 @@
     width: 100%;
   }
 
+  .agenda-filter-dock.is-scrolled .agenda-filters .actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .agenda-filters select,
-  .agenda-filters .filter-clear,
   .agenda-radius {
+    grid-column: span 2;
+    width: 100%;
+  }
+
+  .agenda-date-actions {
     grid-column: span 2;
     width: 100%;
   }
