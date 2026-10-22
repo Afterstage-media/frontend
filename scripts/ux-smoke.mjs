@@ -51,6 +51,7 @@ assert.match(search, /normalize\("NFD"\)/);
 assert.match(search, /combiningMarks/);
 assert.match(notes, /normalizeSearchText/);
 assert.match(agenda, /normalizeSearchText/);
+assert.match(agenda, /locationError\.code === 1/);
 assert.equal(normalizeSearchText("María Becerra"), "maria becerra");
 assert.equal(normalizeSearchText("maria"), "maria");
 assert.match(admin, /dates: \[""\]/);
