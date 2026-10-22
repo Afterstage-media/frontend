@@ -309,7 +309,7 @@ export function AgendaPage() {
             <div className="event-map-heading">
               <div>
                 <p className="eyebrow">Mapa</p>
-                <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
+                <h2>Eventos</h2>
               </div>
               <span className="muted">{visibleEvents.length} visibles</span>
             </div>
