@@ -102,7 +102,13 @@ export function AgendaPage() {
         setLocationMessage(`Ubicación detectada · ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
         load(nextFilters);
       },
-      () => setLocationMessage("No pudimos obtener tu ubicación. Revisá el permiso del navegador."),
+      (locationError) => {
+        setLocationMessage(
+          locationError.code === 1
+            ? "El navegador bloqueó la ubicación. Permitila para usar “Cerca mío”."
+            : "No pudimos obtener tu ubicación. Revisá el permiso del navegador.",
+        );
+      },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
     );
   };
