@@ -53,19 +53,21 @@ export function formatEventDates(event) {
     return dates[0].toLocaleString("es-AR", { dateStyle: "medium", timeStyle: "short" });
   }
 
-  const sameMonth = dates.every(
-    (date) => date.getMonth() === dates[0].getMonth() && date.getFullYear() === dates[0].getFullYear(),
-  );
-  if (sameMonth) {
-    const days = dates.map((date) => date.getDate());
-    const dayLabel = days.length === 1 ? String(days[0]) : `${days.slice(0, -1).join(", ")} y ${days.at(-1)}`;
-    const month = dates[0].toLocaleDateString("es-AR", { month: "long" });
-    return `${dayLabel} de ${month} de ${dates[0].getFullYear()}`;
-  }
+  const groups = [];
+  dates.forEach((date) => {
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const group = groups.find((candidate) => candidate.key === key);
+    if (group) group.dates.push(date);
+    else groups.push({ key, dates: [date] });
+  });
 
-  return dates
-    .map((date) => date.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }))
-    .join(" · ");
+  return groups
+    .map(({ dates: monthDates }) => {
+      const days = monthDates.map((date) => date.getDate()).join(", ");
+      const month = monthDates[0].toLocaleDateString("es-AR", { month: "long" });
+      return `${days} de ${month} de ${monthDates[0].getFullYear()}`;
+    })
+    .join(", ");
 }
 
 export function isMultiDateEvent(event) {
