@@ -34,7 +34,11 @@ export function eventMatchesDateRange(event, range, now = new Date()) {
         ? new Date(endOfToday.setDate(endOfToday.getDate() + 7))
         : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  return dates.some((date) => date >= now && date <= limit) || Boolean(event.endsAt && dates[0] <= limit);
+  const isDiscreteSchedule = Array.isArray(event.dates) && event.dates.length > 1;
+  return (
+    dates.some((date) => date >= now && date <= limit) ||
+    (!isDiscreteSchedule && Boolean(event.endsAt && dates[0] <= limit))
+  );
 }
 
 export function formatEventDates(event) {

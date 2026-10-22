@@ -42,6 +42,7 @@ assert.match(eventCard, /Varias fechas/);
 assert.match(eventPage, /isMultiDate/);
 assert.match(eventDates, /getEventDates/);
 assert.match(eventDates, /event\.dates/);
+assert.match(eventDates, /isDiscreteSchedule/);
 assert.match(admin, /dates: \[""\]/);
 assert.match(admin, /Agregar otra fecha/);
 assert.match(countdown, /endTarget/);
