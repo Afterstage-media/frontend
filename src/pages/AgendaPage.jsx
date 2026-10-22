@@ -169,7 +169,7 @@ export function AgendaPage() {
       </section>
       <div className="agenda-results-layout has-map">
         <aside className="agenda-sidebar">
-          <div className={`agenda-filter-dock${scrollOffset > 280 ? " is-scrolled" : ""}`}>
+          <div className="agenda-filter-dock">
             <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
               <label className="agenda-search">
                 <span>Encontrá tu próximo plan</span>
