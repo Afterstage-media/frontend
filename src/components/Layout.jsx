@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../services/api.js";
 
 const themeStorageKey = "afterstage-theme-v2";
+const LayoutContext = createContext(false);
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
@@ -17,10 +18,14 @@ function getInitialTheme() {
 }
 
 export function Layout({ children }) {
+  if (useContext(LayoutContext)) return children;
+  return <LayoutShell>{children}</LayoutShell>;
+}
+
+function LayoutShell({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
@@ -49,7 +54,6 @@ export function Layout({ children }) {
 
   useEffect(() => {
     setMenuOpen(false);
-    setSearchOpen(false);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -136,7 +140,6 @@ export function Layout({ children }) {
   const submitSearch = (event) => {
     event.preventDefault();
     const query = searchQuery.trim();
-    setSearchOpen(false);
     navigate(query ? `/notas?q=${encodeURIComponent(query)}` : "/notas");
   };
 
@@ -147,208 +150,204 @@ export function Layout({ children }) {
   );
 
   return (
-    <div className="site-shell">
-      <a className="skip-link" href="#main-content">
-        Ir al contenido
-      </a>
-      <header className={`header ${isWorkspace ? "header-workspace" : isAdminPath ? "header-admin" : "header-public"}`}>
-        <div aria-hidden="true" className="reflector-stage" ref={reflectorStageRef}>
-          {[0, 1, 2, 3, 4].map((reflector) => (
-            <span
-              className="header-reflector"
-              key={reflector}
-              ref={(element) => {
-                reflectorRefs.current[reflector] = element;
-              }}
-            >
-              <span className="reflector-beam" />
-              <span className="reflector-bulb" />
-            </span>
-          ))}
-          <span className="pointer-glow" />
-        </div>
-        <Link className="brand" to="/">
-          <span className="mark" /> AFTERSTAGE
-        </Link>
-        {isWorkspace && <span className="header-workspace-label">ESPACIO DE TRABAJO</span>}
-        <button
-          aria-expanded={menuOpen}
-          aria-controls={isWorkspace ? "workspace-sidebar" : "site-navigation"}
-          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-          className="menu-toggle"
-          onClick={() => setMenuOpen((open) => !open)}
-          type="button"
+    <LayoutContext.Provider value>
+      <div className="site-shell">
+        <a className="skip-link" href="#main-content">
+          Ir al contenido
+        </a>
+        <header
+          className={`header ${isWorkspace ? "header-workspace" : isAdminPath ? "header-admin" : "header-public"}`}
         >
-          <span /> <span /> <span />
-        </button>
-        {!isWorkspace && (
-          <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
-            {isAdminPath ? (
-              <>
-                <span className="nav-group-label">Publicar</span>
-                <NavLink end to="/admin">
-                  Contenido
-                </NavLink>
-                <NavLink to="/admin/redes">Redes</NavLink>
-                <NavLink to="/admin/prensa">Prensa</NavLink>
-                <span className="nav-divider" aria-hidden="true" />
-                <span className="nav-group-label">Gestionar</span>
-                <NavLink to="/admin/directorio">Directorio</NavLink>
-                <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
-                {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
-                {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
-                <span className="nav-divider" aria-hidden="true" />
-                <NavLink className="nav-site-link" to="/">
-                  Ver sitio ↗
-                </NavLink>
-                <button className="nav-logout" onClick={logOut} type="button">
-                  Salir
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="nav-group-label">Explorar</span>
-                <NavLink end to="/">
-                  Inicio
-                </NavLink>
-                <NavLink to="/notas">Notas</NavLink>
-                <NavLink to="/agenda">Agenda</NavLink>
-                {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
-                <NavLink to="/servicios">Servicios</NavLink>
-                {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-                {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-                {can("admin", "editor", "press", "community", "social") && (
-                  <NavLink to="/reemplazos">Reemplazos</NavLink>
-                )}
-                {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
-                <form
-                  aria-label="Buscar en afterstage"
-                  className={`header-search-form ${searchOpen ? "is-open" : ""}`}
-                  onSubmit={submitSearch}
-                  role="search"
-                >
-                  {searchOpen && (
-                    <input
-                      aria-label="Buscar notas"
-                      autoFocus
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder="Buscar notas"
-                      type="search"
-                      value={searchQuery}
-                    />
-                  )}
-                  <button
-                    aria-expanded={searchOpen}
-                    aria-label={searchOpen ? "Buscar" : "Abrir búsqueda"}
-                    className="header-search"
-                    onClick={(event) => {
-                      if (!searchOpen) {
-                        event.preventDefault();
-                        setSearchOpen(true);
-                      }
-                    }}
-                    type={searchOpen ? "submit" : "button"}
-                  >
-                    <span aria-hidden="true">⌕</span>
-                  </button>
-                </form>
-                {can("admin", "editor") && (
-                  <NavLink className="nav-admin-link" to="/admin">
-                    Admin ↗
-                  </NavLink>
-                )}
-              </>
-            )}
-          </nav>
-        )}
-      </header>
-      {isWorkspace ? (
-        <div className="workspace-layout">
-          {menuOpen && (
-            <button aria-label="Cerrar menú de trabajo" className="workspace-scrim" onClick={closeMenu} type="button" />
-          )}
-          <aside
-            aria-label="Menú del espacio de trabajo"
-            className={`workspace-sidebar ${menuOpen ? "is-open" : ""}`}
-            id="workspace-sidebar"
+          <div aria-hidden="true" className="reflector-stage" ref={reflectorStageRef}>
+            {[0, 1, 2, 3, 4].map((reflector) => (
+              <span
+                className="header-reflector"
+                key={reflector}
+                ref={(element) => {
+                  reflectorRefs.current[reflector] = element;
+                }}
+              >
+                <span className="reflector-beam" />
+                <span className="reflector-bulb" />
+              </span>
+            ))}
+            <span className="pointer-glow" />
+          </div>
+          <Link className="brand" to="/">
+            <span className="mark" /> AFTERSTAGE
+          </Link>
+          {isWorkspace && <span className="header-workspace-label">ESPACIO DE TRABAJO</span>}
+          <button
+            aria-expanded={menuOpen}
+            aria-controls={isWorkspace ? "workspace-sidebar" : "site-navigation"}
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+            className="menu-toggle"
+            onClick={() => setMenuOpen((open) => !open)}
+            type="button"
           >
-            <div className="workspace-sidebar-top">
-              <div>
-                <span className="workspace-kicker">Afterstage</span>
-                <strong>Tu espacio</strong>
-              </div>
-              <button aria-label="Cerrar menú" className="workspace-sidebar-close" onClick={closeMenu} type="button">
-                ×
-              </button>
-            </div>
-            <nav aria-label="Secciones del espacio de trabajo" className="workspace-sidebar-nav">
-              <span className="workspace-sidebar-label">Consultar</span>
-              <WorkspaceLink end to="/">
-                Inicio
-              </WorkspaceLink>
-              <WorkspaceLink to="/notas">Notas</WorkspaceLink>
-              <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
-              <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
-
-              {(can("admin", "editor", "community") || can("press", "social")) && (
+            <span /> <span /> <span />
+          </button>
+          <form aria-label="Buscar en afterstage" className="header-search-form" onSubmit={submitSearch} role="search">
+            <span aria-hidden="true" className="header-search-icon">
+              ⌕
+            </span>
+            <input
+              aria-label="Buscar notas"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") submitSearch(event);
+              }}
+              placeholder="Buscar notas"
+              type="search"
+              value={searchQuery}
+            />
+            <button className="sr-only" type="submit">
+              Buscar
+            </button>
+          </form>
+          {!isWorkspace && (
+            <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
+              {isAdminPath ? (
                 <>
-                  <span className="workspace-sidebar-label">Trabajar</span>
-                  {can("admin", "editor") && (
-                    <WorkspaceLink end to="/admin">
-                      Contenido
-                    </WorkspaceLink>
+                  <span className="nav-group-label">Publicar</span>
+                  <NavLink end to="/admin">
+                    Contenido
+                  </NavLink>
+                  <NavLink to="/admin/redes">Redes</NavLink>
+                  <NavLink to="/admin/prensa">Prensa</NavLink>
+                  <span className="nav-divider" aria-hidden="true" />
+                  <span className="nav-group-label">Gestionar</span>
+                  <NavLink to="/admin/directorio">Directorio</NavLink>
+                  <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
+                  {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
+                  {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
+                  <span className="nav-divider" aria-hidden="true" />
+                  <NavLink className="nav-site-link" to="/">
+                    Ver sitio ↗
+                  </NavLink>
+                  <button className="nav-logout" onClick={logOut} type="button">
+                    Salir
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="nav-group-label">Explorar</span>
+                  <NavLink end to="/">
+                    Inicio
+                  </NavLink>
+                  <NavLink to="/notas">Notas</NavLink>
+                  <NavLink to="/agenda">Agenda</NavLink>
+                  {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
+                  <NavLink to="/servicios">Servicios</NavLink>
+                  {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+                  {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+                  {can("admin", "editor", "press", "community", "social") && (
+                    <NavLink to="/reemplazos">Reemplazos</NavLink>
                   )}
-                  {can("admin", "editor") && <WorkspaceLink to="/admin/nueva">Nueva publicación</WorkspaceLink>}
-                  {can("admin", "editor") && <WorkspaceLink to="/admin/redes">Redes</WorkspaceLink>}
-                  {can("admin", "editor", "press") && <WorkspaceLink to="/admin/prensa">Prensa</WorkspaceLink>}
-                  {can("admin", "editor", "community") && (
-                    <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
+                  {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+                  {can("admin", "editor") && (
+                    <NavLink className="nav-admin-link" to="/admin">
+                      Admin ↗
+                    </NavLink>
                   )}
                 </>
               )}
-
-              <span className="workspace-sidebar-label">Gestionar</span>
-              {can("admin", "editor", "press", "directory", "auditor") && (
-                <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
-              )}
-              {can("admin", "editor", "press", "community", "social") && (
-                <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
-              )}
-              {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
-              {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
-              {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
-
-              <span className="workspace-sidebar-label">Cuenta</span>
-              <WorkspaceLink to="/cuenta/accesos-ia">Accesos IA</WorkspaceLink>
-              <WorkspaceLink to="/colaborador">Ver perfil</WorkspaceLink>
             </nav>
-            <div className="workspace-sidebar-footer">
-              <WorkspaceLink to="/">Ver sitio público ↗</WorkspaceLink>
-              <button className="workspace-logout" onClick={logOut} type="button">
-                Cerrar sesión
-              </button>
-            </div>
-          </aside>
-          <main className="workspace-main" id="main-content">
-            {children}
-          </main>
-        </div>
-      ) : (
-        <main id="main-content">{children}</main>
-      )}
-      <footer className={isAdminPath || isWorkspace ? "admin-footer" : undefined}>
-        <strong>AFTERSTAGE</strong>
-        <span>Periodismo musical para la escena que hace.</span>
-        <span className="footer-links">
-          <Link className="footer-contribute" to="/colaborador">
-            Colaborá con Afterstage ↗
-          </Link>
-          <span>
-            <Link to="/politica-editorial">Política editorial</Link> · <Link to="/codigo-de-creditos">Créditos</Link>
+          )}
+        </header>
+        {isWorkspace ? (
+          <div className="workspace-layout">
+            {menuOpen && (
+              <button
+                aria-label="Cerrar menú de trabajo"
+                className="workspace-scrim"
+                onClick={closeMenu}
+                type="button"
+              />
+            )}
+            <aside
+              aria-label="Menú del espacio de trabajo"
+              className={`workspace-sidebar ${menuOpen ? "is-open" : ""}`}
+              id="workspace-sidebar"
+            >
+              <div className="workspace-sidebar-top">
+                <div>
+                  <span className="workspace-kicker">Afterstage</span>
+                  <strong>Tu espacio</strong>
+                </div>
+                <button aria-label="Cerrar menú" className="workspace-sidebar-close" onClick={closeMenu} type="button">
+                  ×
+                </button>
+              </div>
+              <nav aria-label="Secciones del espacio de trabajo" className="workspace-sidebar-nav">
+                <span className="workspace-sidebar-label">Consultar</span>
+                <WorkspaceLink end to="/">
+                  Inicio
+                </WorkspaceLink>
+                <WorkspaceLink to="/notas">Notas</WorkspaceLink>
+                <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
+                <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
+
+                {(can("admin", "editor", "community") || can("press", "social")) && (
+                  <>
+                    <span className="workspace-sidebar-label">Trabajar</span>
+                    {can("admin", "editor") && (
+                      <WorkspaceLink end to="/admin">
+                        Contenido
+                      </WorkspaceLink>
+                    )}
+                    {can("admin", "editor") && <WorkspaceLink to="/admin/nueva">Nueva publicación</WorkspaceLink>}
+                    {can("admin", "editor") && <WorkspaceLink to="/admin/redes">Redes</WorkspaceLink>}
+                    {can("admin", "editor", "press") && <WorkspaceLink to="/admin/prensa">Prensa</WorkspaceLink>}
+                    {can("admin", "editor", "community") && (
+                      <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
+                    )}
+                  </>
+                )}
+
+                <span className="workspace-sidebar-label">Gestionar</span>
+                {can("admin", "editor", "press", "directory", "auditor") && (
+                  <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
+                )}
+                {can("admin", "editor", "press", "community", "social") && (
+                  <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
+                )}
+                {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
+                {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
+                {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
+
+                <span className="workspace-sidebar-label">Cuenta</span>
+                <WorkspaceLink to="/cuenta/accesos-ia">Accesos IA</WorkspaceLink>
+                <WorkspaceLink to="/colaborador">Ver perfil</WorkspaceLink>
+              </nav>
+              <div className="workspace-sidebar-footer">
+                <WorkspaceLink to="/">Ver sitio público ↗</WorkspaceLink>
+                <button className="workspace-logout" onClick={logOut} type="button">
+                  Cerrar sesión
+                </button>
+              </div>
+            </aside>
+            <main className="workspace-main" id="main-content">
+              {children}
+            </main>
+          </div>
+        ) : (
+          <main id="main-content">{children}</main>
+        )}
+        <footer className={isAdminPath || isWorkspace ? "admin-footer" : undefined}>
+          <strong>AFTERSTAGE</strong>
+          <span>Periodismo musical para la escena que hace.</span>
+          <span className="footer-links">
+            <Link className="footer-contribute" to="/colaborador">
+              Colaborá con Afterstage ↗
+            </Link>
+            <span>
+              <Link to="/politica-editorial">Política editorial</Link> · <Link to="/codigo-de-creditos">Créditos</Link>
+            </span>
           </span>
-        </span>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </LayoutContext.Provider>
   );
 }
 export const Loading = () => <p className="muted">Cargando…</p>;

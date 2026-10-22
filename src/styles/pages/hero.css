@@ -728,6 +728,7 @@
 
   .home-hero-copy {
     min-height: 430px;
+    min-width: 0;
     padding: 78px 8vw 42px;
   }
 
@@ -993,6 +994,7 @@
 
   .home-hero-copy {
     min-height: 430px;
+    min-width: 0;
     padding: 78px 8vw 42px;
   }
 
