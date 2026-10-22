@@ -11,6 +11,8 @@ import { normalizeSearchText } from "../utils/search.js";
 
 const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
 
+const eventArtistName = (event) => event.artist?.trim() || event.name?.trim() || "";
+
 const groupAgendaEvents = (items) => {
   const groups = new Map();
   items.forEach((event) => {
@@ -54,12 +56,9 @@ export function AgendaPage() {
         setEvents(
           groupAgendaEvents(
             items.filter((event) => {
-              const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
-                .filter(Boolean)
-                .join(" ");
-              const normalizedSearchable = normalizeSearchText(searchable);
+              const normalizedArtistName = normalizeSearchText(eventArtistName(event));
               const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
-              return (!query || normalizedSearchable.includes(query)) && matchesDate;
+              return (!query || normalizedArtistName.includes(query)) && matchesDate;
             }),
           ),
         );
@@ -126,7 +125,7 @@ export function AgendaPage() {
         <div className="agenda-hero-copy">
           <p className="eyebrow">Agenda abierta / 01</p>
           <h1>Donde la escena se encuentra.</h1>
-          <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre, lugar o ciudad.</p>
+          <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre de artista.</p>
         </div>
       </section>
       <div className={`agenda-filter-dock${scrollOffset > 280 ? " is-scrolled" : ""}`}>
@@ -134,8 +133,8 @@ export function AgendaPage() {
           <label className="agenda-search">
             <span>Encontrá tu próximo plan</span>
             <input
-              aria-label="Buscar evento, lugar o ciudad"
-              placeholder="Nombre, lugar o ciudad"
+              aria-label="Buscar por nombre de artista"
+              placeholder="Nombre del artista"
               value={filters.query}
               onChange={(e) => setFilters({ ...filters, query: e.target.value })}
               onKeyDown={(e) => e.key === "Enter" && load()}
