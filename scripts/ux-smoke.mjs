@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => readFile(path.join(root, file), "utf8");
+const { normalizeSearchText } = await import("../src/utils/search.js");
 
 const home = await read("src/pages/HomePage.jsx");
 const agenda = await read("src/pages/AgendaPage.jsx");
@@ -12,6 +13,7 @@ const eventMap = await read("src/components/EventMap.jsx");
 const eventCard = await read("src/components/EventCard.jsx");
 const eventPage = await read("src/pages/EventPage.jsx");
 const eventDates = await read("src/utils/eventDates.js");
+const search = await read("src/utils/search.js");
 const countdown = await read("src/components/Countdown.jsx");
 const layout = await read("src/components/Layout.jsx");
 const notes = await read("src/pages/NotesPage.jsx");
@@ -45,6 +47,12 @@ assert.match(eventPage, /isMultiDate/);
 assert.match(eventDates, /getEventDates/);
 assert.match(eventDates, /event\.dates/);
 assert.match(eventDates, /isDiscreteSchedule/);
+assert.match(search, /normalize\("NFD"\)/);
+assert.match(search, /combiningMarks/);
+assert.match(notes, /normalizeSearchText/);
+assert.match(agenda, /normalizeSearchText/);
+assert.equal(normalizeSearchText("María Becerra"), "maria becerra");
+assert.equal(normalizeSearchText("maria"), "maria");
 assert.match(admin, /dates: \[""\]/);
 assert.match(admin, /Agregar otra fecha/);
 assert.match(countdown, /endTarget/);

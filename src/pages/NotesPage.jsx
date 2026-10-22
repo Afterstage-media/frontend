@@ -5,6 +5,7 @@ import { ContentCard } from "../components/ContentCard.jsx";
 import { EditorialIntro, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
+import { normalizeSearchText } from "../utils/search.js";
 export function NotesPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() || "";
@@ -24,11 +25,11 @@ export function NotesPage() {
   }, []);
   const filteredItems = useMemo(() => {
     if (!query) return items;
-    const normalizedQuery = query.toLocaleLowerCase("es");
+    const normalizedQuery = normalizeSearchText(query);
     return items.filter((item) =>
       [item.title, item.summary, item.author, item.type]
         .filter(Boolean)
-        .some((value) => value.toLocaleLowerCase("es").includes(normalizedQuery)),
+        .some((value) => normalizeSearchText(value).includes(normalizedQuery)),
     );
   }, [items, query]);
   return (
