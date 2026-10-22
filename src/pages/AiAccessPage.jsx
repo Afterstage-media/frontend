@@ -11,7 +11,19 @@ const scopeLabels = {
   "directory:read": "Leer directorio",
   "directory:write": "Gestionar directorio",
   "replacements:read": "Leer reemplazos",
+  "instagram:read": "Leer Instagram",
+  "instagram:metrics": "Ver métricas de Instagram",
+  "instagram:publish": "Publicar en Instagram",
+  "voice:read": "Usar funciones de voz",
+  "voice:write": "Gestionar funciones de voz",
 };
+
+const readableScope = (scope) =>
+  scopeLabels[scope] ||
+  String(scope || "")
+    .replaceAll(":", " · ")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 const formatDate = (value) => {
   if (!value) return "Fecha no disponible";
@@ -145,7 +157,7 @@ function AccessLedger() {
                     <div>
                       {connection.scopes.map((scope) => (
                         <span className="ai-access-scope" key={scope}>
-                          {scopeLabels[scope] || scope}
+                          {readableScope(scope)}
                         </span>
                       ))}
                     </div>

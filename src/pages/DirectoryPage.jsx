@@ -16,6 +16,48 @@ const kinds = {
   media: "Medio",
   other: "Otro",
 };
+const directoryFieldLabels = {
+  name: "Nombre",
+  aliases: "También conocido como",
+  description: "Descripción",
+  city: "Ciudad",
+  country: "País",
+  latitude: "Latitud",
+  longitude: "Longitud",
+  website: "Sitio web",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  spotify: "Spotify",
+  phones: "Teléfonos",
+  emails: "Emails",
+  contacts: "Contactos",
+  tags: "Etiquetas",
+  notes: "Notas internas",
+  source: "Fuente",
+};
+const directoryFieldWidths = {
+  name: "half",
+  aliases: "half",
+  description: "wide",
+  city: "quarter",
+  country: "quarter",
+  latitude: "quarter",
+  longitude: "quarter",
+  website: "half",
+  instagram: "third",
+  facebook: "third",
+  youtube: "third",
+  tiktok: "third",
+  spotify: "third",
+  phones: "half",
+  emails: "half",
+  contacts: "wide",
+  tags: "half",
+  notes: "wide",
+  source: "wide",
+};
 const empty = {
   kind: "band",
   name: "",
@@ -94,6 +136,16 @@ const verificationLabels = {
   incorrect: "Revisar",
 };
 
+function externalHref(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^(www\.|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com|spotify\.com)/i.test(raw)) {
+    return `https://${raw}`;
+  }
+  return "";
+}
+
 function voteSummary(item) {
   const reliable = item.reliableVotes ?? 0;
   const unreliable = item.unreliableVotes ?? 0;
@@ -148,7 +200,7 @@ function DetailField({ label, children }) {
   );
 }
 
-function DirectoryEditForm({ item, onCancel, onSaved }) {
+function DirectoryEditForm({ item, isNew = false, onCancel, onSaved }) {
   const [form, setForm] = useState(() => formFromItem(item));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -158,8 +210,8 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
     setSaving(true);
     setError("");
     try {
-      const updated = await api(`/api/directory/${item.id}`, {
-        method: "PATCH",
+      const updated = await api(isNew ? "/api/directory" : `/api/directory/${item.id}`, {
+        method: isNew ? "POST" : "PATCH",
         body: JSON.stringify(toPayload(form)),
       });
       onSaved(updated);
@@ -173,15 +225,17 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
     <form className="directory-edit-form" onSubmit={submit}>
       <div className="detail-panel-heading">
         <div>
-          <p className="eyebrow">Editar ficha</p>
-          <h2>Actualizar datos</h2>
+          <p className="eyebrow">{isNew ? "Carga editorial" : "Editar ficha"}</p>
+          <h2>{isNew ? "Nueva ficha" : "Actualizar datos"}</h2>
         </div>
         <button className="icon-button" onClick={onCancel} type="button" aria-label="Cerrar edición">
           ×
         </button>
       </div>
       <p className="muted">
-        Los cambios se guardan en el directorio interno. Revisá especialmente contactos y enlaces.
+        {isNew
+          ? "Cargá los datos confirmados. Después podés completar o corregir la ficha desde el directorio."
+          : "Los cambios se guardan en el directorio interno. Revisá especialmente contactos y enlaces."}
       </p>
       <div className="edit-grid">
         <label>
@@ -208,9 +262,35 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
         </label>
       </div>
       <label>
+        También conocido como
+        <input
+          value={form.aliases}
+          onChange={(event) => update("aliases", event.target.value)}
+          placeholder="Separados por coma"
+        />
+      </label>
+      <label>
         Descripción
         <textarea rows="4" value={form.description} onChange={(event) => update("description", event.target.value)} />
       </label>
+      <div className="edit-grid">
+        <label>
+          Latitud
+          <input
+            inputMode="decimal"
+            value={form.latitude}
+            onChange={(event) => update("latitude", event.target.value)}
+          />
+        </label>
+        <label>
+          Longitud
+          <input
+            inputMode="decimal"
+            value={form.longitude}
+            onChange={(event) => update("longitude", event.target.value)}
+          />
+        </label>
+      </div>
       <label>
         Sitio web
         <input
@@ -220,6 +300,20 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
           placeholder="https://"
         />
       </label>
+      <div className="edit-grid">
+        {[
+          ["instagram", "Instagram"],
+          ["facebook", "Facebook"],
+          ["youtube", "YouTube"],
+          ["tiktok", "TikTok"],
+          ["spotify", "Spotify"],
+        ].map(([key, label]) => (
+          <label key={key}>
+            {label}
+            <input value={form[key]} onChange={(event) => update(key, event.target.value)} placeholder="https://" />
+          </label>
+        ))}
+      </div>
       <div className="edit-grid">
         <label>
           Teléfonos
@@ -255,10 +349,18 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
           placeholder="Separadas por coma"
         />
       </label>
+      <label>
+        Notas internas
+        <textarea rows="3" value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+      </label>
+      <label>
+        Fuente
+        <input value={form.source} onChange={(event) => update("source", event.target.value)} />
+      </label>
       <ErrorMessage error={error} />
       <div className="detail-actions">
         <button className="button dark" disabled={saving} type="submit">
-          {saving ? "Guardando…" : "Guardar cambios"}
+          {saving ? "Guardando…" : isNew ? "Crear ficha" : "Guardar cambios"}
         </button>
         <button className="button ghost" onClick={onCancel} type="button">
           Cancelar
@@ -413,16 +515,17 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
                   <section className="detail-section">
                     <h3>Enlaces</h3>
                     <div className="detail-links">
-                      {socials.map(([key, value]) => (
-                        <a
-                          href={String(value).startsWith("http") ? value : undefined}
-                          key={key}
-                          target={String(value).startsWith("http") ? "_blank" : undefined}
-                          rel="noreferrer"
-                        >
-                          {key} <span>{value}</span>
-                        </a>
-                      ))}
+                      {socials.map(([key, value]) =>
+                        externalHref(value) ? (
+                          <a href={externalHref(value)} key={key} rel="noreferrer" target="_blank">
+                            {key} <span>{value}</span>
+                          </a>
+                        ) : (
+                          <div className="detail-link-row" key={key}>
+                            <strong>{key}</strong> <span>{value}</span>
+                          </div>
+                        ),
+                      )}
                     </div>
                   </section>
                 )}
@@ -486,12 +589,23 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
   );
 }
 
+function DirectoryCreatePanel({ onClose, onSaved }) {
+  return (
+    <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <aside aria-label="Nueva ficha de directorio" aria-modal="true" className="detail-panel" role="dialog">
+        <DirectoryEditForm item={empty} isNew onCancel={onClose} onSaved={onSaved} />
+      </aside>
+    </div>
+  );
+}
+
 function DirectoryBrowser({ user }) {
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("all");
   const [location, setLocation] = useState({ lat: "", lng: "", radiusKm: "50" });
   const [selected, setSelected] = useState(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const closeDetail = useCallback(() => setSelected(null), []);
@@ -511,6 +625,11 @@ function DirectoryBrowser({ user }) {
   const updateItem = (updated) => {
     setItems((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
     setSelected((current) => (current?.id === updated.id ? { ...current, ...updated } : current));
+  };
+  const createItem = (created) => {
+    setItems((current) => [created, ...current]);
+    setCreating(false);
+    setSelected(created);
   };
   const visibleItems = kind === "all" ? items : items.filter((item) => item.kind === kind);
   const availableKinds = Object.entries(kinds).filter(([value]) => items.some((item) => item.kind === value));
@@ -533,6 +652,13 @@ function DirectoryBrowser({ user }) {
             Un directorio para encontrar a quienes hacen, producen y sostienen la música independiente. Abrí cada ficha
             para consultar los datos completos, corregirlos o dejar una señal.
           </p>
+          {canEdit && (
+            <div className="directory-intro-actions">
+              <button className="button dark" onClick={() => setCreating(true)} type="button">
+                Nuevo ↗
+              </button>
+            </div>
+          )}
         </div>
         <div className="directory-intro-note">
           <span className="intro-note-mark">✦</span>
@@ -654,6 +780,7 @@ function DirectoryBrowser({ user }) {
           </div>
         )}
       </section>
+      {creating && <DirectoryCreatePanel onClose={() => setCreating(false)} onSaved={createItem} />}
       {selected && <DirectoryDetail canEdit={canEdit} item={selected} onClose={closeDetail} onUpdated={updateItem} />}
     </Layout>
   );
@@ -669,13 +796,13 @@ export function DirectoryPage() {
 
 function AdminCards({ items, onVerify, scores = {}, onScoreChange }) {
   return (
-    <div className="cards">
+    <div className="directory-admin-cards">
       {items.map((item) => (
-        <article className="card" key={item.id}>
-          <small>
+        <article className="directory-admin-card" key={item.id}>
+          <div className="directory-admin-card-meta">
             {kinds[item.kind] || item.kind} · {item.city || item.country}
-          </small>
-          <p className={`verification-badge verification-${item.verificationStatus}`}>
+          </div>
+          <p className={`directory-admin-card-status verification-badge verification-${item.verificationStatus}`}>
             {verificationLabels[item.verificationStatus] || "Sin verificar"} · {item.reliabilityScore ?? 0}% editorial
           </p>
           <h2>{item.name}</h2>
@@ -758,51 +885,71 @@ function AdminDirectoryEditor() {
         <Link to="/admin">← Volver al panel</Link>
         <ErrorMessage error={error} />
       </section>
-      <form className="form editor-form" onSubmit={submit}>
-        <h2>Nueva entrada</h2>
-        <label>
-          Tipo
-          <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
-            {Object.entries(kinds).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        {Object.keys(empty)
-          .filter((key) => key !== "kind")
-          .map((key) => (
-            <label key={key}>
-              {key}
-              {["description", "notes", "contacts"].includes(key) ? (
-                <textarea
-                  rows="3"
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  placeholder={key === "contacts" ? "Nombre | rol | email | teléfono (una línea por persona)" : ""}
-                />
-              ) : (
-                <input
-                  type={key === "website" ? "url" : "text"}
-                  required={key === "name"}
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                />
-              )}
+      <section className="admin-directory-content">
+        <form className="admin-directory-form" onSubmit={submit}>
+          <div className="admin-directory-form-heading">
+            <div>
+              <p className="eyebrow">Carga editorial</p>
+              <h2>Nueva entrada</h2>
+            </div>
+            <p>Completá sólo lo que esté confirmado. El resto puede quedar para una próxima revisión.</p>
+          </div>
+          <div className="admin-directory-fields">
+            <label className="admin-directory-field admin-directory-field-half">
+              Tipo
+              <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+                {Object.entries(kinds).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </label>
-          ))}
-        <button className="button dark">Guardar entrada</button>
-      </form>
-      <div className="actions editor-tools">
-        <input placeholder="Buscar directorio" value={query} onChange={(e) => setQuery(e.target.value)} />
-      </div>
-      <AdminCards
-        items={items}
-        onVerify={verify}
-        scores={scores}
-        onScoreChange={(id, value) => setScores((current) => ({ ...current, [id]: value }))}
-      />
+            {Object.keys(empty)
+              .filter((key) => key !== "kind")
+              .map((key) => (
+                <label
+                  className={`admin-directory-field admin-directory-field-${directoryFieldWidths[key] || "wide"}`}
+                  key={key}
+                >
+                  {directoryFieldLabels[key] || key}
+                  {["description", "notes", "contacts"].includes(key) ? (
+                    <textarea
+                      rows="3"
+                      value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      placeholder={key === "contacts" ? "Nombre | rol | email | teléfono (una línea por persona)" : ""}
+                    />
+                  ) : (
+                    <input
+                      type={key === "website" ? "url" : "text"}
+                      required={key === "name"}
+                      value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    />
+                  )}
+                </label>
+              ))}
+          </div>
+          <div className="admin-directory-form-actions">
+            <p>Los datos quedan disponibles para revisión editorial antes de publicarse.</p>
+            <button className="button dark">Guardar entrada</button>
+          </div>
+        </form>
+        <div className="admin-directory-toolbar">
+          <label>
+            <span>Buscar en el directorio</span>
+            <input placeholder="Nombre, ciudad o tipo" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </label>
+          <span>{items.length} entradas cargadas</span>
+        </div>
+        <AdminCards
+          items={items}
+          onVerify={verify}
+          scores={scores}
+          onScoreChange={(id, value) => setScores((current) => ({ ...current, [id]: value }))}
+        />
+      </section>
     </Layout>
   );
 }

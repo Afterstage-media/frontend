@@ -1,7 +1,9 @@
 import { Countdown } from "./Countdown.jsx";
+import { formatEventDates, getNextEventDate, isMultiDateEvent } from "../utils/eventDates.js";
 
 export function EventCard({ event, index = 0 }) {
-  const date = event.startsAt ? new Date(event.startsAt) : null;
+  const date = getNextEventDate(event);
+  const isMultiDate = isMultiDateEvent(event);
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
   const eventUrl = event.url || "";
@@ -19,18 +21,13 @@ export function EventCard({ event, index = 0 }) {
         </small>
         <h3>{event.name}</h3>
         <p className="event-time">
-          {date
-            ? date.toLocaleString("es-AR", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
-            : "Fecha por confirmar"}{" "}
-          {event.city && `· ${event.city}`}
+          {formatEventDates(event)} {event.city && `· ${event.city}`}
         </p>
+        {isMultiDate && <p className="event-duration">Varias fechas</p>}
         {(event.address || event.venue) && <p className="event-location">⌖ {event.address || event.venue}</p>}
       </div>
       <div className="event-aside">
-        {date && <Countdown target={event.startsAt} />}
+        {date && <Countdown endTarget={event.endsAt} target={date.toISOString()} />}
         <div className="event-links">
           {mapUrl && (
             <a href={mapUrl} target="_blank" rel="noreferrer">

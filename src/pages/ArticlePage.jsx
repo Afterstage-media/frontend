@@ -7,6 +7,7 @@ export function ArticlePage() {
   const { slug } = useParams();
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
+  const [shareStatus, setShareStatus] = useState("");
   useEffect(() => {
     setItem(null);
     setError("");
@@ -63,15 +64,29 @@ export function ArticlePage() {
       </Layout>
     );
   const share = async (instagram = false) => {
+    setShareStatus("");
+    const url = window.location.href;
+    const instagramText = `${item.title}\n\n${item.summary}\n\n${url}`;
     const payload = {
       title: item.title,
       text: `${item.summary}\n${window.location.href}`,
-      url: window.location.href,
+      url,
     };
     try {
-      if (navigator.share) await navigator.share(payload);
-      else if (navigator.clipboard) await navigator.clipboard.writeText(payload.url);
-      else window.prompt("Copiá este enlace", payload.url);
+      if (instagram) {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(instagramText);
+          setShareStatus("Copy para Instagram copiado.");
+        } else {
+          window.prompt("Copiá este texto para Instagram", instagramText);
+        }
+      } else if (navigator.share) {
+        await navigator.share(payload);
+        setShareStatus("Nota compartida.");
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(payload.url);
+        setShareStatus("Enlace copiado.");
+      } else window.prompt("Copiá este enlace", payload.url);
     } catch (error) {
       if (error?.name !== "AbortError") window.prompt("Copiá este enlace", payload.url);
     }
@@ -90,14 +105,19 @@ export function ArticlePage() {
         {item.body.split(/\n{2,}/).map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
-        <div className="actions">
-          <button className="button" onClick={() => share(false)}>
-            Compartir desde el celular ↗
+        <div className="article-share-actions">
+          <button className="button article-share-primary" type="button" onClick={() => share(false)}>
+            Compartir nota ↗
           </button>
-          <button className="button ghost" onClick={() => share(true)}>
-            Compartir en Instagram ↗
+          <button className="article-copy-action" type="button" onClick={() => share(true)}>
+            Copiar copy para Instagram
           </button>
         </div>
+        {shareStatus && (
+          <p className="success" role="status">
+            {shareStatus}
+          </p>
+        )}
         {item.photographer && <p className="muted">Foto: {item.photographer}</p>}
       </article>
     </Layout>

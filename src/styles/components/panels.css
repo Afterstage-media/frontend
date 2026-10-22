@@ -9,7 +9,8 @@
 }
 
 .card:hover,
-.admin-record:hover {
+.admin-record:hover,
+.admin-record:focus-visible {
   border-color: var(--color-accent);
   box-shadow: 7px 7px 0 var(--color-ink);
 }

@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ContentCard } from "../components/ContentCard.jsx";
 import { EditorialIntro, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function NotesPage() {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q")?.trim() || "";
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -19,13 +22,24 @@ export function NotesPage() {
   useEffect(() => {
     load();
   }, []);
+  const filteredItems = useMemo(() => {
+    if (!query) return items;
+    const normalizedQuery = query.toLocaleLowerCase("es");
+    return items.filter((item) =>
+      [item.title, item.summary, item.author, item.type]
+        .filter(Boolean)
+        .some((value) => value.toLocaleLowerCase("es").includes(normalizedQuery)),
+    );
+  }, [items, query]);
   return (
     <Layout>
       <SignalTicker items={["Archivo editorial", "Crónicas", "Entrevistas", "Fotos de la escena"]} />
       <EditorialIntro
-        eyebrow="Archivo editorial / 02"
-        title="Notas para leer con el volumen alto."
-        description="Crónicas, entrevistas, columnas y fotos de la escena."
+        eyebrow={query ? `Resultados para “${query}”` : "Archivo editorial / 02"}
+        title={query ? "Encontrá una historia." : "Notas para leer con el volumen alto."}
+        description={
+          query ? "Historias que coinciden con tu búsqueda." : "Crónicas, entrevistas, columnas y fotos de la escena."
+        }
       />
       {loading ? (
         <section className="content-section">
@@ -35,17 +49,21 @@ export function NotesPage() {
         <section className="content-section">
           <ErrorState message="El archivo no está disponible en este momento." onRetry={load} />
         </section>
-      ) : items.length ? (
+      ) : filteredItems.length ? (
         <div className="cards editorial-grid">
-          {items.map((item, index) => (
+          {filteredItems.map((item, index) => (
             <ContentCard item={item} index={index} key={item.id} />
           ))}
         </div>
       ) : (
         <section className="content-section">
           <EmptyState
-            title="Todavía no hay notas publicadas."
-            message="La redacción está preparando las primeras historias. Volvé pronto o recorré la agenda."
+            title={query ? "No encontramos esa nota." : "Todavía no hay notas publicadas."}
+            message={
+              query
+                ? "Probá con otra palabra o recorré todo el archivo editorial."
+                : "La redacción está preparando las primeras historias. Volvé pronto o recorré la agenda."
+            }
           />
         </section>
       )}

@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { LoginForm } from "../components/AuthGate.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { api } from "../services/api.js";
 
 export function CollaboratorPage() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(Boolean(localStorage.getItem("afterstage-token")));
+
+  useEffect(() => {
+    if (!localStorage.getItem("afterstage-token")) {
+      setLoading(false);
+      return undefined;
+    }
+    api("/api/auth/me")
+      .then(({ user: actor }) => setUser(actor))
+      .catch(() => {
+        localStorage.removeItem("afterstage-token");
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <Layout>
       <SignalTicker items={["Comunidad", "Colaborá", "Contá", "Hacé archivo"]} />
-      {user ? (
+      {loading ? (
+        <section className="page-intro">
+          <p className="muted">Verificando sesión…</p>
+        </section>
+      ) : user ? (
         <section className="page-intro">
           <p className="eyebrow">Colaboradores</p>
           <h1>Bienvenido a la comunidad.</h1>

@@ -289,7 +289,8 @@
     box-shadow 160ms ease;
 }
 
-.social-record:hover {
+.social-record:hover,
+.social-record:focus-visible {
   border-color: var(--color-accent);
   box-shadow: 6px 6px 0 var(--color-ink);
 }

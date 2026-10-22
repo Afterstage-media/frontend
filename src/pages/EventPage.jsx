@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout, Loading } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { formatEventDates, isMultiDateEvent } from "../utils/eventDates.js";
 
 export function EventPage() {
   const { id } = useParams();
@@ -38,7 +39,7 @@ export function EventPage() {
       </Layout>
     );
 
-  const date = event.startsAt ? new Date(event.startsAt) : null;
+  const isMultiDate = isMultiDateEvent(event);
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
 
@@ -55,9 +56,10 @@ export function EventPage() {
         </small>
         <h1>{event.name}</h1>
         <p className="lead">
-          {date ? date.toLocaleString("es-AR", { dateStyle: "full", timeStyle: "short" }) : "Fecha por confirmar"}
+          {formatEventDates(event)}
           {event.city && ` · ${event.city}`}
         </p>
+        {isMultiDate && <p>Evento con varias fechas.</p>}
         {(event.address || event.venue) && <p>{event.address || event.venue}</p>}
         {event.notes && <p>{event.notes}</p>}
         <div className="actions">

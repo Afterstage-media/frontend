@@ -15,7 +15,7 @@
 
 .services-page {
   --parallax-y: 0px;
-  --services-header-offset: 94px;
+  --services-header-offset: 72px;
 }
 
 .services-intro::before {
@@ -516,7 +516,7 @@
 
 @media (max-width: 560px) {
   .services-page {
-    --services-header-offset: 78px;
+    --services-header-offset: 66px;
   }
 
   .services-intro {

@@ -21,6 +21,41 @@ const typeLabels = {
   reel: "Reel",
   story: "Story",
 };
+const mediaKitFieldLabels = {
+  name: "Nombre del medio",
+  tagline: "Bajada",
+  mission: "Misión",
+  audience: "Audiencia",
+  team: "Equipo",
+  services: "Servicios",
+  email: "Email de contacto",
+  website: "Sitio web",
+  instagram: "Instagram",
+};
+const eventFieldLabels = {
+  name: "Nombre del evento",
+  artist: "Artista o banda",
+  venue: "Sala o espacio",
+  address: "Dirección del lugar",
+  city: "Ciudad",
+  dates: "Fechas del evento",
+  url: "URL oficial",
+};
+const contactFieldLabels = {
+  name: "Nombre del contacto",
+  organization: "Organización",
+  email: "Email",
+  type: "Tipo de contacto",
+};
+const contactTypeLabels = {
+  promoter: "Productora",
+  venue: "Sala o espacio",
+  label: "Sello",
+  agency: "Agencia",
+  press: "Prensa",
+  artist: "Artista o banda",
+  other: "Otro",
+};
 const socialPresets = {
   "weekly-band": {
     type: "post",
@@ -58,7 +93,18 @@ export function TokenGate({ onReady }) {
 
 function ContentCard({ item, onSelect }) {
   return (
-    <article className="admin-record" onClick={() => onSelect(item)}>
+    <article
+      className="admin-record"
+      onClick={() => onSelect(item)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(item);
+        }
+      }}
+      role="button"
+      tabIndex="0"
+    >
       <div>
         <small>
           {labels[item.status] || item.status} · {typeLabels[item.type] || item.type}
@@ -144,9 +190,8 @@ function AdminDashboard({ actor }) {
       <section className="admin-utility-nav" aria-label="Herramientas de gestión">
         <span className="admin-utility-label">Atajos</span>
         <Link to="/admin/prensa">Agenda de prensa</Link>
-        <Link to="/admin/directorio">Directorio</Link>
+        <Link to="/directorio">Directorio</Link>
         <Link to="/admin/reemplazos">Reemplazos</Link>
-        <Link to="/admin/monetizacion">Monetización</Link>
         {actor.roles.includes("admin") && <Link to="/admin/instagram">Cuenta de Instagram</Link>}
         {actor.roles.includes("admin") && <Link to="/admin/usuarios">Usuarios</Link>}
       </section>
@@ -212,7 +257,18 @@ function AdminDashboard({ actor }) {
 function SocialContentCard({ item, onSelect }) {
   const media = item.assets?.[0];
   return (
-    <article className="social-record" onClick={() => onSelect(item)}>
+    <article
+      className="social-record"
+      onClick={() => onSelect(item)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(item);
+        }
+      }}
+      role="button"
+      tabIndex="0"
+    >
       <div className="social-record-media">
         {media?.mediaType === "video" ? (
           <video muted preload="metadata" src={media.url} />
@@ -446,8 +502,14 @@ function NewContentEditor() {
                 : "Abrí una nueva pieza editorial y dejala lista para revisar."}
             </p>
           </div>
+          <div className="editor-header-meta">
+            <span className="editor-meta-label">Destino</span>
+            <strong>{socialMode ? "Instagram" : "Sitio web"}</strong>
+            <span className="editor-meta-label">Estado</span>
+            <strong>Borrador</strong>
+          </div>
         </div>
-        <div className="editor-layout editor-layout-single">
+        <div className="editor-layout editor-layout-create">
           <ContentForm
             onSubmit={submit}
             error={error}
@@ -456,9 +518,60 @@ function NewContentEditor() {
             socialMode={socialMode}
             preset={{ ...preset, ...(requestedType ? { type: requestedType } : {}) }}
           />
+          <NewContentGuide socialMode={socialMode} requestedType={requestedType} />
         </div>
       </section>
     </Layout>
+  );
+}
+
+function NewContentGuide({ socialMode, requestedType }) {
+  const formatLabels = { carousel: "Carrusel", reel: "Reel", story: "Story", post: "Post" };
+  const format = formatLabels[requestedType] || (socialMode ? "Pieza social" : "Nota");
+  return (
+    <aside className="editor-sidebar editor-create-sidebar">
+      <section className="editor-side-card editor-create-guide">
+        <div className="editor-side-heading">
+          <div>
+            <p className="eyebrow">Ruta rápida</p>
+            <h2>Armá la pieza</h2>
+          </div>
+          <span className="editor-card-index">01</span>
+        </div>
+        <ol className="create-guide-steps">
+          <li>
+            <strong>Definí la idea</strong>
+            <span>Título, formato y etiquetas.</span>
+          </li>
+          <li>
+            <strong>Sumá contexto</strong>
+            <span>Una bajada y el material de apoyo.</span>
+          </li>
+          <li>
+            <strong>Elegí la salida</strong>
+            <span>Canales y fecha de publicación.</span>
+          </li>
+        </ol>
+      </section>
+      <section className="editor-side-card editor-create-summary">
+        <p className="eyebrow">Configuración actual</p>
+        <dl>
+          <div>
+            <dt>Formato</dt>
+            <dd>{format}</dd>
+          </div>
+          <div>
+            <dt>Destino</dt>
+            <dd>{socialMode ? "Instagram" : "Sitio web"}</dd>
+          </div>
+          <div>
+            <dt>Se guarda como</dt>
+            <dd>Borrador</dd>
+          </div>
+        </dl>
+        <p className="publish-hint">Podés completar lo esencial ahora y editar el borrador después.</p>
+      </section>
+    </aside>
   );
 }
 
@@ -739,9 +852,14 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
             Empezar borrador
           </button>
         )}
-        {["draft", "failed"].includes(item.status) && (
+        {item.status === "draft" && (
           <button className="button dark button-wide" onClick={() => onTransition("review")} type="button">
             Enviar a revisión
+          </button>
+        )}
+        {item.status === "failed" && (
+          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+            Volver a borrador
           </button>
         )}
         {item.status === "review" && (
@@ -768,6 +886,17 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
         {isPublished && (
           <>
             <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>
+            <button
+              className="button ghost button-wide"
+              onClick={() => {
+                if (window.confirm("¿Retirar esta nota del sitio público y devolverla a borrador?")) {
+                  onTransition("draft");
+                }
+              }}
+              type="button"
+            >
+              Retirar del sitio
+            </button>
             {item.channels?.includes("instagram") && (
               <button className="button ghost button-wide" onClick={onRepublishInstagram} type="button">
                 Recompartir en Instagram
@@ -1064,28 +1193,48 @@ function MediaKitForm({ mediaKit, onSaved }) {
     }
   };
   return (
-    <form className="form" onSubmit={save}>
-      <h2>Dossier del medio</h2>
-      {["name", "tagline", "mission", "audience", "team", "services", "email", "website", "instagram"].map((key) => (
-        <label key={key}>
-          {key}
-          {["mission", "audience", "team", "services"].includes(key) ? (
-            <textarea
-              rows="3"
-              value={value[key] || ""}
-              onChange={(e) => setValue({ ...value, [key]: e.target.value })}
-            />
-          ) : (
-            <input
-              type={key === "email" ? "email" : key === "website" ? "url" : "text"}
-              value={value[key] || ""}
-              onChange={(e) => setValue({ ...value, [key]: e.target.value })}
-            />
-          )}
-        </label>
-      ))}
-      <button className="button dark">Guardar dossier</button>
-      {status && <p className="success">{status}</p>}
+    <form className="form press-dossier-form" onSubmit={save}>
+      <div className="press-form-heading">
+        <div>
+          <p className="press-card-kicker">Identidad del medio</p>
+          <h2>Dossier del medio</h2>
+          <p>La información que recibe una productora cuando pide datos de Afterstage.</p>
+        </div>
+        <span className="press-form-index">01</span>
+      </div>
+      <div className="press-form-fields press-dossier-fields">
+        {["name", "tagline", "mission", "audience", "team", "services", "email", "website", "instagram"].map((key) => (
+          <label
+            className={["mission", "audience", "team", "services"].includes(key) ? "press-field-wide" : ""}
+            key={key}
+          >
+            {mediaKitFieldLabels[key]}
+            {["mission", "audience", "team", "services"].includes(key) ? (
+              <textarea
+                rows="3"
+                value={value[key] || ""}
+                onChange={(e) => setValue({ ...value, [key]: e.target.value })}
+              />
+            ) : (
+              <input
+                type={key === "email" ? "email" : key === "website" ? "url" : "text"}
+                value={value[key] || ""}
+                onChange={(e) => setValue({ ...value, [key]: e.target.value })}
+              />
+            )}
+          </label>
+        ))}
+      </div>
+      <div className="press-form-actions">
+        <button className="button dark" type="submit">
+          Guardar dossier
+        </button>
+        {status && (
+          <p aria-live="polite" className="success">
+            {status}
+          </p>
+        )}
+      </div>
     </form>
   );
 }
@@ -1094,13 +1243,14 @@ function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [activeSection, setActiveSection] = useState("overview");
   const [event, setEvent] = useState({
     name: "",
     artist: "",
     venue: "",
     address: "",
     city: "",
-    startsAt: "",
+    dates: [""],
     url: "",
   });
   const [contact, setContact] = useState({
@@ -1132,7 +1282,11 @@ function PressDashboard() {
   const create = async (path, value, reset) => {
     try {
       const payload = { ...value };
-      payload.startsAt = payload.startsAt ? new Date(payload.startsAt).toISOString() : null;
+      if (path === "/api/press/events") {
+        payload.dates = payload.dates.filter(Boolean).map((date) => new Date(date).toISOString());
+        payload.startsAt = payload.dates[0] ?? null;
+        payload.endsAt = null;
+      }
       payload.followUpAt = payload.followUpAt ? new Date(payload.followUpAt).toISOString() : null;
       await api(path, { method: "POST", body: JSON.stringify(payload) });
       reset();
@@ -1160,286 +1314,448 @@ function PressDashboard() {
     );
   return (
     <Layout>
-      <section className="page-intro">
-        <p className="eyebrow">Prensa</p>
-        <h1>Eventos y acreditaciones.</h1>
-        <p>Organizá contactos, pedidos de prensa y coberturas del medio.</p>
-        <ErrorMessage error={error} />
-      </section>
-      {snapshot && (
-        <>
-          <div className="cards">
-            <article className="card">
-              <strong>{snapshot.events.length}</strong>
-              <p>Eventos</p>
-            </article>
-            <article className="card">
-              <strong>{snapshot.contacts.length}</strong>
-              <p>Contactos</p>
-            </article>
-            <article className="card">
-              <strong>{snapshot.accreditations.length}</strong>
-              <p>Acreditaciones</p>
-            </article>
-            <article className="card">
-              <strong>{snapshot.coverages.length}</strong>
-              <p>Coberturas</p>
-            </article>
+      <div className="press-page">
+        <section className="page-intro press-hero">
+          <div className="press-hero-copy">
+            <p className="eyebrow">Prensa · espacio de trabajo</p>
+            <h1>Centro de prensa.</h1>
+            <p>Todo lo necesario para organizar eventos, contactos y coberturas, en el orden en que lo usás.</p>
           </div>
-          <MediaKitForm mediaKit={snapshot.mediaKit} onSaved={load} />
-          <section className="split-forms">
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create("/api/press/events", event, () =>
-                  setEvent({
-                    name: "",
-                    artist: "",
-                    venue: "",
-                    address: "",
-                    city: "",
-                    startsAt: "",
-                    url: "",
-                  }),
-                );
-              }}
-            >
-              <h2>Nuevo evento</h2>
-              {Object.entries(event).map(([key, value]) => (
-                <label key={key}>
-                  {key === "address" ? "Dirección del lugar" : key}
-                  <input
-                    required={key === "name"}
-                    type={key === "startsAt" ? "datetime-local" : key === "url" ? "url" : "text"}
-                    value={value}
-                    onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
-                  />
-                </label>
-              ))}
-              <button className="button dark">Guardar evento</button>
-            </form>
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create("/api/press/contacts", contact, () =>
-                  setContact({
-                    name: "",
-                    organization: "",
-                    email: "",
-                    type: "press",
-                  }),
-                );
-              }}
-            >
-              <h2>Nuevo contacto</h2>
-              {Object.entries(contact).map(([key, value]) => (
-                <label key={key}>
-                  {key}
-                  <input
-                    required={key === "name"}
-                    type={key === "email" ? "email" : "text"}
-                    value={value}
-                    onChange={(e) => setContact({ ...contact, [key]: e.target.value })}
-                  />
-                </label>
-              ))}
-              <button className="button dark">Guardar contacto</button>
-            </form>
-          </section>
-          <section className="split-forms">
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create(
-                  "/api/press/accreditations",
-                  {
-                    ...accreditation,
-                    status: "draft",
-                    sentAt: null,
-                    response: "",
-                    deliverables: "Nota, fotos y publicación en redes",
-                  },
-                  () =>
-                    setAccreditation({
-                      eventId: "",
-                      contactId: "",
-                      subject: "Solicitud de acreditación",
-                      message: "",
-                      followUpAt: "",
-                    }),
-                );
-              }}
-            >
-              <h2>Solicitar acreditación</h2>
-              <label>
-                Evento
-                <select
-                  required
-                  value={accreditation.eventId}
-                  onChange={(e) =>
-                    setAccreditation({
-                      ...accreditation,
-                      eventId: e.target.value,
-                    })
-                  }
+          <div className="press-hero-actions" aria-label="Acciones rápidas">
+            <span>Acciones frecuentes</span>
+            <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+              + Nuevo evento
+            </button>
+            <button className="button ghost" onClick={() => setActiveSection("press")} type="button">
+              Solicitar acreditación
+            </button>
+          </div>
+          <ErrorMessage error={error} />
+        </section>
+        {snapshot && (
+          <div className="press-dashboard-content" data-active-section={activeSection}>
+            <div className="press-stat-grid">
+              <article className="press-stat-card">
+                <strong>{snapshot.events.length}</strong>
+                <span>Eventos</span>
+              </article>
+              <article className="press-stat-card">
+                <strong>{snapshot.contacts.length}</strong>
+                <span>Contactos</span>
+              </article>
+              <article className="press-stat-card">
+                <strong>{snapshot.accreditations.length}</strong>
+                <span>Acreditaciones</span>
+              </article>
+              <article className="press-stat-card">
+                <strong>{snapshot.coverages.length}</strong>
+                <span>Coberturas</span>
+              </article>
+            </div>
+            <nav aria-label="Secciones del centro de prensa" className="press-local-nav" role="tablist">
+              <span>Sección</span>
+              {[
+                ["overview", "Resumen"],
+                ["events", "Eventos y contactos"],
+                ["press", "Acreditaciones y coberturas"],
+                ["dossier", "Dossier"],
+                ["activity", "Actividad"],
+              ].map(([key, label]) => (
+                <button
+                  aria-selected={activeSection === key}
+                  className={activeSection === key ? "is-active" : ""}
+                  key={key}
+                  onClick={() => setActiveSection(key)}
+                  role="tab"
+                  type="button"
                 >
-                  <option value="">Elegir evento</option>
-                  {snapshot.events.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Contacto
-                <select
-                  required
-                  value={accreditation.contactId}
-                  onChange={(e) =>
-                    setAccreditation({
-                      ...accreditation,
-                      contactId: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Elegir contacto</option>
-                  {snapshot.contacts.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} · {item.email}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Asunto
-                <input
-                  required
-                  value={accreditation.subject}
-                  onChange={(e) =>
-                    setAccreditation({
-                      ...accreditation,
-                      subject: e.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Mensaje
-                <textarea
-                  required
-                  rows="6"
-                  value={accreditation.message}
-                  onChange={(e) =>
-                    setAccreditation({
-                      ...accreditation,
-                      message: e.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Seguimiento
-                <input
-                  type="datetime-local"
-                  value={accreditation.followUpAt}
-                  onChange={(e) =>
-                    setAccreditation({
-                      ...accreditation,
-                      followUpAt: e.target.value,
-                    })
-                  }
-                />
-              </label>
-              <button className="button dark">Guardar solicitud</button>
-            </form>
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create(
-                  "/api/press/coverages",
-                  {
-                    ...coverage,
-                    publishedAt: new Date().toISOString(),
-                    reach: 0,
-                  },
-                  () => setCoverage({ eventId: "", title: "", url: "", notes: "" }),
-                );
-              }}
-            >
-              <h2>Registrar cobertura</h2>
-              <label>
-                Evento
-                <select
-                  required
-                  value={coverage.eventId}
-                  onChange={(e) => setCoverage({ ...coverage, eventId: e.target.value })}
-                >
-                  <option value="">Elegir evento</option>
-                  {snapshot.events.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Título
-                <input
-                  required
-                  value={coverage.title}
-                  onChange={(e) => setCoverage({ ...coverage, title: e.target.value })}
-                />
-              </label>
-              <label>
-                URL
-                <input
-                  type="url"
-                  value={coverage.url}
-                  onChange={(e) => setCoverage({ ...coverage, url: e.target.value })}
-                />
-              </label>
-              <label>
-                Notas
-                <textarea
-                  rows="5"
-                  value={coverage.notes}
-                  onChange={(e) => setCoverage({ ...coverage, notes: e.target.value })}
-                />
-              </label>
-              <button className="button dark">Guardar cobertura</button>
-            </form>
-          </section>
-          <section className="admin-list">
-            <h2>Solicitudes enviadas</h2>
-            {snapshot.accreditations.map((item) => (
-              <article key={item.id}>
-                <span>
-                  {item.subject} · {item.status}
-                </span>
-                <button className="button" onClick={() => send(item.id)}>
-                  Enviar correo
+                  {label}
                 </button>
-              </article>
-            ))}
-            <h2>Coberturas registradas</h2>
-            {snapshot.coverages.map((item) => (
-              <article key={item.id}>
-                <span>{item.title}</span>
-                {item.url && (
-                  <a href={item.url} target="_blank" rel="noreferrer">
-                    Abrir ↗
-                  </a>
-                )}
-              </article>
-            ))}
-          </section>
-        </>
-      )}
+              ))}
+            </nav>
+            <section className="press-overview-panel" data-press-section="overview" role="tabpanel">
+              <div>
+                <p className="press-card-kicker">Panel de trabajo</p>
+                <h2>¿Qué necesitás hacer?</h2>
+                <p>Elegí una sección para trabajar sin recorrer formularios que no necesitás ahora.</p>
+              </div>
+              <div className="press-overview-actions">
+                <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+                  Cargar evento o contacto
+                </button>
+                <button className="button ghost" onClick={() => setActiveSection("press")} type="button">
+                  Gestionar prensa
+                </button>
+                <button className="button ghost" onClick={() => setActiveSection("dossier")} type="button">
+                  Editar dossier
+                </button>
+              </div>
+            </section>
+            <section className="press-dossier-section" data-press-section="dossier" id="press-dossier" role="tabpanel">
+              <MediaKitForm mediaKit={snapshot.mediaKit} onSaved={load} />
+            </section>
+            <section className="press-operations" data-press-section="events" id="press-operations" role="tabpanel">
+              <div className="press-section-heading">
+                <div>
+                  <p className="press-card-kicker">Operaciones</p>
+                  <h2>Cargar y gestionar</h2>
+                </div>
+                <p>Completá solo lo que necesitás ahora.</p>
+              </div>
+              <div className="press-operation-grid">
+                <form
+                  className="form press-form-card"
+                  id="press-event-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    create("/api/press/events", event, () =>
+                      setEvent({
+                        name: "",
+                        artist: "",
+                        venue: "",
+                        address: "",
+                        city: "",
+                        dates: [""],
+                        url: "",
+                      }),
+                    );
+                  }}
+                >
+                  <h2>Nuevo evento</h2>
+                  {Object.entries(event).map(([key, value]) =>
+                    key === "dates" ? (
+                      <fieldset className="event-dates-fieldset" key={key}>
+                        <legend>{eventFieldLabels[key]}</legend>
+                        <p>Agregá cada fecha en la que ocurre. No tienen que ser consecutivas.</p>
+                        {value.map((date, index) => (
+                          <div className="event-date-row" key={`${index}-${date}`}>
+                            <label>
+                              <span>Fecha {index + 1}</span>
+                              <input
+                                required={index === 0}
+                                aria-label={`Fecha del evento ${index + 1}`}
+                                type="datetime-local"
+                                value={date}
+                                onChange={(e) =>
+                                  setEvent({
+                                    ...event,
+                                    dates: value.map((item, itemIndex) =>
+                                      itemIndex === index ? e.target.value : item,
+                                    ),
+                                  })
+                                }
+                              />
+                            </label>
+                            {value.length > 1 && (
+                              <button
+                                className="button ghost"
+                                type="button"
+                                onClick={() =>
+                                  setEvent({ ...event, dates: value.filter((_, itemIndex) => itemIndex !== index) })
+                                }
+                              >
+                                Quitar
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          className="button ghost"
+                          type="button"
+                          onClick={() => setEvent({ ...event, dates: [...value, ""] })}
+                        >
+                          + Agregar otra fecha
+                        </button>
+                      </fieldset>
+                    ) : (
+                      <label key={key}>
+                        {eventFieldLabels[key]}
+                        <input
+                          required={key === "name"}
+                          type={key === "url" ? "url" : "text"}
+                          value={value}
+                          onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
+                        />
+                      </label>
+                    ),
+                  )}
+                  <button className="button dark" type="submit">
+                    Guardar evento
+                  </button>
+                </form>
+                <form
+                  className="form press-form-card"
+                  id="press-contact-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    create("/api/press/contacts", contact, () =>
+                      setContact({
+                        name: "",
+                        organization: "",
+                        email: "",
+                        type: "press",
+                      }),
+                    );
+                  }}
+                >
+                  <h2>Nuevo contacto</h2>
+                  {Object.entries(contact).map(([key, value]) => (
+                    <label key={key}>
+                      {contactFieldLabels[key]}
+                      {key === "type" ? (
+                        <select value={value} onChange={(e) => setContact({ ...contact, [key]: e.target.value })}>
+                          {Object.entries(contactTypeLabels).map(([optionValue, optionLabel]) => (
+                            <option key={optionValue} value={optionValue}>
+                              {optionLabel}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          required={key === "name"}
+                          type={key === "email" ? "email" : "text"}
+                          value={value}
+                          onChange={(e) => setContact({ ...contact, [key]: e.target.value })}
+                        />
+                      )}
+                    </label>
+                  ))}
+                  <button className="button dark" type="submit">
+                    Guardar contacto
+                  </button>
+                </form>
+              </div>
+            </section>
+            <section
+              className="press-operation-grid press-operation-grid-secondary"
+              data-press-section="press"
+              role="tabpanel"
+            >
+              <form
+                className="form press-form-card"
+                id="press-accreditation-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create(
+                    "/api/press/accreditations",
+                    {
+                      ...accreditation,
+                      status: "draft",
+                      sentAt: null,
+                      response: "",
+                      deliverables: "Nota, fotos y publicación en redes",
+                    },
+                    () =>
+                      setAccreditation({
+                        eventId: "",
+                        contactId: "",
+                        subject: "Solicitud de acreditación",
+                        message: "",
+                        followUpAt: "",
+                      }),
+                  );
+                }}
+              >
+                <h2>Solicitar acreditación</h2>
+                <label>
+                  Evento
+                  <select
+                    required
+                    value={accreditation.eventId}
+                    onChange={(e) =>
+                      setAccreditation({
+                        ...accreditation,
+                        eventId: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Elegir evento</option>
+                    {snapshot.events.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Contacto
+                  <select
+                    required
+                    value={accreditation.contactId}
+                    onChange={(e) =>
+                      setAccreditation({
+                        ...accreditation,
+                        contactId: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Elegir contacto</option>
+                    {snapshot.contacts.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} · {item.email}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Asunto
+                  <input
+                    required
+                    value={accreditation.subject}
+                    onChange={(e) =>
+                      setAccreditation({
+                        ...accreditation,
+                        subject: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Mensaje
+                  <textarea
+                    required
+                    rows="6"
+                    value={accreditation.message}
+                    onChange={(e) =>
+                      setAccreditation({
+                        ...accreditation,
+                        message: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Seguimiento
+                  <input
+                    type="datetime-local"
+                    value={accreditation.followUpAt}
+                    onChange={(e) =>
+                      setAccreditation({
+                        ...accreditation,
+                        followUpAt: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <button className="button dark" type="submit">
+                  Guardar solicitud
+                </button>
+              </form>
+              <form
+                className="form press-form-card"
+                id="press-coverage-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create(
+                    "/api/press/coverages",
+                    {
+                      ...coverage,
+                      publishedAt: new Date().toISOString(),
+                      reach: 0,
+                    },
+                    () => setCoverage({ eventId: "", title: "", url: "", notes: "" }),
+                  );
+                }}
+              >
+                <h2>Registrar cobertura</h2>
+                <label>
+                  Evento
+                  <select
+                    required
+                    value={coverage.eventId}
+                    onChange={(e) => setCoverage({ ...coverage, eventId: e.target.value })}
+                  >
+                    <option value="">Elegir evento</option>
+                    {snapshot.events.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Título
+                  <input
+                    required
+                    value={coverage.title}
+                    onChange={(e) => setCoverage({ ...coverage, title: e.target.value })}
+                  />
+                </label>
+                <label>
+                  URL
+                  <input
+                    type="url"
+                    value={coverage.url}
+                    onChange={(e) => setCoverage({ ...coverage, url: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Notas
+                  <textarea
+                    rows="5"
+                    value={coverage.notes}
+                    onChange={(e) => setCoverage({ ...coverage, notes: e.target.value })}
+                  />
+                </label>
+                <button className="button dark" type="submit">
+                  Guardar cobertura
+                </button>
+              </form>
+            </section>
+            <section className="press-records" data-press-section="activity" id="press-activity" role="tabpanel">
+              <div className="press-section-heading">
+                <div>
+                  <p className="press-card-kicker">Seguimiento</p>
+                  <h2>Actividad reciente</h2>
+                </div>
+                <p>Consultá lo que ya enviaste y registraste.</p>
+              </div>
+              <div className="press-records-grid">
+                <div className="press-records-column">
+                  <div className="press-records-heading">
+                    <h3>Solicitudes enviadas</h3>
+                    <span>{snapshot.accreditations.length}</span>
+                  </div>
+                  {snapshot.accreditations.length ? (
+                    snapshot.accreditations.map((item) => (
+                      <article className="press-record" key={item.id}>
+                        <span>
+                          {item.subject} · {item.status}
+                        </span>
+                        <button className="button ghost" onClick={() => send(item.id)} type="button">
+                          Enviar correo
+                        </button>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="press-empty">Todavía no hay solicitudes enviadas.</p>
+                  )}
+                </div>
+                <div className="press-records-column">
+                  <div className="press-records-heading">
+                    <h3>Coberturas registradas</h3>
+                    <span>{snapshot.coverages.length}</span>
+                  </div>
+                  {snapshot.coverages.length ? (
+                    snapshot.coverages.map((item) => (
+                      <article className="press-record" key={item.id}>
+                        <span>{item.title}</span>
+                        {item.url && (
+                          <a href={item.url} target="_blank" rel="noreferrer">
+                            Abrir ↗
+                          </a>
+                        )}
+                      </article>
+                    ))
+                  ) : (
+                    <p className="press-empty">Todavía no hay coberturas registradas.</p>
+                  )}
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }
