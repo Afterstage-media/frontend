@@ -27,6 +27,12 @@ const eventCoordinates = (event) => event.latitude != null && event.longitude !=
 
 const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
 
+const eventMapKey = (event) =>
+  event.id ??
+  [eventGroupLabel(event), event.venue || "", event.city || "", event.latitude || "", event.longitude || ""]
+    .join("|")
+    .toLowerCase();
+
 const eventGroupKey = (event) => [eventGroupLabel(event), event.venue || "", event.city || ""].join("|").toLowerCase();
 
 const mergeEventDates = (group) => {
@@ -45,6 +51,7 @@ export function EventMap({
   hasLocation = false,
   centerPickerActive = false,
   onCenterSelect,
+  onVisibleEventsChange,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -149,6 +156,25 @@ export function EventMap({
     map.invalidateSize();
     return () => layers.remove();
   }, [events, latitude, longitude, radiusKm, hasLocation, centerPickerActive, mapReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !onVisibleEventsChange) return undefined;
+
+    const reportVisibleEvents = () => {
+      const bounds = map.getBounds();
+      onVisibleEventsChange(
+        events
+          .filter(eventCoordinates)
+          .filter((event) => bounds.contains([Number(event.latitude), Number(event.longitude)]))
+          .map(eventMapKey),
+      );
+    };
+
+    map.on("moveend", reportVisibleEvents);
+    reportVisibleEvents();
+    return () => map.off("moveend", reportVisibleEvents);
+  }, [events, mapReady, onVisibleEventsChange]);
 
   useEffect(() => {
     const map = mapRef.current;
