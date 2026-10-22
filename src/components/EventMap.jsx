@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
-import { formatEventDates } from "../utils/eventDates.js";
+import { formatEventDates, getEventDates } from "../utils/eventDates.js";
 
 const markerIcon = (L, className) =>
   L.divIcon({
@@ -24,6 +24,18 @@ const escapeHtml = (value) =>
   );
 
 const eventCoordinates = (event) => event.latitude != null && event.longitude != null;
+
+const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
+
+const eventGroupKey = (event) => [eventGroupLabel(event), event.venue || "", event.city || ""].join("|").toLowerCase();
+
+const mergeEventDates = (group) => {
+  const dates = new Map();
+  group.events.forEach((event) => {
+    getEventDates(event).forEach((date) => dates.set(date.toISOString(), date.toISOString()));
+  });
+  return [...dates.values()].sort();
+};
 
 export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = false }) {
   const containerRef = useRef(null);
@@ -87,11 +99,25 @@ export function EventMap({ events, latitude, longitude, radiusKm, hasLocation = 
 
     groupedEvents.forEach((group) => {
       const location = [group.latitude, group.longitude];
-      const tooltip = group.events
+      const eventGroups = new Map();
+      group.events.forEach((event) => {
+        const key = eventGroupKey(event);
+        const eventGroup = eventGroups.get(key) || { event, events: [] };
+        eventGroup.events.push(event);
+        eventGroups.set(key, eventGroup);
+      });
+      const tooltip = [...eventGroups.values()]
         .map(
-          (event) =>
-            `<div class="event-map-tooltip-item"><strong>${escapeHtml(event.name)}</strong><br><span>${escapeHtml(
-              [event.venue || event.city || "Evento", formatEventDates(event)].filter(Boolean).join(" · "),
+          (eventGroup) =>
+            `<div class="event-map-tooltip-item"><strong>${escapeHtml(
+              eventGroupLabel(eventGroup.event),
+            )}</strong><br><span>${escapeHtml(
+              [
+                eventGroup.event.venue || eventGroup.event.city || "Evento",
+                formatEventDates({ dates: mergeEventDates(eventGroup) }),
+              ]
+                .filter(Boolean)
+                .join(" · "),
             )}</span></div>`,
         )
         .join("");

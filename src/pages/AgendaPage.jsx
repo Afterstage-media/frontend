@@ -5,7 +5,24 @@ import { EventMap } from "../components/EventMap.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
-import { eventMatchesDateRange } from "../utils/eventDates.js";
+import { eventMatchesDateRange, getEventDates } from "../utils/eventDates.js";
+
+const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
+
+const groupAgendaEvents = (items) => {
+  const groups = new Map();
+  items.forEach((event) => {
+    const key = [eventGroupLabel(event), event.venue || "", event.city || ""].join("|").toLowerCase();
+    const group = groups.get(key) || { ...event, dates: [], endsAt: event.endsAt };
+    const dates = new Map(group.dates.map((date) => [date, date]));
+    getEventDates(event).forEach((date) => dates.set(date.toISOString(), date.toISOString()));
+    group.dates = [...dates.values()].sort();
+    if (group.dates.length > 1) group.endsAt = undefined;
+    groups.set(key, group);
+  });
+  return [...groups.values()];
+};
+
 export function AgendaPage() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
@@ -31,14 +48,16 @@ export function AgendaPage() {
         const query = nextFilters.query.trim().toLowerCase();
         const now = new Date();
         setEvents(
-          items.filter((event) => {
-            const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase();
-            const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
-            return (!query || searchable.includes(query)) && matchesDate;
-          }),
+          groupAgendaEvents(
+            items.filter((event) => {
+              const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+              const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
+              return (!query || searchable.includes(query)) && matchesDate;
+            }),
+          ),
         );
       })
       .catch((e) => setError(e.message))
