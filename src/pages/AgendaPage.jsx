@@ -112,22 +112,28 @@ export function AgendaPage() {
               {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
             </button>
             <label className="agenda-radius">
-              <span>Radio</span>
-              <select
+              <span className="agenda-radius-label">
+                <span>Radio</span>
+                <output htmlFor="agenda-radius">{filters.radiusKm} km</output>
+              </span>
+              <input
+                id="agenda-radius"
                 aria-label="Radio de búsqueda"
+                type="range"
+                min="5"
+                max="100"
+                step="5"
                 value={filters.radiusKm}
                 onChange={(e) => {
                   const nextFilters = { ...filters, radiusKm: e.target.value };
                   setFilters(nextFilters);
                   if (nextFilters.lat && nextFilters.lng) load(nextFilters);
                 }}
-              >
-                <option value="5">5 km</option>
-                <option value="10">10 km</option>
-                <option value="25">25 km</option>
-                <option value="50">50 km</option>
-                <option value="100">100 km</option>
-              </select>
+              />
+              <span className="agenda-radius-scale" aria-hidden="true">
+                <span>5 km</span>
+                <span>100 km</span>
+              </span>
             </label>
             <select
               aria-label="Filtrar por fecha"
@@ -162,58 +168,60 @@ export function AgendaPage() {
           onRetry={() => load()}
         />
       )}
-      {filters.lat && filters.lng && (
-        <section className="event-map-section" aria-label="Mapa de eventos cercanos">
-          <div className="event-map-heading">
-            <div>
-              <p className="eyebrow">Mapa de cercanía</p>
-              <h2>Eventos en tu radio.</h2>
+      <div className={`agenda-results-layout${filters.lat && filters.lng ? " has-map" : ""}`}>
+        {filters.lat && filters.lng && (
+          <section className="event-map-section" aria-label="Mapa de eventos cercanos">
+            <div className="event-map-heading">
+              <div>
+                <p className="eyebrow">Mapa de cercanía</p>
+                <h2>Eventos en tu radio.</h2>
+              </div>
+              <span className="muted">{events.length} encontrados</span>
             </div>
-            <span className="muted">Radio seleccionado: {filters.radiusKm} km</span>
-          </div>
-          <EventMap
-            events={events}
-            latitude={Number(filters.lat)}
-            longitude={Number(filters.lng)}
-            radiusKm={filters.radiusKm}
-          />
-          <div className="event-map-legend">
-            <span>
-              <i className="event-map-legend-user" /> Tu ubicación
-            </span>
-            <span>
-              <i className="event-map-legend-event" /> Evento encontrado
-            </span>
-          </div>
-        </section>
-      )}
-      <section className="events">
-        <div className="events-heading">
-          <p className="eyebrow">Lo que está pasando</p>
-          {!loading && (
-            <span className="muted">{events.length ? `${events.length} encuentros` : "Agenda en movimiento"}</span>
-          )}
-        </div>
-        {loading ? (
-          <p className="muted">Buscando próximos eventos…</p>
-        ) : error ? (
-          <p className="muted">La agenda no pudo actualizarse. Usá “Intentar de nuevo” para volver a consultar.</p>
-        ) : events.length ? (
-          events.map((event, index) => <EventCard event={event} index={index} key={event.id} />)
-        ) : (
-          <EmptyState
-            title="No encontramos eventos con esa búsqueda."
-            message="Probá con otra ciudad, un lugar distinto o limpiá el filtro para volver a mirar."
-            action={
-              (filters.query || filters.dateRange !== "all" || filters.lat) && (
-                <button className="button ghost" type="button" onClick={clearFilters}>
-                  Limpiar filtros
-                </button>
-              )
-            }
-          />
+            <EventMap
+              events={events}
+              latitude={Number(filters.lat)}
+              longitude={Number(filters.lng)}
+              radiusKm={filters.radiusKm}
+            />
+            <div className="event-map-legend">
+              <span>
+                <i className="event-map-legend-user" /> Tu ubicación
+              </span>
+              <span>
+                <i className="event-map-legend-event" /> Evento encontrado
+              </span>
+            </div>
+          </section>
         )}
-      </section>
+        <section className="events">
+          <div className="events-heading">
+            <p className="eyebrow">Lo que está pasando</p>
+            {!loading && (
+              <span className="muted">{events.length ? `${events.length} encuentros` : "Agenda en movimiento"}</span>
+            )}
+          </div>
+          {loading ? (
+            <p className="muted">Buscando próximos eventos…</p>
+          ) : error ? (
+            <p className="muted">La agenda no pudo actualizarse. Usá “Intentar de nuevo” para volver a consultar.</p>
+          ) : events.length ? (
+            events.map((event, index) => <EventCard event={event} index={index} key={event.id} />)
+          ) : (
+            <EmptyState
+              title="No encontramos eventos con esa búsqueda."
+              message="Probá con otra ciudad, un lugar distinto o limpiá el filtro para volver a mirar."
+              action={
+                (filters.query || filters.dateRange !== "all" || filters.lat) && (
+                  <button className="button ghost" type="button" onClick={clearFilters}>
+                    Limpiar filtros
+                  </button>
+                )
+              }
+            />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

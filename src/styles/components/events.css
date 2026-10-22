@@ -122,11 +122,44 @@
 .agenda-radius {
   color: var(--color-ink);
   display: grid;
+  flex: 0 1 190px;
   font-size: 0.7rem;
   font-weight: 800;
   gap: 5px;
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
+}
+
+.agenda-radius-label {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.agenda-radius-label output {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 0.68rem;
+  letter-spacing: normal;
+  padding: 4px 7px;
+  text-transform: none;
+}
+
+.agenda-radius input[type="range"] {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  min-height: 20px;
+  padding: 0;
+  width: 100%;
+}
+
+.agenda-radius-scale {
+  color: var(--color-muted);
+  display: flex;
+  font-size: 0.64rem;
+  justify-content: space-between;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .agenda-location-status {
@@ -178,9 +211,42 @@
   margin: 0;
 }
 
+.agenda-results-layout {
+  margin: 0 auto;
+  max-width: var(--content-width);
+}
+
+.agenda-results-layout.has-map {
+  align-items: start;
+  display: grid;
+  gap: clamp(24px, 4vw, 64px);
+  grid-template-columns: minmax(300px, 0.88fr) minmax(0, 1.25fr);
+}
+
 .event-map-section {
   margin: 62px auto 0;
   max-width: var(--content-width);
+}
+
+.agenda-results-layout.has-map .event-map-section {
+  background: var(--color-paper);
+  margin: 62px 0 0;
+  padding-bottom: 16px;
+  position: sticky;
+  top: 94px;
+  z-index: 2;
+}
+
+.agenda-results-layout.has-map .event-map-heading h2 {
+  font-size: clamp(1.8rem, 3vw, 3.2rem);
+}
+
+.agenda-results-layout.has-map .events {
+  min-width: 0;
+}
+
+.agenda-results-layout.has-map .events-heading {
+  margin-top: 62px;
 }
 
 .event-map-heading {
@@ -488,12 +554,25 @@
     width: 100%;
   }
 
-  .agenda-radius select {
+  .agenda-radius input[type="range"] {
     width: 100%;
   }
 
   .event-map-section {
     margin-top: 42px;
+  }
+
+  .agenda-results-layout.has-map {
+    display: block;
+  }
+
+  .agenda-results-layout.has-map .event-map-section {
+    margin-top: 42px;
+    position: static;
+  }
+
+  .agenda-results-layout.has-map .events-heading {
+    margin-top: 70px;
   }
 
   .event-map-heading {
