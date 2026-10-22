@@ -167,158 +167,160 @@ export function AgendaPage() {
           <p>Shows, ferias, ciclos y encuentros cerca tuyo. Buscá por nombre de artista.</p>
         </div>
       </section>
-      <div className={`agenda-filter-dock${scrollOffset > 280 ? " is-scrolled" : ""}`}>
-        <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
-          <label className="agenda-search">
-            <span>Encontrá tu próximo plan</span>
-            <input
-              aria-label="Buscar por nombre de artista"
-              placeholder="Nombre del artista"
-              value={filters.query}
-              onChange={(e) => setFilters({ ...filters, query: e.target.value })}
-              onKeyDown={(e) => e.key === "Enter" && load()}
-            />
-          </label>
-          <div className="actions">
-            <button className="button dark" type="button" onClick={() => load()}>
-              Buscar ↗
-            </button>
-            <button className="button ghost" type="button" onClick={useMyLocation}>
-              {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
-            </button>
-            <button
-              className={`button ghost${mapPickerActive ? " is-active" : ""}`}
-              type="button"
-              onClick={() => setMapPickerActive((current) => !current)}
-            >
-              {mapPickerActive ? "Cancelar mapa" : "Elegir centro"}
-            </button>
-            <label className="agenda-radius">
-              <span className="agenda-radius-label">
-                <span>Radio</span>
-                <output htmlFor="agenda-radius">{filters.radiusKm} km</output>
-              </span>
-              <input
-                id="agenda-radius"
-                aria-label="Radio de búsqueda"
-                type="range"
-                min="5"
-                max="100"
-                step="5"
-                value={filters.radiusKm}
-                onChange={(e) => {
-                  const nextFilters = { ...filters, radiusKm: e.target.value };
-                  setFilters(nextFilters);
-                  if (nextFilters.lat && nextFilters.lng) load(nextFilters);
-                }}
-              />
-              <span className="agenda-radius-scale" aria-hidden="true">
-                <span>5 km</span>
-                <span>100 km</span>
-              </span>
-            </label>
-            <label>
-              <span className="agenda-filter-label">Género</span>
-              <select
-                aria-label="Filtrar por género"
-                value={filters.genre}
-                onChange={(e) => {
-                  const nextFilters = { ...filters, genre: normalizeSearchText(e.target.value) };
-                  setFilters(nextFilters);
-                  load(nextFilters);
-                }}
-              >
-                <option value="">Todos los géneros</option>
-                {genreOptions.map((option) => (
-                  <option key={option} value={normalizeSearchText(option)}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="agenda-filter-label">Tags</span>
-              <select
-                aria-label="Filtrar por tag"
-                value={filters.tag}
-                onChange={(e) => {
-                  const nextFilters = { ...filters, tag: normalizeSearchText(e.target.value) };
-                  setFilters(nextFilters);
-                  load(nextFilters);
-                }}
-              >
-                <option value="">Todos los tags</option>
-                {tagOptions.map((option) => (
-                  <option key={option} value={normalizeSearchText(option)}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="agenda-date-actions">
-              <select
-                aria-label="Filtrar por fecha"
-                value={filters.dateRange}
-                onChange={(e) => {
-                  const nextFilters = { ...filters, dateRange: e.target.value };
-                  setFilters(nextFilters);
-                  load(nextFilters);
-                }}
-              >
-                <option value="all">Todas las fechas</option>
-                <option value="today">Hoy</option>
-                <option value="week">Próximos 7 días</option>
-                <option value="month">Este mes</option>
-              </select>
-              {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
-                <button className="filter-clear" type="button" onClick={clearFilters}>
-                  Limpiar
+      <div className="agenda-results-layout has-map">
+        <aside className="agenda-sidebar">
+          <div className={`agenda-filter-dock${scrollOffset > 280 ? " is-scrolled" : ""}`}>
+            <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
+              <label className="agenda-search">
+                <span>Encontrá tu próximo plan</span>
+                <input
+                  aria-label="Buscar por nombre de artista"
+                  placeholder="Nombre del artista"
+                  value={filters.query}
+                  onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && load()}
+                />
+              </label>
+              <div className="actions">
+                <button className="button dark" type="button" onClick={() => load()}>
+                  Buscar ↗
                 </button>
+                <button className="button ghost" type="button" onClick={useMyLocation}>
+                  {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
+                </button>
+                <button
+                  className={`button ghost${mapPickerActive ? " is-active" : ""}`}
+                  type="button"
+                  onClick={() => setMapPickerActive((current) => !current)}
+                >
+                  {mapPickerActive ? "Cancelar mapa" : "Elegir centro"}
+                </button>
+                <label className="agenda-radius">
+                  <span className="agenda-radius-label">
+                    <span>Radio</span>
+                    <output htmlFor="agenda-radius">{filters.radiusKm} km</output>
+                  </span>
+                  <input
+                    id="agenda-radius"
+                    aria-label="Radio de búsqueda"
+                    type="range"
+                    min="5"
+                    max="100"
+                    step="5"
+                    value={filters.radiusKm}
+                    onChange={(e) => {
+                      const nextFilters = { ...filters, radiusKm: e.target.value };
+                      setFilters(nextFilters);
+                      if (nextFilters.lat && nextFilters.lng) load(nextFilters);
+                    }}
+                  />
+                  <span className="agenda-radius-scale" aria-hidden="true">
+                    <span>5 km</span>
+                    <span>100 km</span>
+                  </span>
+                </label>
+                <label>
+                  <span className="agenda-filter-label">Género</span>
+                  <select
+                    aria-label="Filtrar por género"
+                    value={filters.genre}
+                    onChange={(e) => {
+                      const nextFilters = { ...filters, genre: normalizeSearchText(e.target.value) };
+                      setFilters(nextFilters);
+                      load(nextFilters);
+                    }}
+                  >
+                    <option value="">Todos los géneros</option>
+                    {genreOptions.map((option) => (
+                      <option key={option} value={normalizeSearchText(option)}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span className="agenda-filter-label">Tags</span>
+                  <select
+                    aria-label="Filtrar por tag"
+                    value={filters.tag}
+                    onChange={(e) => {
+                      const nextFilters = { ...filters, tag: normalizeSearchText(e.target.value) };
+                      setFilters(nextFilters);
+                      load(nextFilters);
+                    }}
+                  >
+                    <option value="">Todos los tags</option>
+                    {tagOptions.map((option) => (
+                      <option key={option} value={normalizeSearchText(option)}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="agenda-date-actions">
+                  <select
+                    aria-label="Filtrar por fecha"
+                    value={filters.dateRange}
+                    onChange={(e) => {
+                      const nextFilters = { ...filters, dateRange: e.target.value };
+                      setFilters(nextFilters);
+                      load(nextFilters);
+                    }}
+                  >
+                    <option value="all">Todas las fechas</option>
+                    <option value="today">Hoy</option>
+                    <option value="week">Próximos 7 días</option>
+                    <option value="month">Este mes</option>
+                  </select>
+                  {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
+                    <button className="filter-clear" type="button" onClick={clearFilters}>
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+              </div>
+              {locationMessage && (
+                <p className="agenda-location-status" role="status">
+                  ⌖ {locationMessage}
+                </p>
               )}
             </div>
           </div>
-          {locationMessage && (
-            <p className="agenda-location-status" role="status">
-              ⌖ {locationMessage}
-            </p>
+          {error && (
+            <ErrorState
+              message="No pudimos actualizar la agenda. Tus filtros siguen disponibles para intentar otra vez."
+              onRetry={() => load()}
+            />
           )}
-        </div>
-      </div>
-      {error && (
-        <ErrorState
-          message="No pudimos actualizar la agenda. Tus filtros siguen disponibles para intentar otra vez."
-          onRetry={() => load()}
-        />
-      )}
-      <div className="agenda-results-layout has-map">
-        <section className="event-map-section" aria-label="Mapa de eventos">
-          <div className="event-map-heading">
-            <div>
-              <p className="eyebrow">Mapa de eventos</p>
-              <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
+          <section className="event-map-section" aria-label="Mapa de eventos">
+            <div className="event-map-heading">
+              <div>
+                <p className="eyebrow">Mapa de eventos</p>
+                <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
+              </div>
+              <span className="muted">{events.length} encontrados</span>
             </div>
-            <span className="muted">{events.length} encontrados</span>
-          </div>
-          <EventMap
-            events={events}
-            latitude={Number(filters.lat) || -34.6037}
-            longitude={Number(filters.lng) || -58.3816}
-            radiusKm={filters.radiusKm}
-            hasLocation={Boolean(filters.lat && filters.lng)}
-            centerPickerActive={mapPickerActive}
-            onCenterSelect={selectMapCenter}
-          />
-          <div className="event-map-legend">
-            {filters.lat && filters.lng && (
+            <EventMap
+              events={events}
+              latitude={Number(filters.lat) || -34.6037}
+              longitude={Number(filters.lng) || -58.3816}
+              radiusKm={filters.radiusKm}
+              hasLocation={Boolean(filters.lat && filters.lng)}
+              centerPickerActive={mapPickerActive}
+              onCenterSelect={selectMapCenter}
+            />
+            <div className="event-map-legend">
+              {filters.lat && filters.lng && (
+                <span>
+                  <i className="event-map-legend-user" /> Tu ubicación
+                </span>
+              )}
               <span>
-                <i className="event-map-legend-user" /> Tu ubicación
+                <i className="event-map-legend-event" /> Eventos en agenda
               </span>
-            )}
-            <span>
-              <i className="event-map-legend-event" /> Eventos en agenda
-            </span>
-          </div>
-        </section>
+            </div>
+          </section>
+        </aside>
         <section className="events">
           <div className="events-heading">
             <p className="eyebrow">Lo que está pasando</p>
