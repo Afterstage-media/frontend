@@ -319,12 +319,13 @@
   background: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  justify-content: center;
   left: 12px;
   padding: 10px 12px;
+  pointer-events: none;
   position: absolute;
   right: 12px;
+  text-align: center;
   top: 12px;
   z-index: 500;
 }
@@ -332,14 +333,6 @@
 .event-map-picker span {
   font-size: 0.75rem;
   font-weight: 700;
-}
-
-.event-map-picker .button {
-  background: var(--color-accent);
-  color: var(--color-ink);
-  font-size: 0.7rem;
-  padding: 8px 10px;
-  white-space: nowrap;
 }
 
 .events-heading {

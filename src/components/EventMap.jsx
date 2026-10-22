@@ -150,10 +150,17 @@ export function EventMap({
     return () => layers.remove();
   }, [events, latitude, longitude, radiusKm, hasLocation, centerPickerActive, mapReady]);
 
-  const selectCurrentCenter = () => {
-    const center = mapRef.current?.getCenter();
-    if (center && onCenterSelect) onCenterSelect({ lat: center.lat, lng: center.lng });
-  };
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !centerPickerActive || !onCenterSelect) return undefined;
+
+    const selectMapPoint = ({ latlng }) => {
+      onCenterSelect({ lat: latlng.lat, lng: latlng.lng });
+    };
+
+    map.on("click", selectMapPoint);
+    return () => map.off("click", selectMapPoint);
+  }, [centerPickerActive, mapReady, onCenterSelect]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -172,11 +179,8 @@ export function EventMap({
         {expanded ? "Achicar mapa" : "Agrandar mapa"}
       </button>
       {centerPickerActive && (
-        <div className="event-map-picker">
-          <span>Mové el mapa hasta el lugar del viaje</span>
-          <button className="button dark" type="button" onClick={selectCurrentCenter}>
-            Usar este centro
-          </button>
+        <div className="event-map-picker" role="status">
+          <span>Hacé clic en el mapa para elegir el lugar</span>
         </div>
       )}
       <div

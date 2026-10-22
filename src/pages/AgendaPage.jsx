@@ -153,7 +153,7 @@ export function AgendaPage() {
     const nextFilters = { ...filters, lat: String(lat), lng: String(lng) };
     setFilters(nextFilters);
     setMapPickerActive(false);
-    setLocationMessage(`Centro elegido en el mapa · ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    setLocationMessage(`Ubicación elegida en el mapa · ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     load(nextFilters);
   };
   return (
@@ -193,7 +193,7 @@ export function AgendaPage() {
                   type="button"
                   onClick={() => setMapPickerActive((current) => !current)}
                 >
-                  {mapPickerActive ? "Cancelar mapa" : "Elegir centro"}
+                  {mapPickerActive ? "Cancelar selección" : "Elegir ubicación"}
                 </button>
                 <label className="agenda-radius">
                   <span className="agenda-radius-label">
