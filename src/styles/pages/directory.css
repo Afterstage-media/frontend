@@ -48,6 +48,10 @@
   max-width: 580px;
 }
 
+.directory-intro-actions {
+  margin-top: 26px;
+}
+
 .directory-intro-note {
   align-self: end;
   border-left: 1px solid var(--color-ink);
@@ -255,7 +259,7 @@
 .directory-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding-top: 30px;
 }
 
@@ -265,7 +269,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  grid-column: span 4;
+  grid-column: auto;
   min-height: 290px;
   padding: 22px;
   position: relative;
@@ -277,19 +281,11 @@
     transform 180ms ease;
 }
 
-.directory-card:nth-child(3n + 2) {
-  transform: translateY(28px);
-}
-
 .directory-card-featured {
   background: var(--color-ink);
   color: var(--color-paper);
-  grid-column: span 6;
+  grid-column: span 2;
   min-height: 350px;
-}
-
-.directory-card-featured:nth-child(3n + 2) {
-  transform: none;
 }
 
 .directory-card:hover,
@@ -776,10 +772,6 @@
   .directory-card-featured {
     grid-column: auto;
     min-height: 260px;
-  }
-
-  .directory-card:nth-child(3n + 2) {
-    transform: none;
   }
 
   .detail-panel {

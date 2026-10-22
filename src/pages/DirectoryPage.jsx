@@ -200,7 +200,7 @@ function DetailField({ label, children }) {
   );
 }
 
-function DirectoryEditForm({ item, onCancel, onSaved }) {
+function DirectoryEditForm({ item, isNew = false, onCancel, onSaved }) {
   const [form, setForm] = useState(() => formFromItem(item));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -210,8 +210,8 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
     setSaving(true);
     setError("");
     try {
-      const updated = await api(`/api/directory/${item.id}`, {
-        method: "PATCH",
+      const updated = await api(isNew ? "/api/directory" : `/api/directory/${item.id}`, {
+        method: isNew ? "POST" : "PATCH",
         body: JSON.stringify(toPayload(form)),
       });
       onSaved(updated);
@@ -225,15 +225,17 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
     <form className="directory-edit-form" onSubmit={submit}>
       <div className="detail-panel-heading">
         <div>
-          <p className="eyebrow">Editar ficha</p>
-          <h2>Actualizar datos</h2>
+          <p className="eyebrow">{isNew ? "Carga editorial" : "Editar ficha"}</p>
+          <h2>{isNew ? "Nueva ficha" : "Actualizar datos"}</h2>
         </div>
         <button className="icon-button" onClick={onCancel} type="button" aria-label="Cerrar edición">
           ×
         </button>
       </div>
       <p className="muted">
-        Los cambios se guardan en el directorio interno. Revisá especialmente contactos y enlaces.
+        {isNew
+          ? "Cargá los datos confirmados. Después podés completar o corregir la ficha desde el directorio."
+          : "Los cambios se guardan en el directorio interno. Revisá especialmente contactos y enlaces."}
       </p>
       <div className="edit-grid">
         <label>
@@ -260,9 +262,35 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
         </label>
       </div>
       <label>
+        También conocido como
+        <input
+          value={form.aliases}
+          onChange={(event) => update("aliases", event.target.value)}
+          placeholder="Separados por coma"
+        />
+      </label>
+      <label>
         Descripción
         <textarea rows="4" value={form.description} onChange={(event) => update("description", event.target.value)} />
       </label>
+      <div className="edit-grid">
+        <label>
+          Latitud
+          <input
+            inputMode="decimal"
+            value={form.latitude}
+            onChange={(event) => update("latitude", event.target.value)}
+          />
+        </label>
+        <label>
+          Longitud
+          <input
+            inputMode="decimal"
+            value={form.longitude}
+            onChange={(event) => update("longitude", event.target.value)}
+          />
+        </label>
+      </div>
       <label>
         Sitio web
         <input
@@ -272,6 +300,20 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
           placeholder="https://"
         />
       </label>
+      <div className="edit-grid">
+        {[
+          ["instagram", "Instagram"],
+          ["facebook", "Facebook"],
+          ["youtube", "YouTube"],
+          ["tiktok", "TikTok"],
+          ["spotify", "Spotify"],
+        ].map(([key, label]) => (
+          <label key={key}>
+            {label}
+            <input value={form[key]} onChange={(event) => update(key, event.target.value)} placeholder="https://" />
+          </label>
+        ))}
+      </div>
       <div className="edit-grid">
         <label>
           Teléfonos
@@ -307,10 +349,18 @@ function DirectoryEditForm({ item, onCancel, onSaved }) {
           placeholder="Separadas por coma"
         />
       </label>
+      <label>
+        Notas internas
+        <textarea rows="3" value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+      </label>
+      <label>
+        Fuente
+        <input value={form.source} onChange={(event) => update("source", event.target.value)} />
+      </label>
       <ErrorMessage error={error} />
       <div className="detail-actions">
         <button className="button dark" disabled={saving} type="submit">
-          {saving ? "Guardando…" : "Guardar cambios"}
+          {saving ? "Guardando…" : isNew ? "Crear ficha" : "Guardar cambios"}
         </button>
         <button className="button ghost" onClick={onCancel} type="button">
           Cancelar
@@ -539,12 +589,23 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
   );
 }
 
+function DirectoryCreatePanel({ onClose, onSaved }) {
+  return (
+    <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <aside aria-label="Nueva ficha de directorio" aria-modal="true" className="detail-panel" role="dialog">
+        <DirectoryEditForm item={empty} isNew onCancel={onClose} onSaved={onSaved} />
+      </aside>
+    </div>
+  );
+}
+
 function DirectoryBrowser({ user }) {
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("all");
   const [location, setLocation] = useState({ lat: "", lng: "", radiusKm: "50" });
   const [selected, setSelected] = useState(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const closeDetail = useCallback(() => setSelected(null), []);
@@ -564,6 +625,11 @@ function DirectoryBrowser({ user }) {
   const updateItem = (updated) => {
     setItems((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
     setSelected((current) => (current?.id === updated.id ? { ...current, ...updated } : current));
+  };
+  const createItem = (created) => {
+    setItems((current) => [created, ...current]);
+    setCreating(false);
+    setSelected(created);
   };
   const visibleItems = kind === "all" ? items : items.filter((item) => item.kind === kind);
   const availableKinds = Object.entries(kinds).filter(([value]) => items.some((item) => item.kind === value));
@@ -586,6 +652,13 @@ function DirectoryBrowser({ user }) {
             Un directorio para encontrar a quienes hacen, producen y sostienen la música independiente. Abrí cada ficha
             para consultar los datos completos, corregirlos o dejar una señal.
           </p>
+          {canEdit && (
+            <div className="directory-intro-actions">
+              <button className="button dark" onClick={() => setCreating(true)} type="button">
+                Nuevo ↗
+              </button>
+            </div>
+          )}
         </div>
         <div className="directory-intro-note">
           <span className="intro-note-mark">✦</span>
@@ -707,6 +780,7 @@ function DirectoryBrowser({ user }) {
           </div>
         )}
       </section>
+      {creating && <DirectoryCreatePanel onClose={() => setCreating(false)} onSaved={createItem} />}
       {selected && <DirectoryDetail canEdit={canEdit} item={selected} onClose={closeDetail} onUpdated={updateItem} />}
     </Layout>
   );

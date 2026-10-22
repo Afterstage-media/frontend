@@ -278,13 +278,10 @@ export function Layout({ children }) {
 
               <span className="workspace-sidebar-label">Gestionar</span>
               {can("admin", "editor", "press", "directory", "auditor") && (
-                <WorkspaceLink to="/directorio">Consultar directorio</WorkspaceLink>
+                <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
               )}
               {can("admin", "editor", "press", "community", "social") && (
                 <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
-              )}
-              {can("admin", "editor", "press", "directory") && (
-                <WorkspaceLink to="/admin/directorio">Administrar directorio</WorkspaceLink>
               )}
               {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
               {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}

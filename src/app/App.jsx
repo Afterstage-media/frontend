@@ -9,7 +9,7 @@ import { CommunityPage, PublishPage } from "../pages/PublicPages.jsx";
 import { AdminPage, NewContentPage, ContentPage, PressPage, SocialPage } from "../pages/AdminPages.jsx";
 import { InstagramSettingsPage } from "../pages/InstagramSettingsPage.jsx";
 import { PolicyPage, CreditsPage } from "../pages/PolicyPage.jsx";
-import { DirectoryPage, AdminDirectoryPage } from "../pages/DirectoryPage.jsx";
+import { DirectoryPage } from "../pages/DirectoryPage.jsx";
 import { ReplacementsPage, AdminReplacementsPage } from "../pages/ReplacementsPage.jsx";
 import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
@@ -62,7 +62,7 @@ export function App() {
       <Route path="/admin/contenido/:id" element={<ContentPage />} />
       <Route path="/admin/prensa" element={<PressPage />} />
       <Route path="/admin/reemplazos" element={<AdminReplacementsPage />} />
-      <Route path="/admin/directorio" element={<AdminDirectoryPage />} />
+      <Route path="/admin/directorio" element={<Navigate to="/directorio" replace />} />
       <Route path="/cuenta/accesos-ia" element={<AiAccessPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
