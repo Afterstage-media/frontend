@@ -20,6 +20,7 @@ body {
   font-family: var(--font-sans);
   line-height: var(--line-height-body);
   margin: 0;
+  overflow-x: clip;
 }
 
 body::before {
