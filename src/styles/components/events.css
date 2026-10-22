@@ -245,6 +245,15 @@
   min-width: 0;
 }
 
+.agenda-results-layout.has-map .event {
+  gap: 20px;
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.agenda-results-layout.has-map .event-aside {
+  grid-column: 2;
+}
+
 .agenda-results-layout.has-map .events-heading {
   margin-top: 62px;
 }
