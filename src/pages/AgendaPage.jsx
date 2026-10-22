@@ -255,25 +255,27 @@ export function AgendaPage() {
                 ))}
               </select>
             </label>
-            <select
-              aria-label="Filtrar por fecha"
-              value={filters.dateRange}
-              onChange={(e) => {
-                const nextFilters = { ...filters, dateRange: e.target.value };
-                setFilters(nextFilters);
-                load(nextFilters);
-              }}
-            >
-              <option value="all">Todas las fechas</option>
-              <option value="today">Hoy</option>
-              <option value="week">Próximos 7 días</option>
-              <option value="month">Este mes</option>
-            </select>
-            {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
-              <button className="filter-clear" type="button" onClick={clearFilters}>
-                Limpiar
-              </button>
-            )}
+            <div className="agenda-date-actions">
+              <select
+                aria-label="Filtrar por fecha"
+                value={filters.dateRange}
+                onChange={(e) => {
+                  const nextFilters = { ...filters, dateRange: e.target.value };
+                  setFilters(nextFilters);
+                  load(nextFilters);
+                }}
+              >
+                <option value="all">Todas las fechas</option>
+                <option value="today">Hoy</option>
+                <option value="week">Próximos 7 días</option>
+                <option value="month">Este mes</option>
+              </select>
+              {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
+                <button className="filter-clear" type="button" onClick={clearFilters}>
+                  Limpiar
+                </button>
+              )}
+            </div>
           </div>
           {locationMessage && (
             <p className="agenda-location-status" role="status">
