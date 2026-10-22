@@ -51,6 +51,10 @@ assert.match(app, /<Route path="\/monetizar" element={<Navigate to="\/servicios"
 assert.doesNotMatch(app, /path="\/busquedas"/);
 assert.match(article, /document\.title/);
 assert.match(article, /Nota no disponible/);
+assert.match(article, /article-share-actions/);
+assert.match(article, /article-copy-action/);
+assert.match(article, /navigator\.share/);
+assert.match(article, /Enlace copiado/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
 assert.match(admin, /<AuthGate allowedRoles=\{\["admin", "editor"\]\}>/);
 assert.match(admin, /Quitar de la nota/);
