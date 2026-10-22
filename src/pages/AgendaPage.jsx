@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { EventCard } from "../components/EventCard.jsx";
+import { EventMap } from "../components/EventMap.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
@@ -15,6 +16,7 @@ export function AgendaPage() {
     radiusKm: "25",
   });
   const [loading, setLoading] = useState(true);
+  const [locationMessage, setLocationMessage] = useState("");
   const [scrollOffset, setScrollOffset] = useState(0);
   const load = (nextFilters = filters) => {
     setLoading(true);
@@ -69,23 +71,27 @@ export function AgendaPage() {
     };
   }, []);
   const useMyLocation = () => {
+    setError("");
     if (!navigator.geolocation) {
-      setError("Tu navegador no permite detectar la ubicación.");
+      setLocationMessage("Tu navegador no permite detectar la ubicación.");
       return;
     }
+    setLocationMessage("Detectando tu ubicación…");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const nextFilters = { ...filters, lat: String(coords.latitude), lng: String(coords.longitude) };
         setFilters(nextFilters);
+        setLocationMessage(`Ubicación detectada · ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
         load(nextFilters);
       },
-      () => setError("No pudimos obtener tu ubicación. También podés buscar por ciudad o lugar."),
+      () => setLocationMessage("No pudimos obtener tu ubicación. Revisá el permiso del navegador."),
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
     );
   };
   const clearFilters = () => {
     const nextFilters = { query: "", dateRange: "all", lat: "", lng: "", radiusKm: "25" };
     setFilters(nextFilters);
+    setLocationMessage("");
     load(nextFilters);
   };
   return (
@@ -114,8 +120,26 @@ export function AgendaPage() {
               Buscar ↗
             </button>
             <button className="button ghost" type="button" onClick={useMyLocation}>
-              Cerca mío
+              {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
             </button>
+            <label className="agenda-radius">
+              <span>Radio</span>
+              <select
+                aria-label="Radio de búsqueda"
+                value={filters.radiusKm}
+                onChange={(e) => {
+                  const nextFilters = { ...filters, radiusKm: e.target.value };
+                  setFilters(nextFilters);
+                  if (nextFilters.lat && nextFilters.lng) load(nextFilters);
+                }}
+              >
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+                <option value="25">25 km</option>
+                <option value="50">50 km</option>
+                <option value="100">100 km</option>
+              </select>
+            </label>
             <select
               aria-label="Filtrar por fecha"
               value={filters.dateRange}
@@ -136,6 +160,11 @@ export function AgendaPage() {
               </button>
             )}
           </div>
+          {locationMessage && (
+            <p className="agenda-location-status" role="status">
+              ⌖ {locationMessage}
+            </p>
+          )}
         </div>
       </section>
       {error && (
@@ -143,6 +172,31 @@ export function AgendaPage() {
           message="No pudimos actualizar la agenda. Tus filtros siguen disponibles para intentar otra vez."
           onRetry={() => load()}
         />
+      )}
+      {filters.lat && filters.lng && (
+        <section className="event-map-section" aria-label="Mapa de eventos cercanos">
+          <div className="event-map-heading">
+            <div>
+              <p className="eyebrow">Mapa de cercanía</p>
+              <h2>Eventos en tu radio.</h2>
+            </div>
+            <span className="muted">Radio seleccionado: {filters.radiusKm} km</span>
+          </div>
+          <EventMap
+            events={events}
+            latitude={Number(filters.lat)}
+            longitude={Number(filters.lng)}
+            radiusKm={filters.radiusKm}
+          />
+          <div className="event-map-legend">
+            <span>
+              <i className="event-map-legend-user" /> Tu ubicación
+            </span>
+            <span>
+              <i className="event-map-legend-event" /> Evento encontrado
+            </span>
+          </div>
+        </section>
       )}
       <section className="events">
         <div className="events-heading">
