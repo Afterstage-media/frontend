@@ -7,13 +7,14 @@ import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { eventMatchesDateRange, getEventDates } from "../utils/eventDates.js";
+import { normalizeSearchText } from "../utils/search.js";
 
 const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
 
 const groupAgendaEvents = (items) => {
   const groups = new Map();
   items.forEach((event) => {
-    const key = eventGroupLabel(event).toLowerCase();
+    const key = normalizeSearchText(eventGroupLabel(event));
     const group = groups.get(key) || { ...event, dates: [], endsAt: event.endsAt };
     const dates = new Map(group.dates.map((date) => [date, date]));
     getEventDates(event).forEach((date) => dates.set(date.toISOString(), date.toISOString()));
@@ -48,17 +49,17 @@ export function AgendaPage() {
         : "";
     api(`/api/public/events${params}`)
       .then((items) => {
-        const query = nextFilters.query.trim().toLowerCase();
+        const query = normalizeSearchText(nextFilters.query);
         const now = new Date();
         setEvents(
           groupAgendaEvents(
             items.filter((event) => {
               const searchable = [event.name, event.artist, event.venue, event.address, event.city, event.country]
                 .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
+                .join(" ");
+              const normalizedSearchable = normalizeSearchText(searchable);
               const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
-              return (!query || searchable.includes(query)) && matchesDate;
+              return (!query || normalizedSearchable.includes(query)) && matchesDate;
             }),
           ),
         );
