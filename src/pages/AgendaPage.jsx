@@ -308,7 +308,7 @@ export function AgendaPage() {
           <section className="event-map-section" aria-label="Mapa de eventos">
             <div className="event-map-heading">
               <div>
-                <p className="eyebrow">Mapa de eventos</p>
+                <p className="eyebrow">Mapa</p>
                 <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
               </div>
               <span className="muted">{visibleEvents.length} visibles</span>
