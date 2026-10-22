@@ -91,9 +91,9 @@
   align-items: end;
   background: var(--color-surface);
   border: 1px solid rgba(244, 240, 232, 0.7);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--space-md);
+  grid-template-columns: minmax(220px, 1fr) auto;
   margin: 0;
   max-width: none;
   padding: var(--space-md);
@@ -150,6 +150,11 @@
 
 .agenda-filter-dock.is-scrolled .agenda-filters select {
   max-width: 150px;
+}
+
+.agenda-filters .actions {
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .agenda-filters select {
@@ -222,6 +227,7 @@
   border-top: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
   color: var(--color-muted);
   flex-basis: 100%;
+  grid-column: 1 / -1;
   font-size: 0.82rem;
   margin: 0;
   padding-top: 12px;
@@ -637,6 +643,8 @@
   }
 
   .agenda-filters {
+    display: flex;
+    flex-wrap: wrap;
     padding: var(--space-md);
   }
 
