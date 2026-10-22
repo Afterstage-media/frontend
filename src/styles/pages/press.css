@@ -14,13 +14,11 @@
 .press-dashboard-content[data-active-section="overview"] [data-press-section="overview"],
 .press-dashboard-content[data-active-section="dossier"] [data-press-section="dossier"],
 .press-dashboard-content[data-active-section="events"] [data-press-section="events"],
-.press-dashboard-content[data-active-section="press"] [data-press-section="press"],
+.press-dashboard-content[data-active-section="contacts"] [data-press-section="contacts"],
+.press-dashboard-content[data-active-section="accreditations"] [data-press-section="accreditations"],
+.press-dashboard-content[data-active-section="coverages"] [data-press-section="coverages"],
 .press-dashboard-content[data-active-section="activity"] [data-press-section="activity"] {
   display: block;
-}
-
-.press-dashboard-content[data-active-section="press"] .press-operation-grid-secondary {
-  display: grid;
 }
 
 .press-hero {
@@ -371,17 +369,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.press-operation-grid-secondary {
-  margin: 0 auto 62px;
-  max-width: 1180px;
-  order: 3;
-  padding-left: var(--gutter);
-  padding-right: var(--gutter);
+.press-operation-grid--single {
+  grid-template-columns: minmax(0, 760px);
 }
 
-.press-operation-grid-secondary .press-form-card > label:nth-of-type(3),
-.press-operation-grid-secondary .press-form-card > label:nth-of-type(4) {
-  grid-column: 1 / -1;
+.press-operation-grid--single .press-form-card {
+  width: 100%;
 }
 
 .press-records-grid {
