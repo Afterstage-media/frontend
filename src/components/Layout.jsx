@@ -4,104 +4,6 @@ import { api } from "../services/api.js";
 
 const themeStorageKey = "afterstage-theme-v2";
 const LayoutContext = createContext(false);
-const searchScopeOptions = [
-  { label: "Notas", value: "notes" },
-  { label: "Eventos", value: "events" },
-];
-
-function SearchScopeSelect({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-  const optionRefs = useRef([]);
-  const selectedOption = searchScopeOptions.find((option) => option.value === value) || searchScopeOptions[0];
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const closeOnOutsideClick = (event) => {
-      if (!containerRef.current?.contains(event.target)) setOpen(false);
-    };
-    const closeOnEscape = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOnOutsideClick);
-    document.addEventListener("keydown", closeOnEscape);
-    optionRefs.current[searchScopeOptions.findIndex((option) => option.value === value)]?.focus();
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsideClick);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [open, value]);
-
-  const chooseOption = (nextValue) => {
-    onChange(nextValue);
-    setOpen(false);
-  };
-
-  const handleTriggerKeyDown = (event) => {
-    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      setOpen(true);
-    }
-  };
-
-  const handleOptionKeyDown = (event, index) => {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      const nextIndex =
-        event.key === "ArrowDown"
-          ? (index + 1) % searchScopeOptions.length
-          : (index - 1 + searchScopeOptions.length) % searchScopeOptions.length;
-      optionRefs.current[nextIndex]?.focus();
-    }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      chooseOption(searchScopeOptions[index].value);
-    }
-  };
-
-  return (
-    <div className={`header-search-scope${open ? " is-open" : ""}`} ref={containerRef}>
-      <span className="sr-only" id="search-scope-label">
-        Buscar en
-      </span>
-      <button
-        aria-controls="search-scope-options"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-labelledby="search-scope-label"
-        className="header-search-scope-trigger"
-        onClick={() => setOpen((isOpen) => !isOpen)}
-        onKeyDown={handleTriggerKeyDown}
-        type="button"
-      >
-        {selectedOption.label}
-        <span aria-hidden="true" className="header-search-scope-chevron">
-          ↓
-        </span>
-      </button>
-      {open && (
-        <div aria-label="Buscar en" className="header-search-scope-menu" id="search-scope-options" role="listbox">
-          {searchScopeOptions.map((option, index) => (
-            <button
-              aria-selected={option.value === value}
-              className="header-search-scope-option"
-              key={option.value}
-              onClick={() => chooseOption(option.value)}
-              onKeyDown={(event) => handleOptionKeyDown(event, index)}
-              ref={(element) => {
-                optionRefs.current[index] = element;
-              }}
-              role="option"
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
@@ -125,7 +27,7 @@ function LayoutShell({ children }) {
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchScope, setSearchScope] = useState("notes");
+  const [collapsedSections, setCollapsedSections] = useState({});
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
   const location = useLocation();
@@ -154,11 +56,6 @@ function LayoutShell({ children }) {
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname, location.search]);
-
-  useEffect(() => {
-    if (location.pathname.startsWith("/agenda")) setSearchScope("events");
-    if (location.pathname.startsWith("/notas")) setSearchScope("notes");
-  }, [location.pathname]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -244,7 +141,7 @@ function LayoutShell({ children }) {
   const submitSearch = (event) => {
     event.preventDefault();
     const query = searchQuery.trim();
-    const destination = searchScope === "events" ? "/agenda" : "/notas";
+    const destination = location.pathname.startsWith("/agenda") ? "/agenda" : "/notas";
     navigate(query ? `${destination}?q=${encodeURIComponent(query)}` : destination);
   };
 
@@ -253,6 +150,29 @@ function LayoutShell({ children }) {
       {children}
     </NavLink>
   );
+
+  const WorkspaceSection = ({ id, label, children }) => {
+    const collapsed = collapsedSections[id] === true;
+    return (
+      <div className={`workspace-sidebar-section${collapsed ? " is-collapsed" : ""}`}>
+        <button
+          aria-controls={`workspace-sidebar-section-${id}`}
+          aria-expanded={!collapsed}
+          className="workspace-sidebar-label"
+          onClick={() => setCollapsedSections((current) => ({ ...current, [id]: !current[id] }))}
+          type="button"
+        >
+          <span>{label}</span>
+          <span aria-hidden="true">{collapsed ? "+" : "−"}</span>
+        </button>
+        {!collapsed && (
+          <div className="workspace-sidebar-section-items" id={`workspace-sidebar-section-${id}`}>
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <LayoutContext.Provider value>
@@ -292,18 +212,22 @@ function LayoutShell({ children }) {
           >
             <span /> <span /> <span />
           </button>
-          <form aria-label="Buscar en afterstage" className="header-search-form" onSubmit={submitSearch} role="search">
+          <form
+            aria-label={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"} en afterstage`}
+            className="header-search-form"
+            onSubmit={submitSearch}
+            role="search"
+          >
             <span aria-hidden="true" className="header-search-icon">
               ⌕
             </span>
-            <SearchScopeSelect onChange={setSearchScope} value={searchScope} />
             <input
-              aria-label={`Buscar ${searchScope === "events" ? "eventos" : "notas"}`}
+              aria-label={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"}`}
               onChange={(event) => setSearchQuery(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") submitSearch(event);
               }}
-              placeholder={`Buscar ${searchScope === "events" ? "eventos" : "notas"}`}
+              placeholder={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"}`}
               type="search"
               value={searchQuery}
             />
@@ -337,7 +261,6 @@ function LayoutShell({ children }) {
                 </>
               ) : (
                 <>
-                  <span className="nav-group-label">Explorar</span>
                   <NavLink end to="/">
                     Inicio
                   </NavLink>
@@ -386,17 +309,17 @@ function LayoutShell({ children }) {
                 </button>
               </div>
               <nav aria-label="Secciones del espacio de trabajo" className="workspace-sidebar-nav">
-                <span className="workspace-sidebar-label">Consultar</span>
-                <WorkspaceLink end to="/">
-                  Inicio
-                </WorkspaceLink>
-                <WorkspaceLink to="/notas">Notas</WorkspaceLink>
-                <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
-                <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
+                <WorkspaceSection id="consultar" label="Consultar">
+                  <WorkspaceLink end to="/">
+                    Inicio
+                  </WorkspaceLink>
+                  <WorkspaceLink to="/notas">Notas</WorkspaceLink>
+                  <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
+                  <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
+                </WorkspaceSection>
 
                 {(can("admin", "editor", "community") || can("press", "social")) && (
-                  <>
-                    <span className="workspace-sidebar-label">Trabajar</span>
+                  <WorkspaceSection id="trabajar" label="Trabajar">
                     {can("admin", "editor") && (
                       <WorkspaceLink end to="/admin">
                         Contenido
@@ -408,23 +331,27 @@ function LayoutShell({ children }) {
                     {can("admin", "editor", "community") && (
                       <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
                     )}
-                  </>
+                  </WorkspaceSection>
                 )}
 
-                <span className="workspace-sidebar-label">Gestionar</span>
-                {can("admin", "editor", "press", "directory", "auditor") && (
-                  <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
-                )}
-                {can("admin", "editor", "press", "community", "social") && (
-                  <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
-                )}
-                {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
-                {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
-                {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
+                <WorkspaceSection id="gestionar" label="Gestionar">
+                  {can("admin", "editor", "press", "directory", "auditor") && (
+                    <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
+                  )}
+                  {can("admin", "editor", "press", "community", "social") && (
+                    <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
+                  )}
+                  {can("admin", "press") && (
+                    <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>
+                  )}
+                  {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
+                  {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
+                </WorkspaceSection>
 
-                <span className="workspace-sidebar-label">Cuenta</span>
-                <WorkspaceLink to="/cuenta/accesos-ia">Accesos IA</WorkspaceLink>
-                <WorkspaceLink to="/colaborador">Ver perfil</WorkspaceLink>
+                <WorkspaceSection id="cuenta" label="Cuenta">
+                  <WorkspaceLink to="/cuenta/accesos-ia">Accesos IA</WorkspaceLink>
+                  <WorkspaceLink to="/colaborador">Ver perfil</WorkspaceLink>
+                </WorkspaceSection>
               </nav>
               <div className="workspace-sidebar-footer">
                 <WorkspaceLink to="/">Ver sitio público ↗</WorkspaceLink>
