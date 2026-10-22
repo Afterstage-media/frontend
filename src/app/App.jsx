@@ -13,7 +13,7 @@ import { DirectoryPage, AdminDirectoryPage } from "../pages/DirectoryPage.jsx";
 import { ReplacementsPage, AdminReplacementsPage } from "../pages/ReplacementsPage.jsx";
 import { CollaboratorPage } from "../pages/CollaboratorPage.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
-import { MonetizationPage, AdminMonetizationPage } from "../pages/MonetizationPage.jsx";
+import { MonetizationPage } from "../pages/MonetizationPage.jsx";
 import { ServicesPage } from "../pages/ServicesPage.jsx";
 import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
@@ -56,14 +56,7 @@ export function App() {
       <Route path="/servicios" element={<ServicesPage />} />
       <Route path="/contratar" element={<MonetizationPage />} />
       <Route path="/monetizar" element={<Navigate to="/servicios" replace />} />
-      <Route
-        path="/admin/monetizacion"
-        element={
-          <AuthGate allowedRoles={["admin", "editor"]}>
-            <AdminMonetizationPage />
-          </AuthGate>
-        }
-      />
+      <Route path="/admin/monetizacion" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/usuarios" element={<UserManagementPage />} />
       <Route path="/admin/nueva" element={<NewContentPage />} />
       <Route path="/admin/contenido/:id" element={<ContentPage />} />

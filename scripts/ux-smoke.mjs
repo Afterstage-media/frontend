@@ -67,6 +67,9 @@ assert.match(monetization, /type="submit" className="button dark" disabled=\{loa
 assert.match(monetization, /promotionStatusLabels/);
 assert.match(monetization, /Filtrar solicitudes por estado/);
 assert.match(monetization, /noValidate onInvalid=\{invalid\} onSubmit=\{submit\}/);
+assert.match(app, /path="\/admin\/monetizacion" element=\{<Navigate to="\/admin" replace \/>\}/);
+assert.doesNotMatch(layout, /WorkspaceLink to="\/admin\/monetizacion"/);
+assert.doesNotMatch(admin, /to="\/admin\/monetizacion"/);
 assert.match(monetization, /useSearchParams/);
 assert.match(services, /pasarela-entradas/);
 assert.match(services, /organizacion-festivales/);

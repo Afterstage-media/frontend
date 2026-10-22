@@ -288,7 +288,6 @@ export function Layout({ children }) {
                 <WorkspaceLink to="/admin/directorio">Administrar directorio</WorkspaceLink>
               )}
               {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
-              {can("admin", "editor") && <WorkspaceLink to="/admin/monetizacion">Monetización</WorkspaceLink>}
               {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
               {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
 
