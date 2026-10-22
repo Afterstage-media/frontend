@@ -13,6 +13,39 @@ const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() ||
 
 const eventArtistName = (event) => event.artist?.trim() || event.name?.trim() || "";
 
+const defaultGenreOptions = ["Rock", "Metal", "Indie", "Pop", "Punk", "Electrónica", "Hip hop", "Folklore"];
+const defaultTagOptions = ["Under", "Gratis", "Festival", "Ciclo", "Feria"];
+
+const eventValues = (event, key, singularKey) => {
+  const value = event[key] ?? event[singularKey];
+  return (Array.isArray(value) ? value : [value]).filter(Boolean);
+};
+
+const filterOptionsFromEvents = (items, key, singularKey, defaults) => [
+  ...new Map(
+    [...defaults, ...items.flatMap((event) => eventValues(event, key, singularKey))].map((value) => [
+      normalizeSearchText(value),
+      value.trim(),
+    ]),
+  ).values(),
+];
+
+const eventMatchesAgendaFilters = (event, filters, now) => {
+  const query = normalizeSearchText(filters.query);
+  const artistName = normalizeSearchText(eventArtistName(event));
+  const matchesGenre =
+    !filters.genre ||
+    eventValues(event, "genres", "genre").some((value) => normalizeSearchText(value) === filters.genre);
+  const matchesTag =
+    !filters.tag || eventValues(event, "tags", "tag").some((value) => normalizeSearchText(value) === filters.tag);
+  return (
+    (!query || artistName.includes(query)) &&
+    matchesGenre &&
+    matchesTag &&
+    eventMatchesDateRange(event, filters.dateRange, now)
+  );
+};
+
 const groupAgendaEvents = (items) => {
   const groups = new Map();
   items.forEach((event) => {
@@ -31,9 +64,14 @@ export function AgendaPage() {
   const [searchParams] = useSearchParams();
   const queryFromUrl = searchParams.get("q")?.trim() || "";
   const [events, setEvents] = useState([]);
+  const [genreOptions, setGenreOptions] = useState(defaultGenreOptions);
+  const [tagOptions, setTagOptions] = useState(defaultTagOptions);
+  const [mapPickerActive, setMapPickerActive] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
     query: queryFromUrl,
+    genre: "",
+    tag: "",
     dateRange: "all",
     lat: "",
     lng: "",
@@ -51,17 +89,10 @@ export function AgendaPage() {
         : "";
     api(`/api/public/events${params}`)
       .then((items) => {
-        const query = normalizeSearchText(nextFilters.query);
         const now = new Date();
-        setEvents(
-          groupAgendaEvents(
-            items.filter((event) => {
-              const normalizedArtistName = normalizeSearchText(eventArtistName(event));
-              const matchesDate = eventMatchesDateRange(event, nextFilters.dateRange, now);
-              return (!query || normalizedArtistName.includes(query)) && matchesDate;
-            }),
-          ),
-        );
+        setGenreOptions(filterOptionsFromEvents(items, "genres", "genre", defaultGenreOptions));
+        setTagOptions(filterOptionsFromEvents(items, "tags", "tag", defaultTagOptions));
+        setEvents(groupAgendaEvents(items.filter((event) => eventMatchesAgendaFilters(event, nextFilters, now))));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -112,9 +143,17 @@ export function AgendaPage() {
     );
   };
   const clearFilters = () => {
-    const nextFilters = { query: "", dateRange: "all", lat: "", lng: "", radiusKm: "25" };
+    const nextFilters = { query: "", genre: "", tag: "", dateRange: "all", lat: "", lng: "", radiusKm: "25" };
     setFilters(nextFilters);
     setLocationMessage("");
+    setMapPickerActive(false);
+    load(nextFilters);
+  };
+  const selectMapCenter = ({ lat, lng }) => {
+    const nextFilters = { ...filters, lat: String(lat), lng: String(lng) };
+    setFilters(nextFilters);
+    setMapPickerActive(false);
+    setLocationMessage(`Centro elegido en el mapa · ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     load(nextFilters);
   };
   return (
@@ -147,6 +186,13 @@ export function AgendaPage() {
             <button className="button ghost" type="button" onClick={useMyLocation}>
               {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
             </button>
+            <button
+              className={`button ghost${mapPickerActive ? " is-active" : ""}`}
+              type="button"
+              onClick={() => setMapPickerActive((current) => !current)}
+            >
+              {mapPickerActive ? "Cancelar mapa" : "Elegir centro"}
+            </button>
             <label className="agenda-radius">
               <span className="agenda-radius-label">
                 <span>Radio</span>
@@ -171,6 +217,44 @@ export function AgendaPage() {
                 <span>100 km</span>
               </span>
             </label>
+            <label>
+              <span className="agenda-filter-label">Género</span>
+              <select
+                aria-label="Filtrar por género"
+                value={filters.genre}
+                onChange={(e) => {
+                  const nextFilters = { ...filters, genre: normalizeSearchText(e.target.value) };
+                  setFilters(nextFilters);
+                  load(nextFilters);
+                }}
+              >
+                <option value="">Todos los géneros</option>
+                {genreOptions.map((option) => (
+                  <option key={option} value={normalizeSearchText(option)}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="agenda-filter-label">Tags</span>
+              <select
+                aria-label="Filtrar por tag"
+                value={filters.tag}
+                onChange={(e) => {
+                  const nextFilters = { ...filters, tag: normalizeSearchText(e.target.value) };
+                  setFilters(nextFilters);
+                  load(nextFilters);
+                }}
+              >
+                <option value="">Todos los tags</option>
+                {tagOptions.map((option) => (
+                  <option key={option} value={normalizeSearchText(option)}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
             <select
               aria-label="Filtrar por fecha"
               value={filters.dateRange}
@@ -185,7 +269,7 @@ export function AgendaPage() {
               <option value="week">Próximos 7 días</option>
               <option value="month">Este mes</option>
             </select>
-            {(filters.query || filters.dateRange !== "all" || filters.lat) && (
+            {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
               <button className="filter-clear" type="button" onClick={clearFilters}>
                 Limpiar
               </button>
@@ -219,6 +303,8 @@ export function AgendaPage() {
             longitude={Number(filters.lng) || -58.3816}
             radiusKm={filters.radiusKm}
             hasLocation={Boolean(filters.lat && filters.lng)}
+            centerPickerActive={mapPickerActive}
+            onCenterSelect={selectMapCenter}
           />
           <div className="event-map-legend">
             {filters.lat && filters.lng && (
