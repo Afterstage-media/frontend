@@ -100,4 +100,10 @@
     display: grid;
     gap: var(--space-xs);
   }
+
+  .footer-links {
+    align-items: start;
+    flex-direction: column;
+    gap: 5px;
+  }
 }

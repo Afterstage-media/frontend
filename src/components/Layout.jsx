@@ -20,6 +20,8 @@ export function Layout({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
   const location = useLocation();
@@ -44,7 +46,8 @@ export function Layout({ children }) {
 
   useEffect(() => {
     setMenuOpen(false);
-  }, [location.pathname]);
+    setSearchOpen(false);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -127,6 +130,13 @@ export function Layout({ children }) {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    setSearchOpen(false);
+    navigate(query ? `/notas?q=${encodeURIComponent(query)}` : "/notas");
+  };
+
   const WorkspaceLink = ({ to, children, end = false }) => (
     <NavLink end={end} onClick={closeMenu} to={to}>
       {children}
@@ -134,7 +144,7 @@ export function Layout({ children }) {
   );
 
   return (
-    <>
+    <div className="site-shell">
       <a className="skip-link" href="#main-content">
         Ir al contenido
       </a>
@@ -201,21 +211,44 @@ export function Layout({ children }) {
                 <NavLink to="/notas">Notas</NavLink>
                 <NavLink to="/agenda">Agenda</NavLink>
                 {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
-                <details className="nav-more">
-                  <summary>Más</summary>
-                  <div className="nav-more-panel">
-                    <NavLink to="/servicios">Servicios</NavLink>
-                    {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-                    {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-                    {can("admin", "editor", "press", "community", "social") && (
-                      <NavLink to="/reemplazos">Reemplazos</NavLink>
-                    )}
-                    {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
-                  </div>
-                </details>
-                <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
-                  ⌕
-                </NavLink>
+                <NavLink to="/servicios">Servicios</NavLink>
+                {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+                {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+                {can("admin", "editor", "press", "community", "social") && (
+                  <NavLink to="/reemplazos">Reemplazos</NavLink>
+                )}
+                {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+                <form
+                  aria-label="Buscar en afterstage"
+                  className={`header-search-form ${searchOpen ? "is-open" : ""}`}
+                  onSubmit={submitSearch}
+                  role="search"
+                >
+                  {searchOpen && (
+                    <input
+                      aria-label="Buscar notas"
+                      autoFocus
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Buscar notas"
+                      type="search"
+                      value={searchQuery}
+                    />
+                  )}
+                  <button
+                    aria-expanded={searchOpen}
+                    aria-label={searchOpen ? "Buscar" : "Abrir búsqueda"}
+                    className="header-search"
+                    onClick={(event) => {
+                      if (!searchOpen) {
+                        event.preventDefault();
+                        setSearchOpen(true);
+                      }
+                    }}
+                    type={searchOpen ? "submit" : "button"}
+                  >
+                    <span aria-hidden="true">⌕</span>
+                  </button>
+                </form>
                 {can("admin", "editor") && (
                   <NavLink className="nav-admin-link" to="/admin">
                     Admin ↗
@@ -224,11 +257,6 @@ export function Layout({ children }) {
               </>
             )}
           </nav>
-        )}
-        {!isWorkspace && !isAdminPath && (
-          <NavLink className="button header-join" to="/colaborador">
-            Sumate
-          </NavLink>
         )}
       </header>
       {isWorkspace ? (
@@ -308,11 +336,16 @@ export function Layout({ children }) {
       <footer className={isAdminPath || isWorkspace ? "admin-footer" : undefined}>
         <strong>AFTERSTAGE</strong>
         <span>Periodismo musical para la escena que hace.</span>
-        <span>
-          <Link to="/politica-editorial">Política editorial</Link> · <Link to="/codigo-de-creditos">Créditos</Link>
+        <span className="footer-links">
+          <Link className="footer-contribute" to="/colaborador">
+            Colaborá con Afterstage ↗
+          </Link>
+          <span>
+            <Link to="/politica-editorial">Política editorial</Link> · <Link to="/codigo-de-creditos">Créditos</Link>
+          </span>
         </span>
       </footer>
-    </>
+    </div>
   );
 }
 export const Loading = () => <p className="muted">Cargando…</p>;
