@@ -24,7 +24,8 @@ export function Layout({ children }) {
   const reflectorStageRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const isAdminPath = location.pathname.startsWith("/admin");
+  const isWorkspace = roles?.length > 0;
+  const isAdminPath = location.pathname.startsWith("/admin") && isWorkspace;
 
   useEffect(() => {
     const refreshRoles = () => {
@@ -124,12 +125,20 @@ export function Layout({ children }) {
     navigate("/");
   };
 
+  const closeMenu = () => setMenuOpen(false);
+
+  const WorkspaceLink = ({ to, children, end = false }) => (
+    <NavLink end={end} onClick={closeMenu} to={to}>
+      {children}
+    </NavLink>
+  );
+
   return (
     <>
       <a className="skip-link" href="#main-content">
         Ir al contenido
       </a>
-      <header className={`header ${isAdminPath ? "header-admin" : "header-public"}`}>
+      <header className={`header ${isWorkspace ? "header-workspace" : isAdminPath ? "header-admin" : "header-public"}`}>
         <div aria-hidden="true" className="reflector-stage" ref={reflectorStageRef}>
           {[0, 1, 2, 3, 4].map((reflector) => (
             <span
@@ -148,81 +157,160 @@ export function Layout({ children }) {
         <Link className="brand" to="/">
           <span className="mark" /> AFTERSTAGE
         </Link>
-        {isAdminPath && <span className="header-workspace-label">ADMIN / STUDIO</span>}
+        {isWorkspace && <span className="header-workspace-label">ESPACIO DE TRABAJO</span>}
         <button
           aria-expanded={menuOpen}
-          aria-controls="site-navigation"
-          aria-label={menuOpen ? "Cerrar navegación" : "Abrir navegación"}
+          aria-controls={isWorkspace ? "workspace-sidebar" : "site-navigation"}
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
           className="menu-toggle"
           onClick={() => setMenuOpen((open) => !open)}
           type="button"
         >
           <span /> <span /> <span />
         </button>
-        <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
-          {isAdminPath ? (
-            <>
-              <span className="nav-group-label">Publicar</span>
-              <NavLink end to="/admin">
-                Contenido
-              </NavLink>
-              <NavLink to="/admin/redes">Redes</NavLink>
-              <NavLink to="/admin/prensa">Prensa</NavLink>
-              <span className="nav-divider" aria-hidden="true" />
-              <span className="nav-group-label">Gestionar</span>
-              <NavLink to="/admin/directorio">Directorio</NavLink>
-              <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
-              <NavLink to="/admin/monetizacion">Monetización</NavLink>
-              {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
-              {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
-              <span className="nav-divider" aria-hidden="true" />
-              <NavLink className="nav-site-link" to="/">
-                Ver sitio ↗
-              </NavLink>
-              <button className="nav-logout" onClick={logOut} type="button">
-                Salir
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="nav-group-label">Explorar</span>
-              <NavLink end to="/">
-                Inicio
-              </NavLink>
-              <NavLink to="/notas">Notas</NavLink>
-              <NavLink to="/agenda">Agenda</NavLink>
-              {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
-              <details className="nav-more">
-                <summary>Más</summary>
-                <div className="nav-more-panel">
-                  <NavLink to="/servicios">Servicios</NavLink>
-                  {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
-                  {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
-                  {can("admin", "editor", "press", "community", "social") && (
-                    <NavLink to="/reemplazos">Reemplazos</NavLink>
-                  )}
-                  {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
-                </div>
-              </details>
-              <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
-                ⌕
-              </NavLink>
-              {can("admin", "editor") && (
-                <NavLink className="nav-admin-link" to="/admin">
-                  Admin ↗
+        {!isWorkspace && (
+          <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
+            {isAdminPath ? (
+              <>
+                <span className="nav-group-label">Publicar</span>
+                <NavLink end to="/admin">
+                  Contenido
                 </NavLink>
-              )}
-            </>
-          )}
-        </nav>
-        {!isAdminPath && (
+                <NavLink to="/admin/redes">Redes</NavLink>
+                <NavLink to="/admin/prensa">Prensa</NavLink>
+                <span className="nav-divider" aria-hidden="true" />
+                <span className="nav-group-label">Gestionar</span>
+                <NavLink to="/admin/directorio">Directorio</NavLink>
+                <NavLink to="/admin/reemplazos">Reemplazos</NavLink>
+                <NavLink to="/admin/monetizacion">Monetización</NavLink>
+                {can("admin", "social") && <NavLink to="/admin/instagram">Cuenta IG</NavLink>}
+                {can("admin") && <NavLink to="/admin/usuarios">Usuarios</NavLink>}
+                <span className="nav-divider" aria-hidden="true" />
+                <NavLink className="nav-site-link" to="/">
+                  Ver sitio ↗
+                </NavLink>
+                <button className="nav-logout" onClick={logOut} type="button">
+                  Salir
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="nav-group-label">Explorar</span>
+                <NavLink end to="/">
+                  Inicio
+                </NavLink>
+                <NavLink to="/notas">Notas</NavLink>
+                <NavLink to="/agenda">Agenda</NavLink>
+                {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
+                <details className="nav-more">
+                  <summary>Más</summary>
+                  <div className="nav-more-panel">
+                    <NavLink to="/servicios">Servicios</NavLink>
+                    {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
+                    {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
+                    {can("admin", "editor", "press", "community", "social") && (
+                      <NavLink to="/reemplazos">Reemplazos</NavLink>
+                    )}
+                    {roles?.length > 0 && <NavLink to="/cuenta/accesos-ia">Accesos IA</NavLink>}
+                  </div>
+                </details>
+                <NavLink aria-label="Buscar en afterstage" className="header-search" to="/notas">
+                  ⌕
+                </NavLink>
+                {can("admin", "editor") && (
+                  <NavLink className="nav-admin-link" to="/admin">
+                    Admin ↗
+                  </NavLink>
+                )}
+              </>
+            )}
+          </nav>
+        )}
+        {!isWorkspace && !isAdminPath && (
           <NavLink className="button header-join" to="/colaborador">
             Sumate
           </NavLink>
         )}
       </header>
-      <main id="main-content">{children}</main>
-      <footer className={isAdminPath ? "admin-footer" : undefined}>
+      {isWorkspace ? (
+        <div className="workspace-layout">
+          {menuOpen && (
+            <button aria-label="Cerrar menú de trabajo" className="workspace-scrim" onClick={closeMenu} type="button" />
+          )}
+          <aside
+            aria-label="Menú del espacio de trabajo"
+            className={`workspace-sidebar ${menuOpen ? "is-open" : ""}`}
+            id="workspace-sidebar"
+          >
+            <div className="workspace-sidebar-top">
+              <div>
+                <span className="workspace-kicker">Afterstage</span>
+                <strong>Tu espacio</strong>
+              </div>
+              <button aria-label="Cerrar menú" className="workspace-sidebar-close" onClick={closeMenu} type="button">
+                ×
+              </button>
+            </div>
+            <nav aria-label="Secciones del espacio de trabajo" className="workspace-sidebar-nav">
+              <span className="workspace-sidebar-label">Consultar</span>
+              <WorkspaceLink end to="/">
+                Inicio
+              </WorkspaceLink>
+              <WorkspaceLink to="/notas">Notas</WorkspaceLink>
+              <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
+              <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
+
+              {(can("admin", "editor", "community") || can("press", "social")) && (
+                <>
+                  <span className="workspace-sidebar-label">Trabajar</span>
+                  {can("admin", "editor") && (
+                    <WorkspaceLink end to="/admin">
+                      Contenido
+                    </WorkspaceLink>
+                  )}
+                  {can("admin", "editor") && <WorkspaceLink to="/admin/nueva">Nueva publicación</WorkspaceLink>}
+                  {can("admin", "editor") && <WorkspaceLink to="/admin/redes">Redes</WorkspaceLink>}
+                  {can("admin", "editor", "press") && <WorkspaceLink to="/admin/prensa">Prensa</WorkspaceLink>}
+                  {can("admin", "editor", "community") && (
+                    <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
+                  )}
+                </>
+              )}
+
+              <span className="workspace-sidebar-label">Gestionar</span>
+              {can("admin", "editor", "press", "directory", "auditor") && (
+                <WorkspaceLink to="/directorio">Consultar directorio</WorkspaceLink>
+              )}
+              {can("admin", "editor", "press", "community", "social") && (
+                <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
+              )}
+              {can("admin", "editor", "press", "directory") && (
+                <WorkspaceLink to="/admin/directorio">Administrar directorio</WorkspaceLink>
+              )}
+              {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>}
+              {can("admin", "editor") && <WorkspaceLink to="/admin/monetizacion">Monetización</WorkspaceLink>}
+              {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
+              {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
+
+              <span className="workspace-sidebar-label">Cuenta</span>
+              <WorkspaceLink to="/cuenta/accesos-ia">Accesos IA</WorkspaceLink>
+              <WorkspaceLink to="/colaborador">Ver perfil</WorkspaceLink>
+            </nav>
+            <div className="workspace-sidebar-footer">
+              <WorkspaceLink to="/">Ver sitio público ↗</WorkspaceLink>
+              <button className="workspace-logout" onClick={logOut} type="button">
+                Cerrar sesión
+              </button>
+            </div>
+          </aside>
+          <main className="workspace-main" id="main-content">
+            {children}
+          </main>
+        </div>
+      ) : (
+        <main id="main-content">{children}</main>
+      )}
+      <footer className={isAdminPath || isWorkspace ? "admin-footer" : undefined}>
         <strong>AFTERSTAGE</strong>
         <span>Periodismo musical para la escena que hace.</span>
         <span>
