@@ -1243,6 +1243,7 @@ function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [activeSection, setActiveSection] = useState("overview");
   const [event, setEvent] = useState({
     name: "",
     artist: "",
@@ -1315,21 +1316,24 @@ function PressDashboard() {
     <Layout>
       <div className="press-page">
         <section className="page-intro press-hero">
-          <p className="eyebrow">Prensa</p>
-          <h1>Centro de prensa.</h1>
-          <p>Organizá eventos, contactos, acreditaciones y coberturas desde un solo lugar.</p>
+          <div className="press-hero-copy">
+            <p className="eyebrow">Prensa · espacio de trabajo</p>
+            <h1>Centro de prensa.</h1>
+            <p>Todo lo necesario para organizar eventos, contactos y coberturas, en el orden en que lo usás.</p>
+          </div>
           <div className="press-hero-actions" aria-label="Acciones rápidas">
-            <a className="button dark" href="#press-event-form">
-              Nuevo evento
-            </a>
-            <a className="button ghost" href="#press-accreditation-form">
+            <span>Acciones frecuentes</span>
+            <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+              + Nuevo evento
+            </button>
+            <button className="button ghost" onClick={() => setActiveSection("press")} type="button">
               Solicitar acreditación
-            </a>
+            </button>
           </div>
           <ErrorMessage error={error} />
         </section>
         {snapshot && (
-          <>
+          <div className="press-dashboard-content" data-active-section={activeSection}>
             <div className="press-stat-grid">
               <article className="press-stat-card">
                 <strong>{snapshot.events.length}</strong>
@@ -1348,10 +1352,49 @@ function PressDashboard() {
                 <span>Coberturas</span>
               </article>
             </div>
-            <section className="press-dossier-section" id="press-dossier">
+            <nav aria-label="Secciones del centro de prensa" className="press-local-nav" role="tablist">
+              <span>Sección</span>
+              {[
+                ["overview", "Resumen"],
+                ["events", "Eventos y contactos"],
+                ["press", "Acreditaciones y coberturas"],
+                ["dossier", "Dossier"],
+                ["activity", "Actividad"],
+              ].map(([key, label]) => (
+                <button
+                  aria-selected={activeSection === key}
+                  className={activeSection === key ? "is-active" : ""}
+                  key={key}
+                  onClick={() => setActiveSection(key)}
+                  role="tab"
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <section className="press-overview-panel" data-press-section="overview" role="tabpanel">
+              <div>
+                <p className="press-card-kicker">Panel de trabajo</p>
+                <h2>¿Qué necesitás hacer?</h2>
+                <p>Elegí una sección para trabajar sin recorrer formularios que no necesitás ahora.</p>
+              </div>
+              <div className="press-overview-actions">
+                <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+                  Cargar evento o contacto
+                </button>
+                <button className="button ghost" onClick={() => setActiveSection("press")} type="button">
+                  Gestionar prensa
+                </button>
+                <button className="button ghost" onClick={() => setActiveSection("dossier")} type="button">
+                  Editar dossier
+                </button>
+              </div>
+            </section>
+            <section className="press-dossier-section" data-press-section="dossier" id="press-dossier" role="tabpanel">
               <MediaKitForm mediaKit={snapshot.mediaKit} onSaved={load} />
             </section>
-            <section className="press-operations" id="press-operations">
+            <section className="press-operations" data-press-section="events" id="press-operations" role="tabpanel">
               <div className="press-section-heading">
                 <div>
                   <p className="press-card-kicker">Operaciones</p>
@@ -1442,6 +1485,7 @@ function PressDashboard() {
                 </form>
                 <form
                   className="form press-form-card"
+                  id="press-contact-form"
                   onSubmit={(e) => {
                     e.preventDefault();
                     create("/api/press/contacts", contact, () =>
@@ -1482,7 +1526,11 @@ function PressDashboard() {
                 </form>
               </div>
             </section>
-            <section className="press-operation-grid press-operation-grid-secondary">
+            <section
+              className="press-operation-grid press-operation-grid-secondary"
+              data-press-section="press"
+              role="tabpanel"
+            >
               <form
                 className="form press-form-card"
                 id="press-accreditation-form"
@@ -1595,6 +1643,7 @@ function PressDashboard() {
               </form>
               <form
                 className="form press-form-card"
+                id="press-coverage-form"
                 onSubmit={(e) => {
                   e.preventDefault();
                   create(
@@ -1653,7 +1702,7 @@ function PressDashboard() {
                 </button>
               </form>
             </section>
-            <section className="press-records">
+            <section className="press-records" data-press-section="activity" id="press-activity" role="tabpanel">
               <div className="press-section-heading">
                 <div>
                   <p className="press-card-kicker">Seguimiento</p>
@@ -1704,7 +1753,7 @@ function PressDashboard() {
                 </div>
               </div>
             </section>
-          </>
+          </div>
         )}
       </div>
     </Layout>
