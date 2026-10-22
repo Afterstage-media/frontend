@@ -38,7 +38,7 @@ const eventFieldLabels = {
   venue: "Sala o espacio",
   address: "Dirección del lugar",
   city: "Ciudad",
-  genres: "Géneros",
+  genres: "Géneros (obligatorio)",
   tags: "Tags",
   dates: "Fechas del evento",
   url: "URL oficial",
@@ -1485,7 +1485,8 @@ function PressDashboard() {
                       <label key={key}>
                         {eventFieldLabels[key]}
                         <input
-                          required={key === "name"}
+                          required={key === "name" || key === "genres"}
+                          placeholder={key === "genres" ? "rock, pop, metal" : undefined}
                           type={key === "url" ? "url" : "text"}
                           value={value}
                           onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
