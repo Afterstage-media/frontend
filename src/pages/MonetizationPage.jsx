@@ -41,6 +41,39 @@ const invalidFieldMessages = {
   description: "La descripción debe tener al menos 10 caracteres.",
 };
 
+const promotionStatusLabels = {
+  pending_payment: "Pendiente de pago",
+  paid: "Pago recibido",
+  in_review: "En revisión",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+  fulfilled: "Entregada",
+  cancelled: "Cancelada",
+};
+
+const promotionProductLabels = {
+  "evento-destacado": "Evento destacado",
+  "pack-difusion": "Pack difusión",
+  "publicacion-promocionada": "Publicación promocionada",
+  "lanzamiento-musical": "Lanzamiento musical",
+  "press-kit-express": "Press kit express",
+  "aviso-clasificado": "Aviso clasificado",
+  "cobertura-foto-video": "Cobertura foto/video",
+  "contenido-para-redes": "Contenido para redes",
+  "pasarela-entradas": "Pasarela de entradas",
+  "promocion-festivales": "Promoción de festivales",
+  "organizacion-festivales": "Organización de festivales",
+  "publicidad-viajes-conciertos": "Publicidad de viajes",
+  "tienda-merch": "Tienda de merch",
+};
+
+const humanizeIdentifier = (value, labels = {}) =>
+  labels[value] ||
+  String(value || "")
+    .replaceAll("_", " ")
+    .replaceAll("-", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
 export function MonetizationPage() {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -167,7 +200,7 @@ export function MonetizationPage() {
             </select>
           </label>
           <ErrorMessage error={error} />
-          <button type="button" className="button dark" disabled={loading || !selected} onClick={submit}>
+          <button type="submit" className="button dark" disabled={loading || !selected}>
             {loading ? "Enviando…" : selected?.priceArs ? "Continuar al pago ↗" : "Pedir presupuesto"}
           </button>
         </form>
@@ -180,12 +213,15 @@ export function AdminMonetizationPage() {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const load = () =>
     api(`/api/monetization/promotions${status ? `?status=${status}` : ""}`)
       .then(setItems)
       .catch((e) => setError(e.message));
   useEffect(load, [status]);
   const update = async (id, nextStatus, featuredUntil) => {
+    setError("");
+    setNotice("");
     try {
       await api(`/api/monetization/promotions/${id}`, {
         method: "PATCH",
@@ -194,6 +230,7 @@ export function AdminMonetizationPage() {
           ...(featuredUntil ? { featuredUntil: new Date(`${featuredUntil}T23:59:59`).toISOString() } : {}),
         }),
       });
+      setNotice("Solicitud actualizada.");
       load();
     } catch (e) {
       setError(e.message);
@@ -205,21 +242,29 @@ export function AdminMonetizationPage() {
         <p className="eyebrow">Operación</p>
         <h1>Monetización.</h1>
         <div className="actions">
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <label className="sr-only" htmlFor="promotion-status-filter">
+            Filtrar solicitudes por estado
+          </label>
+          <select id="promotion-status-filter" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">Todos los estados</option>
-            {["pending_payment", "paid", "in_review", "approved", "rejected", "fulfilled", "cancelled"].map((item) => (
-              <option key={item}>{item}</option>
+            {Object.entries(promotionStatusLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
       </section>
       <ErrorMessage error={error} />
+      {notice && <p className="success content-section">{notice}</p>}
       <div className="admin-list">
         {items.map((item) => (
           <article className="admin-record" key={item.id}>
             <div>
               <small>
-                {item.status} · {item.productId} · {new Date(item.createdAt).toLocaleString("es-AR")}
+                {humanizeIdentifier(item.status, promotionStatusLabels)} ·{" "}
+                {humanizeIdentifier(item.productId, promotionProductLabels)} ·{" "}
+                {new Date(item.createdAt).toLocaleString("es-AR")}
               </small>
               <h3>{item.title}</h3>
               <p>
@@ -237,17 +282,17 @@ export function AdminMonetizationPage() {
                   onChange={(e) => update(item.id, item.status, e.target.value)}
                 />
               </label>
-              <button className="button" onClick={() => update(item.id, "in_review")}>
-                Tomar
+              <button className="button" onClick={() => update(item.id, "in_review")} type="button">
+                Pasar a revisión
               </button>
-              <button className="button" onClick={() => update(item.id, "approved")}>
+              <button className="button" onClick={() => update(item.id, "approved")} type="button">
                 Aprobar
               </button>
-              <button className="button ghost" onClick={() => update(item.id, "rejected")}>
+              <button className="button ghost" onClick={() => update(item.id, "rejected")} type="button">
                 Rechazar
               </button>
-              <button className="button dark" onClick={() => update(item.id, "fulfilled")}>
-                Entregada
+              <button className="button dark" onClick={() => update(item.id, "fulfilled")} type="button">
+                Marcar entregada
               </button>
             </div>
           </article>

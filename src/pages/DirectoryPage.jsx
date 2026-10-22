@@ -136,6 +136,16 @@ const verificationLabels = {
   incorrect: "Revisar",
 };
 
+function externalHref(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^(www\.|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com|spotify\.com)/i.test(raw)) {
+    return `https://${raw}`;
+  }
+  return "";
+}
+
 function voteSummary(item) {
   const reliable = item.reliableVotes ?? 0;
   const unreliable = item.unreliableVotes ?? 0;
@@ -455,16 +465,17 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
                   <section className="detail-section">
                     <h3>Enlaces</h3>
                     <div className="detail-links">
-                      {socials.map(([key, value]) => (
-                        <a
-                          href={String(value).startsWith("http") ? value : undefined}
-                          key={key}
-                          target={String(value).startsWith("http") ? "_blank" : undefined}
-                          rel="noreferrer"
-                        >
-                          {key} <span>{value}</span>
-                        </a>
-                      ))}
+                      {socials.map(([key, value]) =>
+                        externalHref(value) ? (
+                          <a href={externalHref(value)} key={key} rel="noreferrer" target="_blank">
+                            {key} <span>{value}</span>
+                          </a>
+                        ) : (
+                          <div className="detail-link-row" key={key}>
+                            <strong>{key}</strong> <span>{value}</span>
+                          </div>
+                        ),
+                      )}
                     </div>
                   </section>
                 )}

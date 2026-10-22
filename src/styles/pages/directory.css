@@ -8,6 +8,7 @@
   min-height: 430px;
   padding: clamp(58px, 8vw, 105px) var(--gutter) 64px;
   position: relative;
+  overflow: hidden;
 }
 
 .directory-intro::after {
@@ -577,6 +578,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.detail-link-row {
+  align-items: baseline;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.detail-link-row span {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .tag-list {

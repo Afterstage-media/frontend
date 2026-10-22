@@ -2,6 +2,7 @@
   background: color-mix(in srgb, var(--color-paper) 86%, var(--color-surface-muted));
   min-height: calc(100vh - 83px);
   padding-bottom: 88px;
+  overflow-x: clip;
 }
 
 .users-hero {
@@ -83,6 +84,7 @@
 
 .users-content {
   padding: 40px max(24px, var(--gutter)) 0;
+  min-width: 0;
 }
 
 .users-toolbar {
@@ -210,6 +212,7 @@
 .users-table-wrap {
   background: var(--color-surface);
   border: var(--border-soft);
+  max-width: 100%;
   overflow-x: auto;
 }
 

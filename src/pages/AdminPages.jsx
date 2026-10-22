@@ -796,9 +796,14 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
             Empezar borrador
           </button>
         )}
-        {["draft", "failed"].includes(item.status) && (
+        {item.status === "draft" && (
           <button className="button dark button-wide" onClick={() => onTransition("review")} type="button">
             Enviar a revisión
+          </button>
+        )}
+        {item.status === "failed" && (
+          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+            Volver a borrador
           </button>
         )}
         {item.status === "review" && (
@@ -825,6 +830,17 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
         {isPublished && (
           <>
             <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>
+            <button
+              className="button ghost button-wide"
+              onClick={() => {
+                if (window.confirm("¿Retirar esta nota del sitio público y devolverla a borrador?")) {
+                  onTransition("draft");
+                }
+              }}
+              type="button"
+            >
+              Retirar del sitio
+            </button>
             {item.channels?.includes("instagram") && (
               <button className="button ghost button-wide" onClick={onRepublishInstagram} type="button">
                 Recompartir en Instagram
