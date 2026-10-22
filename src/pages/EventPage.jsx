@@ -39,6 +39,8 @@ export function EventPage() {
     );
 
   const date = event.startsAt ? new Date(event.startsAt) : null;
+  const endDate = event.endsAt ? new Date(event.endsAt) : null;
+  const isMultiDay = Boolean(date && endDate && endDate.getTime() > date.getTime());
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
 
@@ -55,9 +57,14 @@ export function EventPage() {
         </small>
         <h1>{event.name}</h1>
         <p className="lead">
-          {date ? date.toLocaleString("es-AR", { dateStyle: "full", timeStyle: "short" }) : "Fecha por confirmar"}
+          {date
+            ? isMultiDay
+              ? `Del ${date.toLocaleDateString("es-AR", { dateStyle: "full" })} al ${endDate.toLocaleDateString("es-AR", { dateStyle: "full" })}`
+              : date.toLocaleString("es-AR", { dateStyle: "full", timeStyle: "short" })
+            : "Fecha por confirmar"}
           {event.city && ` · ${event.city}`}
         </p>
+        {isMultiDay && <p>Evento de varios días.</p>}
         {(event.address || event.venue) && <p>{event.address || event.venue}</p>}
         {event.notes && <p>{event.notes}</p>}
         <div className="actions">

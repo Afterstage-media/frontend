@@ -2,24 +2,34 @@ import { useEffect, useMemo, useState } from "react";
 
 const getRemaining = (target) => Math.max(0, new Date(target).getTime() - Date.now());
 
-export function Countdown({ target, label = "Falta" }) {
+export function Countdown({ target, endTarget, label = "Falta" }) {
   const targetDate = useMemo(() => (target ? new Date(target) : null), [target]);
-  const [remaining, setRemaining] = useState(() =>
-    targetDate && !Number.isNaN(targetDate.getTime()) ? getRemaining(targetDate) : null,
-  );
+  const endDate = useMemo(() => (endTarget ? new Date(endTarget) : null), [endTarget]);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!targetDate || Number.isNaN(targetDate.getTime())) {
-      setRemaining(null);
+      setNow(Date.now());
       return undefined;
     }
-    const update = () => setRemaining(getRemaining(targetDate));
+    const update = () => setNow(Date.now());
     update();
     const timer = window.setInterval(update, 1000);
     return () => window.clearInterval(timer);
   }, [targetDate]);
 
+  const remaining = targetDate && !Number.isNaN(targetDate.getTime()) ? getRemaining(targetDate) : null;
+  const isInProgress = remaining === 0 && endDate && !Number.isNaN(endDate.getTime()) && endDate.getTime() > now;
+
   if (remaining === null) return null;
+  if (isInProgress) {
+    return (
+      <div className="countdown countdown-live" role="status" aria-live="polite">
+        <span className="countdown-label">En curso</span>
+        <strong>Evento de varios días</strong>
+      </div>
+    );
+  }
   if (remaining === 0) {
     return (
       <div className="countdown countdown-live" role="status" aria-live="polite">

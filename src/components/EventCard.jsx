@@ -2,6 +2,8 @@ import { Countdown } from "./Countdown.jsx";
 
 export function EventCard({ event, index = 0 }) {
   const date = event.startsAt ? new Date(event.startsAt) : null;
+  const endDate = event.endsAt ? new Date(event.endsAt) : null;
+  const isMultiDay = Boolean(date && endDate && endDate.getTime() > date.getTime());
   const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
   const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
   const eventUrl = event.url || "";
@@ -20,17 +22,20 @@ export function EventCard({ event, index = 0 }) {
         <h3>{event.name}</h3>
         <p className="event-time">
           {date
-            ? date.toLocaleString("es-AR", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
+            ? isMultiDay
+              ? `Del ${date.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })} al ${endDate.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}`
+              : date.toLocaleString("es-AR", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
             : "Fecha por confirmar"}{" "}
           {event.city && `· ${event.city}`}
         </p>
+        {isMultiDay && <p className="event-duration">Evento de varios días</p>}
         {(event.address || event.venue) && <p className="event-location">⌖ {event.address || event.venue}</p>}
       </div>
       <div className="event-aside">
-        {date && <Countdown target={event.startsAt} />}
+        {date && <Countdown endTarget={event.endsAt} target={event.startsAt} />}
         <div className="event-links">
           {mapUrl && (
             <a href={mapUrl} target="_blank" rel="noreferrer">

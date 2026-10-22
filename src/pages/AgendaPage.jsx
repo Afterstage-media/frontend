@@ -41,13 +41,18 @@ export function AgendaPage() {
               .join(" ")
               .toLowerCase();
             const startsAt = event.startsAt ? new Date(event.startsAt) : null;
+            const endsAt = event.endsAt ? new Date(event.endsAt) : startsAt;
+            const dateLimit =
+              nextFilters.dateRange === "today"
+                ? endOfToday
+                : nextFilters.dateRange === "week"
+                  ? endOfWeek
+                  : nextFilters.dateRange === "month"
+                    ? endOfMonth
+                    : null;
             const matchesDate =
               nextFilters.dateRange === "all" ||
-              (startsAt &&
-                startsAt >= now &&
-                ((nextFilters.dateRange === "today" && startsAt <= endOfToday) ||
-                  (nextFilters.dateRange === "week" && startsAt <= endOfWeek) ||
-                  (nextFilters.dateRange === "month" && startsAt <= endOfMonth)));
+              Boolean(startsAt && endsAt && dateLimit && endsAt >= now && startsAt <= dateLimit);
             return (!query || searchable.includes(query)) && matchesDate;
           }),
         );

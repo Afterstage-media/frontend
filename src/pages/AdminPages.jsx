@@ -39,6 +39,7 @@ const eventFieldLabels = {
   address: "Dirección del lugar",
   city: "Ciudad",
   startsAt: "Fecha y hora",
+  endsAt: "Finaliza (opcional)",
   url: "URL oficial",
 };
 const contactFieldLabels = {
@@ -1193,6 +1194,7 @@ function PressDashboard() {
     address: "",
     city: "",
     startsAt: "",
+    endsAt: "",
     url: "",
   });
   const [contact, setContact] = useState({
@@ -1225,6 +1227,7 @@ function PressDashboard() {
     try {
       const payload = { ...value };
       payload.startsAt = payload.startsAt ? new Date(payload.startsAt).toISOString() : null;
+      payload.endsAt = payload.endsAt ? new Date(payload.endsAt).toISOString() : null;
       payload.followUpAt = payload.followUpAt ? new Date(payload.followUpAt).toISOString() : null;
       await api(path, { method: "POST", body: JSON.stringify(payload) });
       reset();
@@ -1312,6 +1315,7 @@ function PressDashboard() {
                         address: "",
                         city: "",
                         startsAt: "",
+                        endsAt: "",
                         url: "",
                       }),
                     );
@@ -1323,7 +1327,9 @@ function PressDashboard() {
                       {eventFieldLabels[key]}
                       <input
                         required={key === "name"}
-                        type={key === "startsAt" ? "datetime-local" : key === "url" ? "url" : "text"}
+                        type={
+                          key === "startsAt" || key === "endsAt" ? "datetime-local" : key === "url" ? "url" : "text"
+                        }
                         value={value}
                         onChange={(e) => setEvent({ ...event, [key]: e.target.value })}
                       />
