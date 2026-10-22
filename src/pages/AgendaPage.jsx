@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { EventCard } from "../components/EventCard.jsx";
@@ -12,6 +12,12 @@ import { normalizeSearchText } from "../utils/search.js";
 const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
 
 const eventArtistName = (event) => event.artist?.trim() || event.name?.trim() || "";
+
+const eventMapKey = (event) =>
+  event.id ??
+  [eventGroupLabel(event), event.venue || "", event.city || "", event.latitude || "", event.longitude || ""]
+    .join("|")
+    .toLowerCase();
 
 const defaultGenreOptions = ["Rock", "Metal", "Indie", "Pop", "Punk", "Electrónica", "Hip hop", "Folklore"];
 const defaultTagOptions = ["Under", "Gratis", "Festival", "Ciclo", "Feria"];
@@ -67,6 +73,7 @@ export function AgendaPage() {
   const [genreOptions, setGenreOptions] = useState(defaultGenreOptions);
   const [tagOptions, setTagOptions] = useState(defaultTagOptions);
   const [mapPickerActive, setMapPickerActive] = useState(false);
+  const [visibleEventIds, setVisibleEventIds] = useState(null);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
     query: queryFromUrl,
@@ -83,6 +90,7 @@ export function AgendaPage() {
   const load = (nextFilters = filters) => {
     setLoading(true);
     setError("");
+    setVisibleEventIds(null);
     const params =
       nextFilters.lat && nextFilters.lng
         ? `?lat=${nextFilters.lat}&lng=${nextFilters.lng}&radiusKm=${nextFilters.radiusKm}`
@@ -156,6 +164,11 @@ export function AgendaPage() {
     setLocationMessage(`Ubicación elegida en el mapa · ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     load(nextFilters);
   };
+  const handleVisibleEventsChange = useCallback((eventIds) => {
+    setVisibleEventIds(new Set(eventIds));
+  }, []);
+  const visibleEvents =
+    visibleEventIds === null ? events : events.filter((event) => visibleEventIds.has(eventMapKey(event)));
   return (
     <Layout>
       <SignalTicker items={["Agenda abierta", "Shows", "Ferias", "Ciclos", "Encuentros"]} />
@@ -298,7 +311,7 @@ export function AgendaPage() {
                 <p className="eyebrow">Mapa de eventos</p>
                 <h2>{filters.lat && filters.lng ? "Eventos en tu radio." : "Todos los eventos."}</h2>
               </div>
-              <span className="muted">{events.length} encontrados</span>
+              <span className="muted">{visibleEvents.length} visibles</span>
             </div>
             <EventMap
               events={events}
@@ -308,6 +321,7 @@ export function AgendaPage() {
               hasLocation={Boolean(filters.lat && filters.lng)}
               centerPickerActive={mapPickerActive}
               onCenterSelect={selectMapCenter}
+              onVisibleEventsChange={handleVisibleEventsChange}
             />
             <div className="event-map-legend">
               {filters.lat && filters.lng && (
@@ -325,19 +339,21 @@ export function AgendaPage() {
           <div className="events-heading">
             <p className="eyebrow">Lo que está pasando</p>
             {!loading && (
-              <span className="muted">{events.length ? `${events.length} encuentros` : "Agenda en movimiento"}</span>
+              <span className="muted">
+                {visibleEvents.length ? `${visibleEvents.length} encuentros en el mapa` : "Agenda en movimiento"}
+              </span>
             )}
           </div>
           {loading ? (
             <p className="muted">Buscando próximos eventos…</p>
           ) : error ? (
             <p className="muted">La agenda no pudo actualizarse. Usá “Intentar de nuevo” para volver a consultar.</p>
-          ) : events.length ? (
-            events.map((event, index) => <EventCard event={event} index={index} key={event.id} />)
+          ) : visibleEvents.length ? (
+            visibleEvents.map((event, index) => <EventCard event={event} index={index} key={eventMapKey(event)} />)
           ) : (
             <EmptyState
-              title="No encontramos eventos con esa búsqueda."
-              message="Probá con otra ciudad, un lugar distinto o limpiá el filtro para volver a mirar."
+              title="No hay eventos en esta vista."
+              message="Mové o alejá el mapa para explorar otra zona, o limpiá los filtros para volver a mirar."
               action={
                 (filters.query || filters.dateRange !== "all" || filters.lat) && (
                   <button className="button ghost" type="button" onClick={clearFilters}>
