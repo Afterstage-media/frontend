@@ -87,15 +87,15 @@ export function HomeMission() {
       </div>
       <div className="home-mission-copy">
         <p>
-          Afterstage conecta historias, coberturas y producción para que fotógrafos, noteros, videógrafos, artistas y
-          espacios puedan hacer crecer la escena juntos.
+          Entradas, festivales, difusión, viajes y merch: herramientas y servicios para que cada proyecto encuentre su
+          próxima forma de circular.
         </p>
         <div className="actions">
-          <Link className="button dark" to="/como-funciona">
-            Cómo funciona ↗
-          </Link>
           <Link className="button ghost" to="/colaborador">
             Sumate a la red
+          </Link>
+          <Link className="button dark" to="/servicios">
+            Ver servicios ↗
           </Link>
         </div>
       </div>

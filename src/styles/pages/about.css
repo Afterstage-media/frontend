@@ -9,7 +9,7 @@
   grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
   margin: 0 auto var(--space-section);
   max-width: var(--content-width);
-  padding: clamp(38px, 6vw, 68px) var(--gutter);
+  padding: clamp(34px, 4.5vw, 54px) var(--gutter) clamp(42px, 5vw, 62px);
   position: relative;
 }
 
@@ -51,6 +51,15 @@
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   line-height: 1.2;
   margin: 0;
+}
+
+.home-mission-copy .actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: clamp(28px, 4vw, 44px);
 }
 
 .home-mission .button {
@@ -170,6 +179,10 @@
 
   .home-mission-copy {
     max-width: none;
+  }
+
+  .home-mission-copy .actions {
+    justify-content: flex-start;
   }
 
   .home-mission-copy .actions,

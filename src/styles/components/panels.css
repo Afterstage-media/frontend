@@ -81,7 +81,10 @@
 }
 
 .editorial-card .card-image {
+  aspect-ratio: 16 / 8;
   filter: grayscale(1) contrast(1.12);
+  margin-bottom: 30px;
+  max-height: 190px;
   transition:
     filter 260ms ease,
     transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -128,6 +131,10 @@
   gap: 7px;
   margin-top: auto;
   padding-top: 28px;
+}
+
+.cards.editorial-grid .card:first-child {
+  grid-row: auto;
 }
 
 .card-link span {

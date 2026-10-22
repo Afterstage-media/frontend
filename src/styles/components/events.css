@@ -57,21 +57,27 @@
   background: var(--color-accent);
   border: 2px solid #f4f0e8;
   height: 100px;
-  left: 6vw;
+  left: auto;
   position: absolute;
+  right: 8vw;
   top: 45px;
   transform: rotate(14deg) translateY(calc(var(--agenda-shift) * -0.6));
   transition: transform 120ms linear;
   width: 100px;
+  z-index: 0;
 }
 
 .agenda-hero-copy {
+  max-width: 780px;
   position: relative;
   z-index: 1;
 }
 
 .agenda-hero .eyebrow {
+  background: rgb(17 17 20 / 82%);
+  display: inline-block;
   margin-left: 9px;
+  padding: 5px 8px;
 }
 
 .agenda-hero h1 {
@@ -174,6 +180,23 @@
 
 .agenda-filters .actions > .button {
   width: max-content;
+}
+
+.agenda-filters .actions > .agenda-radius {
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 14px;
+}
+
+.agenda-filters .actions > label:not(.agenda-search) {
+  margin-top: 4px;
+}
+
+.agenda-filters .actions > .agenda-date-actions {
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  margin-top: 4px;
+  padding-top: 14px;
 }
 
 .agenda-date-actions {
