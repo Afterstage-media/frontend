@@ -243,7 +243,7 @@ export function AgendaPage() {
                       load(nextFilters);
                     }}
                   >
-                    <option value="">Todos los géneros</option>
+                    <option value="">Todos</option>
                     {genreOptions.map((option) => (
                       <option key={option} value={normalizeSearchText(option)}>
                         {option}
@@ -262,7 +262,7 @@ export function AgendaPage() {
                       load(nextFilters);
                     }}
                   >
-                    <option value="">Todos los tags</option>
+                    <option value="">Todos</option>
                     {tagOptions.map((option) => (
                       <option key={option} value={normalizeSearchText(option)}>
                         {option}
