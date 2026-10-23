@@ -185,7 +185,7 @@ export function AgendaPage() {
           <div className="agenda-filter-dock">
             <div className="agenda-filters" role="search" aria-label="Filtrar agenda">
               <label className="agenda-search">
-                <span>Encontrá tu próximo plan</span>
+                <span className="sr-only">Buscar un artista</span>
                 <input
                   aria-label="Buscar por nombre de artista"
                   placeholder="Nombre del artista"
@@ -307,10 +307,7 @@ export function AgendaPage() {
           )}
           <section className="event-map-section" aria-label="Mapa de eventos">
             <div className="event-map-heading">
-              <div>
-                <p className="eyebrow">Explorá cerca</p>
-                <h2>Mapa de eventos</h2>
-              </div>
+              <h2>Mapa</h2>
               <span className="muted">
                 {visibleEvents.length} {visibleEvents.length === 1 ? "evento" : "eventos"}
               </span>
