@@ -276,6 +276,28 @@
   margin-top: 28px;
 }
 
+.press-operation-form {
+  gap: 0;
+}
+
+.press-operation-fields {
+  margin-top: 28px;
+}
+
+.press-operation-fields > label,
+.press-operation-fields > fieldset {
+  min-width: 0;
+}
+
+.press-event-fields > label:nth-of-type(7),
+.press-event-fields > fieldset,
+.press-accreditation-fields > label:nth-of-type(3),
+.press-accreditation-fields > label:nth-of-type(4),
+.press-coverage-fields > label:nth-of-type(3),
+.press-coverage-fields > label:nth-of-type(4) {
+  grid-column: 1 / -1;
+}
+
 .press-form-card {
   align-content: start;
   grid-template-columns: repeat(2, minmax(0, 1fr));
