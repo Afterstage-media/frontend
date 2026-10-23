@@ -15,7 +15,7 @@ export function EventCard({ event, index = 0 }) {
         <strong>{date ? date.getDate() : ""}</strong>
       </div>
       <div className="event-content">
-        <small>
+        <small className="event-meta">
           {event.artist || "Evento"} · {event.venue || event.city || "Agenda"}
           {event.distanceKm !== undefined ? ` · ${event.distanceKm} km` : ""}
         </small>
