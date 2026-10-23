@@ -19,6 +19,8 @@ const eventMapKey = (event) =>
     .join("|")
     .toLowerCase();
 
+const eventHasCoordinates = (event) => event.latitude != null && event.longitude != null;
+
 const defaultGenreOptions = ["Rock", "Metal", "Indie", "Pop", "Punk", "Electrónica", "Hip hop", "Folklore"];
 const defaultTagOptions = ["Under", "Gratis", "Festival", "Ciclo", "Feria"];
 
@@ -91,11 +93,13 @@ export function AgendaPage() {
     setLoading(true);
     setError("");
     setVisibleEventIds(null);
-    const params =
-      nextFilters.lat && nextFilters.lng
-        ? `?lat=${nextFilters.lat}&lng=${nextFilters.lng}&radiusKm=${nextFilters.radiusKm}`
-        : "";
-    api(`/api/public/events${params}`)
+    const params = new URLSearchParams({ limit: "100" });
+    if (nextFilters.lat && nextFilters.lng) {
+      params.set("lat", nextFilters.lat);
+      params.set("lng", nextFilters.lng);
+      params.set("radiusKm", nextFilters.radiusKm);
+    }
+    api(`/api/public/events?${params.toString()}`)
       .then((items) => {
         const now = new Date();
         setGenreOptions(filterOptionsFromEvents(items, "genres", "genre", defaultGenreOptions));
@@ -168,7 +172,13 @@ export function AgendaPage() {
     setVisibleEventIds(new Set(eventIds));
   }, []);
   const visibleEvents =
-    visibleEventIds === null ? events : events.filter((event) => visibleEventIds.has(eventMapKey(event)));
+    visibleEventIds === null
+      ? events
+      : events.filter((event) => !eventHasCoordinates(event) || visibleEventIds.has(eventMapKey(event)));
+  const mapVisibleEvents =
+    visibleEventIds === null
+      ? events.filter(eventHasCoordinates)
+      : events.filter((event) => eventHasCoordinates(event) && visibleEventIds.has(eventMapKey(event)));
   return (
     <Layout>
       <SignalTicker items={["Agenda abierta", "Shows", "Ferias", "Ciclos", "Encuentros"]} />
@@ -309,7 +319,7 @@ export function AgendaPage() {
             <div className="event-map-heading">
               <h2>Mapa</h2>
               <span className="muted">
-                {visibleEvents.length} {visibleEvents.length === 1 ? "evento" : "eventos"}
+                {mapVisibleEvents.length} {mapVisibleEvents.length === 1 ? "evento" : "eventos"} en el mapa
               </span>
             </div>
             <EventMap
@@ -342,7 +352,7 @@ export function AgendaPage() {
             </div>
             {!loading && (
               <span className="muted">
-                {visibleEvents.length ? `${visibleEvents.length} encuentros en el mapa` : "Agenda en movimiento"}
+                {visibleEvents.length ? `${visibleEvents.length} encuentros en la agenda` : "Agenda en movimiento"}
               </span>
             )}
           </div>
