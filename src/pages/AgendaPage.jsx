@@ -171,10 +171,7 @@ export function AgendaPage() {
   const handleVisibleEventsChange = useCallback((eventIds) => {
     setVisibleEventIds(new Set(eventIds));
   }, []);
-  const visibleEvents =
-    visibleEventIds === null
-      ? events
-      : events.filter((event) => !eventHasCoordinates(event) || visibleEventIds.has(eventMapKey(event)));
+  const visibleEvents = events;
   const mapVisibleEvents =
     visibleEventIds === null
       ? events.filter(eventHasCoordinates)
@@ -364,8 +361,8 @@ export function AgendaPage() {
             visibleEvents.map((event, index) => <EventCard event={event} index={index} key={eventMapKey(event)} />)
           ) : (
             <EmptyState
-              title="No hay eventos en esta vista."
-              message="Mové o alejá el mapa para explorar otra zona, o limpiá los filtros para volver a mirar."
+              title="No hay eventos con estos filtros."
+              message="Probá cambiar la búsqueda o limpiar los filtros para volver a mirar la agenda completa."
               action={
                 (filters.query || filters.dateRange !== "all" || filters.lat) && (
                   <button className="button ghost" type="button" onClick={clearFilters}>
