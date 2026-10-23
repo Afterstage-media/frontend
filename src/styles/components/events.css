@@ -434,6 +434,12 @@
   z-index: 2;
 }
 
+.agenda-results-layout.has-map .event-map-heading {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .agenda-results-layout.has-map .event-map-heading h2 {
   font-size: clamp(1.65rem, 3vw, 2.7rem);
 }
