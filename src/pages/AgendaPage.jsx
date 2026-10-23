@@ -308,10 +308,12 @@ export function AgendaPage() {
           <section className="event-map-section" aria-label="Mapa de eventos">
             <div className="event-map-heading">
               <div>
-                <p className="eyebrow">Mapa</p>
-                <h2>Eventos</h2>
+                <p className="eyebrow">Explorá cerca</p>
+                <h2>Mapa de eventos</h2>
               </div>
-              <span className="muted">{visibleEvents.length} visibles</span>
+              <span className="muted">
+                {visibleEvents.length} {visibleEvents.length === 1 ? "evento" : "eventos"}
+              </span>
             </div>
             <EventMap
               events={events}
@@ -337,7 +339,10 @@ export function AgendaPage() {
         </aside>
         <section className="events">
           <div className="events-heading">
-            <p className="eyebrow">Lo que está pasando</p>
+            <div>
+              <p className="eyebrow">Lo que está pasando</p>
+              <h2>Agenda</h2>
+            </div>
             {!loading && (
               <span className="muted">
                 {visibleEvents.length ? `${visibleEvents.length} encuentros en el mapa` : "Agenda en movimiento"}

@@ -11,9 +11,9 @@
     center / cover;
   border-bottom: var(--border);
   color: #f4f0e8;
-  min-height: 510px;
+  min-height: 420px;
   overflow: hidden;
-  padding: 90px var(--gutter) 46px;
+  padding: 76px var(--gutter) 42px;
   position: relative;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .agenda-hero h1 {
-  font-size: clamp(4rem, 10vw, 9.5rem);
+  font-size: clamp(3.7rem, 8.4vw, 8.2rem);
   letter-spacing: var(--tracking-tight);
   line-height: 0.84;
   margin: 32px 0 28px;
@@ -98,12 +98,12 @@
   background: var(--color-surface);
   border: 1px solid rgba(244, 240, 232, 0.7);
   display: grid;
-  gap: var(--space-md);
+  gap: 16px;
   grid-template-columns: minmax(0, 1fr);
   margin: 0;
   max-width: none;
-  padding: var(--space-md);
-  box-shadow: 0 12px 28px rgb(17 17 20 / 12%);
+  padding: 20px;
+  box-shadow: 8px 8px 0 rgb(17 17 20 / 9%);
 }
 
 .agenda-filter-dock {
@@ -363,31 +363,41 @@
   border-bottom: var(--border);
   display: flex;
   justify-content: space-between;
-  margin: 40px 0 6px;
-  padding-bottom: var(--space-sm);
+  margin: 26px 0 12px;
+  padding-bottom: 12px;
 }
 
 .events-heading p {
   margin: 0;
 }
 
+.events-heading h2 {
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  letter-spacing: var(--tracking-tight);
+  line-height: 0.9;
+  margin: 8px 0 0;
+}
+
 .agenda-results-layout {
+  box-sizing: border-box;
   margin: 0 auto;
-  max-width: var(--content-width);
+  max-width: 1480px;
+  padding: 0 clamp(20px, 4vw, 64px);
+  width: 100%;
 }
 
 .agenda-results-layout.has-map {
   align-items: start;
   display: grid;
-  gap: clamp(24px, 4vw, 64px);
-  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+  gap: clamp(28px, 3vw, 56px);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
 }
 
 .agenda-sidebar {
   align-self: start;
   min-width: 0;
   position: sticky;
-  top: 96px;
+  top: 92px;
 }
 
 .agenda-sidebar .agenda-filter-dock {
@@ -412,7 +422,7 @@
 }
 
 .event-map-section {
-  margin: 62px auto 0;
+  margin: 36px auto 0;
   max-width: var(--content-width);
 }
 
@@ -433,7 +443,7 @@
 }
 
 .agenda-results-layout.has-map .event {
-  gap: 20px;
+  gap: 24px;
   grid-template-columns: 76px minmax(0, 1fr);
 }
 
@@ -607,9 +617,9 @@
   background: var(--color-surface);
   border: var(--border);
   display: grid;
-  gap: clamp(18px, 3vw, 42px);
-  grid-template-columns: 92px minmax(0, 1fr) minmax(250px, 0.45fr);
-  padding: 24px;
+  gap: clamp(18px, 2.4vw, 32px);
+  grid-template-columns: 78px minmax(0, 1fr) minmax(210px, 0.38fr);
+  padding: 20px;
   transition:
     background 180ms ease,
     transform 180ms ease;
@@ -617,14 +627,14 @@
 
 .event:hover {
   background: color-mix(in srgb, var(--color-highlight) 12%, var(--color-surface));
-  transform: translateX(6px);
+  transform: translateX(4px);
 }
 
 .event-date {
   background: var(--color-highlight);
   border: 1px solid var(--color-ink);
   display: grid;
-  min-height: 92px;
+  min-height: 86px;
   min-width: 0;
   padding: var(--control-padding);
   text-align: center;
@@ -632,7 +642,7 @@
 }
 
 .event-date strong {
-  font-size: 3.2rem;
+  font-size: 2.9rem;
   line-height: 1;
 }
 
@@ -646,11 +656,11 @@
   border: 1px solid var(--color-ink);
   color: var(--color-ink);
   display: flex;
-  gap: var(--space-md);
+  gap: 12px;
   justify-content: space-between;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   max-width: none;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .countdown-label {
@@ -664,7 +674,7 @@
 
 .countdown-values {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .countdown-unit {
@@ -676,7 +686,7 @@
 .countdown-unit strong {
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -695,8 +705,18 @@
   min-width: 0;
 }
 
+.event-meta {
+  color: var(--color-muted);
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
 .event-content h3 {
-  font-size: clamp(1.5rem, 3vw, 2.45rem);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
   letter-spacing: var(--tracking-heading);
   line-height: 1;
   margin: 13px 0 12px;
@@ -722,7 +742,7 @@
 .event-links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md);
+  gap: 12px 18px;
 }
 
 .event-links a {
@@ -755,7 +775,7 @@
 
 @media (max-width: 700px) {
   .agenda-hero {
-    min-height: 560px;
+    min-height: 470px;
     padding: 70px var(--gutter-mobile) 28px;
   }
 
@@ -853,6 +873,8 @@
 
   .agenda-results-layout.has-map {
     display: block;
+    padding-left: var(--gutter-mobile);
+    padding-right: var(--gutter-mobile);
   }
 
   .agenda-results-layout.has-map .event-map-section {
