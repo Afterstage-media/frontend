@@ -1411,36 +1411,41 @@ function PressDashboard() {
             <section className="press-dossier-section" data-press-section="dossier" id="press-dossier" role="tabpanel">
               <MediaKitForm mediaKit={snapshot.mediaKit} onSaved={load} />
             </section>
-            <section className="press-operations" data-press-section="events" id="press-operations" role="tabpanel">
-              <div className="press-section-heading">
-                <div>
-                  <p className="press-card-kicker">Operaciones</p>
-                  <h2>Cargar evento</h2>
+            <section
+              className="press-dossier-section"
+              data-press-section="events"
+              id="press-operations"
+              role="tabpanel"
+            >
+              <form
+                className="form press-dossier-form press-operation-form"
+                id="press-event-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create("/api/press/events", event, () =>
+                    setEvent({
+                      name: "",
+                      artist: "",
+                      venue: "",
+                      address: "",
+                      city: "",
+                      genres: "",
+                      tags: "",
+                      dates: [""],
+                      url: "",
+                    }),
+                  );
+                }}
+              >
+                <div className="press-form-heading">
+                  <div>
+                    <p className="press-card-kicker">Operaciones</p>
+                    <h2>Cargar evento</h2>
+                    <p>Completá los datos del evento y sus fechas.</p>
+                  </div>
+                  <span className="press-form-index">02</span>
                 </div>
-                <p>Completá los datos del evento y sus fechas.</p>
-              </div>
-              <div className="press-operation-grid press-operation-grid--single">
-                <form
-                  className="form press-form-card"
-                  id="press-event-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    create("/api/press/events", event, () =>
-                      setEvent({
-                        name: "",
-                        artist: "",
-                        venue: "",
-                        address: "",
-                        city: "",
-                        genres: "",
-                        tags: "",
-                        dates: [""],
-                        url: "",
-                      }),
-                    );
-                  }}
-                >
-                  <h2>Nuevo evento</h2>
+                <div className="press-form-fields press-operation-fields press-event-fields">
                   {Object.entries(event).map(([key, value]) =>
                     key === "dates" ? (
                       <fieldset className="event-dates-fieldset" key={key}>
@@ -1499,37 +1504,44 @@ function PressDashboard() {
                       </label>
                     ),
                   )}
+                </div>
+                <div className="press-form-actions">
                   <button className="button dark" type="submit">
                     Guardar evento
                   </button>
-                </form>
-              </div>
-            </section>
-            <section className="press-operations" data-press-section="contacts" id="press-contacts" role="tabpanel">
-              <div className="press-section-heading">
-                <div>
-                  <p className="press-card-kicker">Operaciones</p>
-                  <h2>Cargar contacto</h2>
                 </div>
-                <p>Armá y mantené actualizada tu red de prensa.</p>
-              </div>
-              <div className="press-operation-grid press-operation-grid--single">
-                <form
-                  className="form press-form-card"
-                  id="press-contact-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    create("/api/press/contacts", contact, () =>
-                      setContact({
-                        name: "",
-                        organization: "",
-                        email: "",
-                        type: "press",
-                      }),
-                    );
-                  }}
-                >
-                  <h2>Nuevo contacto</h2>
+              </form>
+            </section>
+            <section
+              className="press-dossier-section"
+              data-press-section="contacts"
+              id="press-contacts"
+              role="tabpanel"
+            >
+              <form
+                className="form press-dossier-form press-operation-form"
+                id="press-contact-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create("/api/press/contacts", contact, () =>
+                    setContact({
+                      name: "",
+                      organization: "",
+                      email: "",
+                      type: "press",
+                    }),
+                  );
+                }}
+              >
+                <div className="press-form-heading">
+                  <div>
+                    <p className="press-card-kicker">Operaciones</p>
+                    <h2>Cargar contacto</h2>
+                    <p>Armá y mantené actualizada tu red de prensa.</p>
+                  </div>
+                  <span className="press-form-index">03</span>
+                </div>
+                <div className="press-form-fields press-operation-fields">
                   {Object.entries(contact).map(([key, value]) => (
                     <label key={key}>
                       {contactFieldLabels[key]}
@@ -1551,52 +1563,54 @@ function PressDashboard() {
                       )}
                     </label>
                   ))}
+                </div>
+                <div className="press-form-actions">
                   <button className="button dark" type="submit">
                     Guardar contacto
                   </button>
-                </form>
-              </div>
+                </div>
+              </form>
             </section>
             <section
-              className="press-operations"
+              className="press-dossier-section"
               data-press-section="accreditations"
               id="press-accreditations"
               role="tabpanel"
             >
-              <div className="press-section-heading">
-                <div>
-                  <p className="press-card-kicker">Operaciones</p>
-                  <h2>Solicitar acreditación</h2>
+              <form
+                className="form press-dossier-form press-operation-form"
+                id="press-accreditation-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create(
+                    "/api/press/accreditations",
+                    {
+                      ...accreditation,
+                      status: "draft",
+                      sentAt: null,
+                      response: "",
+                      deliverables: "Nota, fotos y publicación en redes",
+                    },
+                    () =>
+                      setAccreditation({
+                        eventId: "",
+                        contactId: "",
+                        subject: "Solicitud de acreditación",
+                        message: "",
+                        followUpAt: "",
+                      }),
+                  );
+                }}
+              >
+                <div className="press-form-heading">
+                  <div>
+                    <p className="press-card-kicker">Operaciones</p>
+                    <h2>Solicitar acreditación</h2>
+                    <p>Prepará una solicitud para un evento y un contacto.</p>
+                  </div>
+                  <span className="press-form-index">04</span>
                 </div>
-                <p>Prepará una solicitud para un evento y un contacto.</p>
-              </div>
-              <div className="press-operation-grid press-operation-grid--single">
-                <form
-                  className="form press-form-card"
-                  id="press-accreditation-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    create(
-                      "/api/press/accreditations",
-                      {
-                        ...accreditation,
-                        status: "draft",
-                        sentAt: null,
-                        response: "",
-                        deliverables: "Nota, fotos y publicación en redes",
-                      },
-                      () =>
-                        setAccreditation({
-                          eventId: "",
-                          contactId: "",
-                          subject: "Solicitud de acreditación",
-                          message: "",
-                          followUpAt: "",
-                        }),
-                    );
-                  }}
-                >
-                  <h2>Solicitar acreditación</h2>
+                <div className="press-form-fields press-operation-fields press-accreditation-fields">
                   <label>
                     Evento
                     <select
@@ -1677,38 +1691,45 @@ function PressDashboard() {
                       }
                     />
                   </label>
+                </div>
+                <div className="press-form-actions">
                   <button className="button dark" type="submit">
                     Guardar solicitud
                   </button>
-                </form>
-              </div>
-            </section>
-            <section className="press-operations" data-press-section="coverages" id="press-coverages" role="tabpanel">
-              <div className="press-section-heading">
-                <div>
-                  <p className="press-card-kicker">Operaciones</p>
-                  <h2>Registrar cobertura</h2>
                 </div>
-                <p>Sumá el enlace y las notas de la publicación.</p>
-              </div>
-              <div className="press-operation-grid press-operation-grid--single">
-                <form
-                  className="form press-form-card"
-                  id="press-coverage-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    create(
-                      "/api/press/coverages",
-                      {
-                        ...coverage,
-                        publishedAt: new Date().toISOString(),
-                        reach: 0,
-                      },
-                      () => setCoverage({ eventId: "", title: "", url: "", notes: "" }),
-                    );
-                  }}
-                >
-                  <h2>Registrar cobertura</h2>
+              </form>
+            </section>
+            <section
+              className="press-dossier-section"
+              data-press-section="coverages"
+              id="press-coverages"
+              role="tabpanel"
+            >
+              <form
+                className="form press-dossier-form press-operation-form"
+                id="press-coverage-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  create(
+                    "/api/press/coverages",
+                    {
+                      ...coverage,
+                      publishedAt: new Date().toISOString(),
+                      reach: 0,
+                    },
+                    () => setCoverage({ eventId: "", title: "", url: "", notes: "" }),
+                  );
+                }}
+              >
+                <div className="press-form-heading">
+                  <div>
+                    <p className="press-card-kicker">Operaciones</p>
+                    <h2>Registrar cobertura</h2>
+                    <p>Sumá el enlace y las notas de la publicación.</p>
+                  </div>
+                  <span className="press-form-index">05</span>
+                </div>
+                <div className="press-form-fields press-operation-fields press-coverage-fields">
                   <label>
                     Evento
                     <select
@@ -1748,11 +1769,13 @@ function PressDashboard() {
                       onChange={(e) => setCoverage({ ...coverage, notes: e.target.value })}
                     />
                   </label>
+                </div>
+                <div className="press-form-actions">
                   <button className="button dark" type="submit">
                     Guardar cobertura
                   </button>
-                </form>
-              </div>
+                </div>
+              </form>
             </section>
             <section className="press-records" data-press-section="activity" id="press-activity" role="tabpanel">
               <div className="press-section-heading">
