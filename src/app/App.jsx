@@ -18,6 +18,7 @@ import { ServicesPage } from "../pages/ServicesPage.jsx";
 import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
 import { AboutPage } from "../pages/AboutPage.jsx";
+import { MailboxPage } from "../pages/MailboxPage.jsx";
 
 function NotFoundPage() {
   return (
@@ -60,6 +61,7 @@ export function App() {
         <Route path="/admin/nueva" element={<NewContentPage />} />
         <Route path="/admin/contenido/:id" element={<ContentPage />} />
         <Route path="/admin/prensa" element={<PressPage />} />
+        <Route path="/admin/correo" element={<MailboxPage />} />
         <Route path="/admin/reemplazos" element={<AdminReplacementsPage />} />
         <Route path="/admin/directorio" element={<Navigate to="/directorio" replace />} />
         <Route path="/cuenta/accesos-ia" element={<AiAccessPage />} />
