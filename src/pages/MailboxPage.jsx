@@ -191,45 +191,57 @@ function MailboxContent({ actor }) {
     <Layout>
       <section className="mailbox-page">
         <header className="mailbox-header">
-          <div>
-            <p className="eyebrow">Redacción / Correo</p>
-            <h1>La bandeja de Afterstage.</h1>
+          <div className="mailbox-heading">
+            <div className="mailbox-heading-topline">
+              <p className="eyebrow">Redacción / Correo</p>
+              <span className="mailbox-live">
+                <span aria-hidden="true" /> Bandeja activa
+              </span>
+            </div>
+            <h1>Correo.</h1>
             <p>
-              Recibí, leé y respondé los mensajes que llegan a cualquier dirección <strong>@afterstage.ar</strong>.
+              Leé y respondé lo que llega a cualquier dirección <strong>@afterstage.ar</strong>.
             </p>
           </div>
-          <div className="mailbox-count">
+          <div className="mailbox-summary" aria-label={`${unread} mensajes sin leer`}>
+            <span className="mailbox-summary-label">Sin leer</span>
             <strong>{unread}</strong>
-            <span>sin leer</span>
+            <span>{unread === 1 ? "mensaje nuevo" : "mensajes nuevos"}</span>
           </div>
         </header>
         <div className="mailbox-toolbar">
-          <div className="mailbox-filters" aria-label="Filtrar conversaciones">
-            {[
-              ["all", `Todas · ${threads.length}`],
-              ["personal", `Personales · ${personalCount}`],
-              ["distribution", `Difusiones · ${distributionCount}`],
-            ].map(([value, label]) => (
+          <div className="mailbox-toolbar-main">
+            <span className="mailbox-toolbar-label">Ver</span>
+            <div className="mailbox-filters" aria-label="Filtrar conversaciones">
+              {[
+                ["all", `Todas · ${threads.length}`],
+                ["personal", `Personales · ${personalCount}`],
+                ["distribution", `Difusiones · ${distributionCount}`],
+              ].map(([value, label]) => (
+                <button
+                  aria-pressed={filter === value}
+                  className={`mailbox-filter${filter === value ? " is-active" : ""}`}
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mailbox-toolbar-actions">
+            <span className="mailbox-toolbar-count">{filteredThreads.length} conversaciones</span>
+            {canManageRoutes && (
               <button
-                aria-pressed={filter === value}
-                className={`mailbox-filter${filter === value ? " is-active" : ""}`}
-                key={value}
-                onClick={() => setFilter(value)}
+                className="button ghost mailbox-routes-toggle"
+                onClick={() => setRoutesOpen((open) => !open)}
                 type="button"
               >
-                {label}
+                {routesOpen ? "Cerrar gestión" : "Gestionar difusiones"}
               </button>
-            ))}
+            )}
           </div>
-          {canManageRoutes && (
-            <button
-              className="button ghost mailbox-routes-toggle"
-              onClick={() => setRoutesOpen((open) => !open)}
-              type="button"
-            >
-              {routesOpen ? "Cerrar difusiones" : "Gestionar difusiones"}
-            </button>
-          )}
         </div>
         <ErrorMessage error={error} />
         {status && <p className="success">{status}</p>}
@@ -324,7 +336,10 @@ function MailboxContent({ actor }) {
         ) : (
           <div className="mailbox-layout">
             <aside className="mailbox-threads" aria-label="Conversaciones">
-              <div className="mailbox-section-label">Conversaciones · {filteredThreads.length}</div>
+              <div className="mailbox-section-label">
+                <span>Bandeja</span>
+                <strong>{filteredThreads.length}</strong>
+              </div>
               {!filteredThreads.length && <p className="muted mailbox-empty">No hay conversaciones en este filtro.</p>}
               {filteredThreads.map((item) => (
                 <button
@@ -355,17 +370,19 @@ function MailboxContent({ actor }) {
               {!loadingThread && thread && (
                 <>
                   <header className="mailbox-conversation-header">
-                    <div>
+                    <div className="mailbox-conversation-kicker">
                       <p className="eyebrow">Conversación</p>
+                      <span className={`mailbox-kind mailbox-kind-${thread.mailboxType || "personal"}`}>
+                        {routeKindLabel(thread.mailboxType)}
+                      </span>
+                    </div>
+                    <div>
                       <div className="mailbox-conversation-title">
                         <h2>{thread.subject || "(sin asunto)"}</h2>
-                        <span className={`mailbox-kind mailbox-kind-${thread.mailboxType || "personal"}`}>
-                          {routeKindLabel(thread.mailboxType)}
-                        </span>
                       </div>
-                      <p>{thread.participants?.join(" · ")}</p>
+                      <p className="mailbox-conversation-participants">{thread.participants?.join(" · ")}</p>
                       <p className="mailbox-conversation-mailbox">
-                        Llegó a {thread.mailboxLabel || thread.mailbox || "una dirección personal"}
+                        Recibido en {thread.mailboxLabel || thread.mailbox || "una dirección personal"}
                       </p>
                     </div>
                   </header>
@@ -382,7 +399,18 @@ function MailboxContent({ actor }) {
                     ))}
                   </div>
                   <form className="mailbox-reply" onSubmit={sendReply}>
-                    <label htmlFor="mailbox-reply-text">Responder</label>
+                    <div className="mailbox-reply-header">
+                      <label htmlFor="mailbox-reply-text">Responder</label>
+                      <span>
+                        Para{" "}
+                        {
+                          thread.messages
+                            .slice()
+                            .reverse()
+                            .find((item) => item.direction === "inbound")?.from
+                        }
+                      </span>
+                    </div>
                     <textarea
                       id="mailbox-reply-text"
                       onChange={(event) => setDraft(event.target.value)}
@@ -391,15 +419,7 @@ function MailboxContent({ actor }) {
                       value={draft}
                     />
                     <div className="mailbox-reply-actions">
-                      <span className="muted">
-                        Se enviará a{" "}
-                        {
-                          thread.messages
-                            .slice()
-                            .reverse()
-                            .find((item) => item.direction === "inbound")?.from
-                        }
-                      </span>
+                      <span className="muted">La respuesta saldrá desde Afterstage.</span>
                       <button className="button dark" disabled={sending || !draft.trim()} type="submit">
                         {sending ? "Enviando…" : "Enviar respuesta ↗"}
                       </button>
