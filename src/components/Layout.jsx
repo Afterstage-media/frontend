@@ -245,6 +245,7 @@ function LayoutShell({ children }) {
                   </NavLink>
                   <NavLink to="/admin/redes">Redes</NavLink>
                   <NavLink to="/admin/prensa">Prensa</NavLink>
+                  <NavLink to="/admin/correo">Correo</NavLink>
                   <span className="nav-divider" aria-hidden="true" />
                   <span className="nav-group-label">Gestionar</span>
                   <NavLink to="/admin/directorio">Directorio</NavLink>
@@ -328,6 +329,9 @@ function LayoutShell({ children }) {
                     {can("admin", "editor") && <WorkspaceLink to="/admin/nueva">Nueva publicación</WorkspaceLink>}
                     {can("admin", "editor") && <WorkspaceLink to="/admin/redes">Redes</WorkspaceLink>}
                     {can("admin", "editor", "press") && <WorkspaceLink to="/admin/prensa">Prensa</WorkspaceLink>}
+                    {can("admin", "editor", "press", "community") && (
+                      <WorkspaceLink to="/admin/correo">Correo</WorkspaceLink>
+                    )}
                     {can("admin", "editor", "community") && (
                       <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
                     )}
