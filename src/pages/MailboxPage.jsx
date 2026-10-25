@@ -13,26 +13,43 @@ const formatDate = (value) => {
 };
 
 const messagePreview = (message) => (message.text || message.subject || "").replace(/\s+/g, " ").trim();
+const splitDestinations = (value) =>
+  String(value || "")
+    .split(/[\n,;]+/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+const routeKindLabel = (kind) => (kind === "distribution" ? "Difusión" : "Personal");
+const emptyRouteForm = { address: "", label: "", destinations: "" };
 
-function MailboxContent() {
+function MailboxContent({ actor }) {
   const [threads, setThreads] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [savingRoute, setSavingRoute] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [routesOpen, setRoutesOpen] = useState(false);
+  const [editingRoute, setEditingRoute] = useState("");
+  const [routeForm, setRouteForm] = useState(emptyRouteForm);
 
-  const loadThreads = async () => {
-    const result = await api("/api/mail/threads");
-    setThreads(result.threads || []);
-    setSelectedId((current) => current || result.threads?.[0]?.id || "");
+  const canManageRoutes = actor.roles.some((role) => role === "admin" || role === "editor");
+
+  const loadMailbox = async () => {
+    const [threadResult, routeResult] = await Promise.all([api("/api/mail/threads"), api("/api/mail/routes")]);
+    const nextThreads = threadResult.threads || [];
+    setThreads(nextThreads);
+    setRoutes(routeResult.routes || []);
+    setSelectedId((current) => (nextThreads.some((item) => item.id === current) ? current : nextThreads[0]?.id || ""));
   };
 
   useEffect(() => {
-    loadThreads()
+    loadMailbox()
       .catch((requestError) => setError(requestError.message))
       .finally(() => setLoading(false));
   }, []);
@@ -40,21 +57,102 @@ function MailboxContent() {
   useEffect(() => {
     if (!selectedId) {
       setThread(null);
-      return;
+      setLoadingThread(false);
+      return undefined;
     }
+    let cancelled = false;
+    setThread(null);
     setLoadingThread(true);
     api(`/api/mail/threads/${encodeURIComponent(selectedId)}`)
       .then(({ thread: nextThread }) => {
+        if (cancelled) return;
         setThread(nextThread);
         setThreads((current) =>
           current.map((item) => (item.id === nextThread.id ? { ...item, unreadCount: 0 } : item)),
         );
       })
-      .catch((requestError) => setError(requestError.message))
-      .finally(() => setLoadingThread(false));
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingThread(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedId]);
 
+  const routeByAddress = useMemo(() => new Map(routes.map((route) => [route.address, route])), [routes]);
+  const routeForThread = (item) => routeByAddress.get(item.mailbox) || item;
+  const threadKind = (item) => routeForThread(item)?.mailboxType || routeForThread(item)?.kind || "personal";
+  const filteredThreads = useMemo(
+    () => threads.filter((item) => filter === "all" || threadKind(item) === filter),
+    [filter, routes, threads],
+  );
   const unread = useMemo(() => threads.reduce((total, item) => total + (item.unreadCount || 0), 0), [threads]);
+  const distributionRoutes = routes.filter((route) => route.kind === "distribution");
+  const distributionCount = threads.filter((item) => threadKind(item) === "distribution").length;
+  const personalCount = threads.filter((item) => threadKind(item) === "personal").length;
+
+  const startRouteEdit = (route) => {
+    setEditingRoute(route.address);
+    setRouteForm({ address: route.address, label: route.label, destinations: route.destinations.join("\n") });
+    setError("");
+  };
+
+  const resetRouteForm = () => {
+    setEditingRoute("");
+    setRouteForm(emptyRouteForm);
+  };
+
+  const saveRoute = async (event) => {
+    event.preventDefault();
+    const destinations = splitDestinations(routeForm.destinations);
+    if (!routeForm.label.trim() || (!editingRoute && !routeForm.address.trim()) || !destinations.length) {
+      setError("Completá el nombre, la dirección y al menos un destinatario.");
+      return;
+    }
+    setSavingRoute(true);
+    setError("");
+    setStatus("");
+    try {
+      const body = { label: routeForm.label.trim(), kind: "distribution", destinations };
+      if (editingRoute) {
+        await api(`/api/mail/routes/${encodeURIComponent(editingRoute)}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        });
+        setStatus("Difusión actualizada.");
+      } else {
+        await api("/api/mail/routes", {
+          method: "POST",
+          body: JSON.stringify({ address: routeForm.address.trim().toLowerCase(), ...body }),
+        });
+        setStatus("Difusión creada.");
+      }
+      resetRouteForm();
+      await loadMailbox();
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSavingRoute(false);
+    }
+  };
+
+  const deleteRoute = async (route) => {
+    if (!window.confirm(`¿Eliminar la difusión ${route.address}? Los mails futuros dejarán de usar esta lista.`))
+      return;
+    setError("");
+    setStatus("");
+    try {
+      await api(`/api/mail/routes/${encodeURIComponent(route.address)}`, { method: "DELETE" });
+      if (editingRoute === route.address) resetRouteForm();
+      await loadMailbox();
+      setStatus("Difusión eliminada.");
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
 
   const sendReply = async (event) => {
     event.preventDefault();
@@ -105,16 +203,130 @@ function MailboxContent() {
             <span>sin leer</span>
           </div>
         </header>
+        <div className="mailbox-toolbar">
+          <div className="mailbox-filters" aria-label="Filtrar conversaciones">
+            {[
+              ["all", `Todas · ${threads.length}`],
+              ["personal", `Personales · ${personalCount}`],
+              ["distribution", `Difusiones · ${distributionCount}`],
+            ].map(([value, label]) => (
+              <button
+                aria-pressed={filter === value}
+                className={`mailbox-filter${filter === value ? " is-active" : ""}`}
+                key={value}
+                onClick={() => setFilter(value)}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {canManageRoutes && (
+            <button
+              className="button ghost mailbox-routes-toggle"
+              onClick={() => setRoutesOpen((open) => !open)}
+              type="button"
+            >
+              {routesOpen ? "Cerrar difusiones" : "Gestionar difusiones"}
+            </button>
+          )}
+        </div>
         <ErrorMessage error={error} />
         {status && <p className="success">{status}</p>}
+        {routesOpen && canManageRoutes && (
+          <section className="mailbox-routes-panel" aria-label="Gestionar difusiones">
+            <header>
+              <div>
+                <p className="eyebrow">Configuración de correo</p>
+                <h2>Direcciones de difusión.</h2>
+                <p>Administrá quién recibe cada alias grupal de Afterstage.</p>
+              </div>
+              <button className="button dark" onClick={resetRouteForm} type="button">
+                Nueva difusión
+              </button>
+            </header>
+            <div className="mailbox-routes-grid">
+              <div className="mailbox-route-list">
+                {!distributionRoutes.length && <p className="muted">Todavía no hay difusiones configuradas.</p>}
+                {distributionRoutes.map((route) => (
+                  <article className="mailbox-route-card" key={route.id}>
+                    <div>
+                      <div className="mailbox-route-card-title">
+                        <strong>{route.label}</strong>
+                        <span className="mailbox-kind mailbox-kind-distribution">Difusión</span>
+                      </div>
+                      <p>{route.address}</p>
+                      <ul>
+                        {route.destinations.map((destination) => (
+                          <li key={destination}>{destination}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="mailbox-route-actions">
+                      <button className="button ghost" onClick={() => startRouteEdit(route)} type="button">
+                        Editar
+                      </button>
+                      <button className="button ghost danger" onClick={() => deleteRoute(route)} type="button">
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <form className="mailbox-route-form" onSubmit={saveRoute}>
+                <p className="eyebrow">{editingRoute ? "Editar difusión" : "Nueva difusión"}</p>
+                <label>
+                  Dirección de Afterstage
+                  <input
+                    disabled={Boolean(editingRoute)}
+                    onChange={(event) => setRouteForm((current) => ({ ...current, address: event.target.value }))}
+                    placeholder="equipo@afterstage.ar"
+                    required={!editingRoute}
+                    type="email"
+                    value={routeForm.address}
+                  />
+                </label>
+                <label>
+                  Nombre visible
+                  <input
+                    onChange={(event) => setRouteForm((current) => ({ ...current, label: event.target.value }))}
+                    placeholder="Equipo de prensa"
+                    required
+                    value={routeForm.label}
+                  />
+                </label>
+                <label>
+                  Destinatarios
+                  <textarea
+                    onChange={(event) => setRouteForm((current) => ({ ...current, destinations: event.target.value }))}
+                    placeholder="Una dirección por línea"
+                    required
+                    rows="5"
+                    value={routeForm.destinations}
+                  />
+                </label>
+                <div className="mailbox-route-form-actions">
+                  {editingRoute && (
+                    <button className="button ghost" onClick={resetRouteForm} type="button">
+                      Cancelar
+                    </button>
+                  )}
+                  <button className="button dark" disabled={savingRoute} type="submit">
+                    {savingRoute ? "Guardando…" : editingRoute ? "Guardar cambios" : "Crear difusión"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        )}
         {loading ? (
           <p className="muted">Cargando bandeja…</p>
         ) : (
           <div className="mailbox-layout">
             <aside className="mailbox-threads" aria-label="Conversaciones">
-              <div className="mailbox-section-label">Conversaciones · {threads.length}</div>
-              {!threads.length && <p className="muted mailbox-empty">Todavía no llegó ningún mensaje.</p>}
-              {threads.map((item) => (
+              <div className="mailbox-section-label">Conversaciones · {filteredThreads.length}</div>
+              {!filteredThreads.length && <p className="muted mailbox-empty">No hay conversaciones en este filtro.</p>}
+              {filteredThreads.map((item) => (
                 <button
                   className={`mailbox-thread${item.id === selectedId ? " is-selected" : ""}`}
                   key={item.id}
@@ -130,20 +342,31 @@ function MailboxContent() {
                   </span>
                   <span className="mailbox-thread-participants">{item.participants?.join(", ")}</span>
                   <span className="mailbox-thread-preview">{item.preview || "Sin contenido"}</span>
+                  <span className={`mailbox-kind mailbox-kind-${threadKind(item)}`}>
+                    {routeKindLabel(threadKind(item))}
+                  </span>
                   {item.unreadCount > 0 && <span className="mailbox-unread">{item.unreadCount}</span>}
                 </button>
               ))}
             </aside>
             <section className="mailbox-conversation" aria-label="Conversación seleccionada">
               {!selectedId && <div className="mailbox-placeholder">Elegí una conversación para empezar.</div>}
-              {loadingThread && <p className="muted">Cargando conversación…</p>}
+              {loadingThread && <p className="muted mailbox-conversation-loading">Cargando conversación…</p>}
               {!loadingThread && thread && (
                 <>
                   <header className="mailbox-conversation-header">
                     <div>
                       <p className="eyebrow">Conversación</p>
-                      <h2>{thread.subject || "(sin asunto)"}</h2>
+                      <div className="mailbox-conversation-title">
+                        <h2>{thread.subject || "(sin asunto)"}</h2>
+                        <span className={`mailbox-kind mailbox-kind-${thread.mailboxType || "personal"}`}>
+                          {routeKindLabel(thread.mailboxType)}
+                        </span>
+                      </div>
                       <p>{thread.participants?.join(" · ")}</p>
+                      <p className="mailbox-conversation-mailbox">
+                        Llegó a {thread.mailboxLabel || thread.mailbox || "una dirección personal"}
+                      </p>
                     </div>
                   </header>
                   <div className="mailbox-messages">
@@ -195,7 +418,7 @@ function MailboxContent() {
 export function MailboxPage() {
   return (
     <AuthGate allowedRoles={["admin", "editor", "press", "community"]}>
-      <MailboxContent />
+      {(actor) => <MailboxContent actor={actor} />}
     </AuthGate>
   );
 }
