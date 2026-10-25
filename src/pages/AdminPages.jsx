@@ -84,6 +84,10 @@ const workflowStages = [
   { key: "publish", label: "Publicación", description: "Publicá o programá los canales." },
 ];
 
+const directR2Uploads = import.meta.env.VITE_R2_MEDIA_UPLOADS === "true";
+const directMediaTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const directMediaMaxBytes = 5 * 1024 * 1024;
+
 const workflowStageFor = (status) => {
   if (["review", "approved"].includes(status)) return "review";
   if (["scheduled", "publishing", "published"].includes(status)) return "publish";
@@ -1031,15 +1035,43 @@ function ContentEditorPage() {
   };
   const upload = async () => {
     if (!files.length) return;
-    const data = new FormData();
-    [...files].forEach((file) => data.append("images", file));
     try {
-      const assets = await api("/api/assets", { method: "POST", body: data });
+      const selected = [...files];
+      let assets;
+      if (directR2Uploads) {
+        const invalid = selected.find(
+          (file) => !directMediaTypes.has(file.type) || file.size <= 0 || file.size > directMediaMaxBytes,
+        );
+        if (invalid) throw new Error("Solo se aceptan fotos JPG, PNG o WEBP de hasta 5 MiB.");
+        const { grants } = await api("/api/assets/grants", {
+          method: "POST",
+          body: JSON.stringify({
+            contentId: id,
+            files: selected.map((file) => ({ name: file.name, contentType: file.type, size: file.size })),
+          }),
+        });
+        const uploaded = await Promise.all(
+          grants.map(async (grant, index) => {
+            const response = await fetch(grant.uploadUrl, {
+              method: "PUT",
+              headers: { "Content-Type": selected[index].type },
+              body: selected[index],
+            });
+            if (!response.ok) throw new Error(`No se pudo subir ${selected[index].name}.`);
+            return api(`/api/assets/${grant.assetId}/complete`, { method: "POST" });
+          }),
+        );
+        assets = uploaded;
+      } else {
+        const data = new FormData();
+        selected.forEach((file) => data.append("images", file));
+        assets = await api("/api/assets", { method: "POST", body: data });
+      }
       await api(`/api/content/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ assets: [...item.assets, ...assets] }),
       });
-      setStatus("Medios subidos.");
+      setStatus(directR2Uploads ? "Fotos subidas al almacenamiento seguro." : "Medios subidos.");
       setFiles([]);
       load();
     } catch (e) {
@@ -1048,7 +1080,11 @@ function ContentEditorPage() {
   };
   const removeAsset = async (asset) => {
     const assetKey = asset.id || asset.url;
-    if (!window.confirm("¿Querés quitar este medio de la nota? El archivo no se borra del almacenamiento.")) return;
+    const message =
+      asset.storage === "r2"
+        ? "¿Querés quitar esta foto de la nota? Se marcará para eliminación del almacenamiento después del período de gracia."
+        : "¿Querés quitar este medio de la nota? El archivo no se borra del almacenamiento.";
+    if (!window.confirm(message)) return;
     setRemovingAssetKey(assetKey);
     try {
       await api(`/api/content/${id}`, {
@@ -1145,10 +1181,17 @@ function ContentEditorPage() {
                       (files.length > 1 ? "s" : "") +
                       " seleccionado" +
                       (files.length > 1 ? "s" : "")
-                    : "Agregar imágenes o videos"}
+                    : directR2Uploads
+                      ? "Agregar fotos"
+                      : "Agregar imágenes o videos"}
                 </strong>
-                <small>JPG, PNG, WEBP o MP4</small>
-                <input type="file" accept="image/*,video/*" multiple onChange={(e) => setFiles(e.target.files)} />
+                <small>{directR2Uploads ? "JPG, PNG o WEBP · máximo 5 MiB por foto" : "JPG, PNG, WEBP o MP4"}</small>
+                <input
+                  type="file"
+                  accept={directR2Uploads ? "image/jpeg,image/png,image/webp" : "image/*,video/*"}
+                  multiple
+                  onChange={(e) => setFiles(e.target.files)}
+                />
               </label>
               <button className="button ghost button-wide" onClick={upload} disabled={!files.length} type="button">
                 Subir medios
