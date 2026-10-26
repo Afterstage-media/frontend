@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ContentCard } from "../components/ContentCard.jsx";
 import { EditorialIntro, SectionHeading, SignalTicker } from "../components/EditorialPrimitives.jsx";
@@ -66,6 +66,16 @@ export function NotesPage() {
                 : "La redacción está preparando las primeras historias. Volvé pronto o recorré la agenda."
             }
           />
+          {!query && (
+            <div className="empty-state-actions">
+              <Link className="button dark" to="/agenda">
+                Explorar la agenda ↗
+              </Link>
+              <Link className="button ghost" to="/como-funciona">
+                Conocer Afterstage
+              </Link>
+            </div>
+          )}
         </section>
       )}
     </Layout>

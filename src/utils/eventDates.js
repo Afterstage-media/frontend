@@ -4,6 +4,23 @@ const toDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const isUtcDateOnly = (date) =>
+  date.getUTCHours() === 0 &&
+  date.getUTCMinutes() === 0 &&
+  date.getUTCSeconds() === 0 &&
+  date.getUTCMilliseconds() === 0;
+
+const eventDateOptions = (date, options) => ({
+  ...options,
+  ...(isUtcDateOnly(date) ? { timeZone: "UTC" } : {}),
+});
+
+export function formatEventDateValue(value, options = { day: "numeric", month: "short", year: "numeric" }) {
+  const date = value instanceof Date ? value : toDate(value);
+  if (!date) return "Fecha por confirmar";
+  return new Intl.DateTimeFormat("es-AR", eventDateOptions(date, options)).format(date);
+}
+
 export function getEventDates(event) {
   const values = [...(Array.isArray(event.dates) ? event.dates : []), event.startsAt].filter(Boolean);
   const unique = new Map();
@@ -45,13 +62,13 @@ export function formatEventDates(event) {
   const dates = getEventDates(event);
   if (!dates.length) return "Fecha por confirmar";
   if (dates.length === 1 && event.endsAt) {
-    return `Del ${dates[0].toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })} al ${new Date(
-      event.endsAt,
-    ).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}`;
+    return `Del ${formatEventDateValue(dates[0])} al ${formatEventDateValue(event.endsAt)}`;
   }
-  if (dates.length === 1) {
-    return dates[0].toLocaleString("es-AR", { dateStyle: "medium", timeStyle: "short" });
-  }
+  if (dates.length === 1)
+    return formatEventDateValue(
+      dates[0],
+      isUtcDateOnly(dates[0]) ? { dateStyle: "medium" } : { dateStyle: "medium", timeStyle: "short" },
+    );
 
   const groups = [];
   dates.forEach((date) => {
@@ -63,9 +80,18 @@ export function formatEventDates(event) {
 
   return groups
     .map(({ dates: monthDates }) => {
-      const days = monthDates.map((date) => date.getDate()).join(", ");
-      const month = monthDates[0].toLocaleDateString("es-AR", { month: "long" });
-      return `${days} de ${month} de ${monthDates[0].getFullYear()}`;
+      const calendarParts = monthDates.map((date) => {
+        const parts = new Intl.DateTimeFormat(
+          "en-CA",
+          eventDateOptions(date, { day: "numeric", month: "numeric", year: "numeric" }),
+        ).formatToParts(date);
+        return Object.fromEntries(
+          parts.filter(({ type }) => type !== "literal").map(({ type, value }) => [type, value]),
+        );
+      });
+      const days = calendarParts.map(({ day }) => day).join(", ");
+      const month = formatEventDateValue(monthDates[0], { month: "long" });
+      return `${days} de ${month} de ${calendarParts[0].year}`;
     })
     .join(", ");
 }

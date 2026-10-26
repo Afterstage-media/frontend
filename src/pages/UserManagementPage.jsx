@@ -375,7 +375,8 @@ function UserManagement() {
           ) : loading ? (
             <div className="users-empty">Cargando usuarios…</div>
           ) : visibleUsers.length ? (
-            <div className="users-table-wrap">
+            <div className="users-table-wrap" tabIndex="0" aria-label="Tabla de usuarios desplazable horizontalmente">
+              <p className="users-table-hint">Deslizá horizontalmente para ver todas las columnas.</p>
               <table className="users-table">
                 <thead>
                   <tr>

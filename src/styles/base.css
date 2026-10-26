@@ -104,6 +104,13 @@ textarea {
   max-width: 56ch;
 }
 
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
 .ui-state-error {
   background: color-mix(in srgb, var(--color-danger) 12%, var(--color-paper));
   border-style: solid;

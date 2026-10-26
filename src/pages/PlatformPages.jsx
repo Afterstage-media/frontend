@@ -4,6 +4,7 @@ import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, LoadingState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { formatEventDateValue } from "../utils/eventDates.js";
 
 const insuranceProducts = [
   { value: "ap", label: "Accidentes personales", hint: "Personas durante el evento" },
@@ -584,9 +585,7 @@ export function TransportPage() {
                 >
                   <strong>{event.artist || event.name}</strong>
                   <span>{event.city || event.venue || "Fecha"}</span>
-                  <small>
-                    {event.startsAt ? new Date(event.startsAt).toLocaleDateString("es-AR") : "Consultar fecha"}
-                  </small>
+                  <small>{event.startsAt ? formatEventDateValue(event.startsAt) : "Consultar fecha"}</small>
                 </button>
               ))}
             </div>
