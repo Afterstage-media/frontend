@@ -213,7 +213,18 @@
   background: var(--color-surface);
   border: var(--border-soft);
   max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.users-table-hint {
+  color: var(--color-muted);
+  display: none;
+  font-size: 0.75rem;
+  margin: 0;
+  padding: 10px 14px 0;
 }
 
 .users-table {
@@ -603,6 +614,10 @@
   .user-drawer {
     max-width: none;
     padding-inline: var(--gutter-mobile);
+  }
+
+  .users-table-hint {
+    display: block;
   }
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
+import { formatEventDateValue } from "../utils/eventDates.js";
 import { api } from "../services/api.js";
 
 const profiles = {
@@ -67,7 +68,9 @@ function Board() {
               <h2>{item.title}</h2>
               <p>{item.description || item.requirements}</p>
               <p className="muted">
-                {item.startsAt ? new Date(item.startsAt).toLocaleString() : "Fecha a coordinar"}
+                {item.startsAt
+                  ? formatEventDateValue(item.startsAt, { dateStyle: "medium", timeStyle: "short" })
+                  : "Fecha a coordinar"}
                 {item.compensation && ` · ${item.compensation}`}
               </p>
               <button className="button" onClick={() => setSelected(item)}>
@@ -243,7 +246,8 @@ function AdminBoard() {
             </small>
             <h2>{item.title}</h2>
             <p>
-              {item.city} {item.startsAt && `· ${new Date(item.startsAt).toLocaleString()}`}
+              {item.city}{" "}
+              {item.startsAt && `· ${formatEventDateValue(item.startsAt, { dateStyle: "medium", timeStyle: "short" })}`}
             </p>
             <button className="button" onClick={() => showApplications(item.id)}>
               Ver postulaciones

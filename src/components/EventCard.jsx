@@ -1,5 +1,5 @@
 import { Countdown } from "./Countdown.jsx";
-import { formatEventDates, getNextEventDate, isMultiDateEvent } from "../utils/eventDates.js";
+import { formatEventDateValue, formatEventDates, getNextEventDate, isMultiDateEvent } from "../utils/eventDates.js";
 
 export function EventCard({ event, index = 0 }) {
   const date = getNextEventDate(event);
@@ -11,8 +11,8 @@ export function EventCard({ event, index = 0 }) {
   return (
     <article className="event" style={{ "--event-index": index }}>
       <div className="event-date">
-        <b>{date ? date.toLocaleDateString("es-AR", { month: "short" }).toUpperCase() : "PRÓX"}</b>
-        <strong>{date ? date.getDate() : ""}</strong>
+        <b>{date ? formatEventDateValue(date, { month: "short" }).toUpperCase() : "PRÓX"}</b>
+        <strong>{date ? formatEventDateValue(date, { day: "numeric" }) : ""}</strong>
       </div>
       <div className="event-content">
         <small className="event-meta">
