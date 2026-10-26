@@ -18,6 +18,8 @@ export function EventPage() {
   const [hub, setHub] = useState(null);
   const [error, setError] = useState("");
   const [thread, setThread] = useState(emptyThread);
+  const [replyFor, setReplyFor] = useState("");
+  const [reply, setReply] = useState({ body: "", authorName: "", authorEmail: "" });
   const [transport, setTransport] = useState(emptyTransport);
   const [status, setStatus] = useState("");
   const [formError, setFormError] = useState("");
@@ -70,6 +72,24 @@ export function EventPage() {
       });
       setStatus(result.message);
       setTransport(emptyTransport);
+    } catch (requestError) {
+      setFormError(requestError.message);
+    }
+  };
+
+  const submitReply = async (submitEvent) => {
+    submitEvent.preventDefault();
+    setStatus("");
+    setFormError("");
+    try {
+      const result = await api(`/api/public/forum/threads/${replyFor}/posts`, {
+        method: "POST",
+        body: JSON.stringify(reply),
+      });
+      setStatus(result.message);
+      setReplyFor("");
+      setReply({ body: "", authorName: "", authorEmail: "" });
+      load();
     } catch (requestError) {
       setFormError(requestError.message);
     }
@@ -153,6 +173,57 @@ export function EventPage() {
                     <small>
                       {item.authorName} · {item.posts?.length || 0} respuestas
                     </small>
+                    {!!item.posts?.length && (
+                      <div className="forum-post-list">
+                        {item.posts.map((post) => (
+                          <div className="forum-post" key={post.id}>
+                            <p>{post.body}</p>
+                            <small>{post.authorName}</small>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button className="button ghost" onClick={() => setReplyFor(item.id)} type="button">
+                      Responder ↗
+                    </button>
+                    {replyFor === item.id && (
+                      <form className="compact-form forum-reply-form" onSubmit={submitReply}>
+                        <label>
+                          Tu nombre
+                          <input
+                            required
+                            value={reply.authorName}
+                            onChange={(input) => setReply({ ...reply, authorName: input.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Email
+                          <input
+                            required
+                            type="email"
+                            value={reply.authorEmail}
+                            onChange={(input) => setReply({ ...reply, authorEmail: input.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Respuesta
+                          <textarea
+                            required
+                            rows="3"
+                            value={reply.body}
+                            onChange={(input) => setReply({ ...reply, body: input.target.value })}
+                          />
+                        </label>
+                        <div className="actions">
+                          <button className="button dark" type="submit">
+                            Publicar respuesta ↗
+                          </button>
+                          <button className="button ghost" onClick={() => setReplyFor("")} type="button">
+                            Cancelar
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </article>
                 ))}
               </div>
