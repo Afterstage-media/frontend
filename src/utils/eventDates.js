@@ -15,6 +15,9 @@ const eventDateOptions = (date, options) => ({
   ...(isUtcDateOnly(date) ? { timeZone: "UTC" } : {}),
 });
 
+const eventMonthKey = (date) =>
+  isUtcDateOnly(date) ? `${date.getUTCFullYear()}-${date.getUTCMonth()}` : `${date.getFullYear()}-${date.getMonth()}`;
+
 export function formatEventDateValue(value, options = { day: "numeric", month: "short", year: "numeric" }) {
   const date = value instanceof Date ? value : toDate(value);
   if (!date) return "Fecha por confirmar";
@@ -72,7 +75,7 @@ export function formatEventDates(event) {
 
   const groups = [];
   dates.forEach((date) => {
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const key = eventMonthKey(date);
     const group = groups.find((candidate) => candidate.key === key);
     if (group) group.dates.push(date);
     else groups.push({ key, dates: [date] });
