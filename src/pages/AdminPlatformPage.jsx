@@ -89,8 +89,26 @@ function PlatformAdmin({ actor }) {
       quoteUrl: draft.quoteUrl ?? item.quoteUrl ?? "",
       policyNumber: draft.policyNumber ?? item.policyNumber ?? "",
       policyUrl: draft.policyUrl ?? item.policyUrl ?? "",
+      commissionLabel: draft.commissionLabel ?? item.commissionLabel ?? "",
+      commissionNotes: draft.commissionNotes ?? item.commissionNotes ?? "",
     });
   };
+  const renewInsurance = async (item) => {
+    setError("");
+    setNotice("");
+    try {
+      await api(`/api/platform/insurance-requests/${item.id}/renew`, { method: "POST" });
+      setNotice("Solicitud duplicada con los datos del cliente para una nueva póliza.");
+      load();
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+  const updateInsuranceContract = (item, status) =>
+    patch(`/api/platform/insurance-requests/${item.id}`, {
+      contractStatus: status,
+      contractedAt: status === "contracted" ? new Date().toISOString() : null,
+    });
   if (!snapshot)
     return (
       <Layout>
@@ -181,8 +199,12 @@ function PlatformAdmin({ actor }) {
                   <div>
                     <strong>{item.name}</strong>
                     <span>
-                      {item.coverageType} · {item.email}
+                      {item.coverageType} · {item.email} · {item.peopleCount} persona(s)
                     </span>
+                    <small>
+                      Aviso: {item.notificationStatus === "sent" ? "enviado" : item.notificationStatus || "pendiente"}
+                      {item.mailThreadId ? " · hilo en bandeja creado" : ""}
+                    </small>
                   </div>
                   <select
                     value={item.status}
@@ -223,9 +245,38 @@ function PlatformAdmin({ actor }) {
                       defaultValue={item.policyUrl || ""}
                       onChange={(event) => updateInsuranceDraft(item, "policyUrl", event.target.value)}
                     />
+                    <select
+                      value={item.contractStatus || "pending"}
+                      onChange={(event) => updateInsuranceContract(item, event.target.value)}
+                    >
+                      <option value="pending">Sin contratación</option>
+                      <option value="contracted">Contratada</option>
+                      <option value="cancelled">Cancelada</option>
+                    </select>
+                    <input
+                      placeholder="Comisión / reparto"
+                      defaultValue={item.commissionLabel || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "commissionLabel", event.target.value)}
+                    />
+                    <input
+                      placeholder="Notas para repartir la comisión"
+                      defaultValue={item.commissionNotes || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "commissionNotes", event.target.value)}
+                    />
                     <button className="button ghost" onClick={() => saveInsurance(item)} type="button">
                       Guardar cotización
                     </button>
+                    <button className="button ghost" onClick={() => renewInsurance(item)} type="button">
+                      Reutilizar datos
+                    </button>
+                    {item.mailThreadId && (
+                      <a
+                        className="button ghost"
+                        href={`/admin/correo?thread=${encodeURIComponent(item.mailThreadId)}`}
+                      >
+                        Abrir bandeja
+                      </a>
+                    )}
                   </div>
                 </article>
               ))
