@@ -1,0 +1,546 @@
+.network-intro,
+.insurance-intro,
+.marketplace-intro,
+.admin-platform-intro {
+  max-width: 1180px;
+}
+
+.network-intro h1,
+.insurance-intro h1,
+.marketplace-intro h1 {
+  max-width: 760px;
+}
+
+.network-layout,
+.insurance-layout,
+.event-hub-grid {
+  display: grid;
+  gap: 28px;
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: var(--space-section) var(--gutter);
+}
+
+.network-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.75fr);
+}
+
+.network-main,
+.event-hub-main {
+  min-width: 0;
+}
+
+.network-forms,
+.event-hub-side {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.network-count {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.network-profile-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 26px;
+}
+
+.network-profile-card,
+.network-request-card,
+.community-hub-card,
+.marketplace-card,
+.hub-panel,
+.hub-item,
+.transport-offer {
+  background: var(--color-surface);
+  border: var(--border-soft);
+}
+
+.network-profile-card {
+  min-height: 230px;
+  padding: 22px;
+}
+
+.network-profile-card h3,
+.network-request-card h3,
+.marketplace-card h2,
+.hub-item h3,
+.forum-thread h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-heading);
+  margin: 6px 0 10px;
+}
+
+.network-card-index {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.network-profile-meta,
+.network-profile-links,
+.network-request-card small,
+.transport-offer span,
+.transport-offer small {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.network-profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.network-profile-links a,
+.hub-links a {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.network-subsection-head {
+  border-top: var(--border-soft);
+  margin-top: 55px;
+  padding-top: 32px;
+}
+
+.network-request-list,
+.hub-item-list,
+.forum-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.network-request-card,
+.hub-item {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.network-request-card > div,
+.hub-item > div {
+  min-width: 0;
+}
+
+.network-form {
+  margin: 0;
+  max-width: none;
+  padding: 24px;
+}
+
+.network-form h2,
+.insurance-copy h2,
+.hub-panel h2 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-heading);
+  margin-top: 6px;
+}
+
+.modal-backdrop {
+  align-items: center;
+  background: rgb(17 17 20 / 0.72);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 20;
+}
+
+.network-application-modal {
+  max-height: 90vh;
+  max-width: 560px;
+  overflow: auto;
+  padding: 28px;
+  position: relative;
+  width: 100%;
+}
+
+.network-application-modal .icon-button {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+}
+
+.insurance-layout {
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.transport-layout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 0.85fr 1.15fr;
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: var(--space-section) var(--gutter);
+}
+
+.transport-event-list,
+.transport-choice-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.transport-event,
+.transport-choice {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  text-align: left;
+}
+
+.transport-event:hover,
+.transport-event.is-selected,
+.transport-choice.is-selected {
+  border-color: var(--color-accent);
+}
+
+.transport-event span,
+.transport-event small,
+.transport-choice small {
+  color: var(--color-muted);
+  font-size: 0.83rem;
+}
+
+.transport-request-panel {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  min-height: 360px;
+  padding: 24px;
+}
+
+.transport-choice {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+}
+
+.transport-choice span {
+  display: grid;
+  gap: 4px;
+}
+
+.transport-form {
+  margin: 20px 0 0;
+  max-width: none;
+  padding: 0;
+}
+
+.insurance-copy {
+  padding-top: 18px;
+}
+
+.insurance-copy ol {
+  counter-reset: step;
+  list-style: none;
+  margin: 26px 0;
+  padding: 0;
+}
+
+.insurance-copy li {
+  border-top: var(--border-soft);
+  counter-increment: step;
+  padding: 17px 0 17px 42px;
+  position: relative;
+}
+
+.insurance-copy li::before {
+  color: var(--color-accent);
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--font-display);
+  font-weight: 700;
+  left: 0;
+  position: absolute;
+}
+
+.insurance-form {
+  max-width: none;
+  margin: 0;
+}
+
+.marketplace-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 28px var(--gutter) 0;
+}
+
+.marketplace-toolbar span {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  margin-left: auto;
+}
+
+.marketplace-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 28px var(--gutter) var(--space-section);
+}
+
+.marketplace-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 270px;
+  padding: 22px;
+}
+
+.marketplace-card img {
+  aspect-ratio: 16 / 8;
+  border: var(--border-soft);
+  object-fit: cover;
+  width: 100%;
+}
+
+.marketplace-card .button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.event-hub-grid {
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+  padding-top: 0;
+}
+
+.event-hub {
+  padding-bottom: 45px;
+}
+
+.admin-platform {
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: var(--space-section) var(--gutter);
+}
+
+.platform-metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 28px;
+}
+
+.platform-metrics article {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+}
+
+.platform-metrics strong {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  letter-spacing: var(--tracking-tight);
+}
+
+.platform-metrics span,
+.platform-admin-row span {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.admin-platform-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-platform-panel {
+  margin: 0;
+  max-width: none;
+  padding: 22px;
+}
+
+.platform-admin-row {
+  align-items: center;
+  border-top: var(--border-soft);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 15px 0;
+}
+
+.platform-admin-row > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.platform-admin-row .actions {
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.status-pill {
+  border: var(--border-soft);
+  font-size: 0.72rem;
+  padding: 5px 8px;
+  text-transform: uppercase;
+}
+
+.status-published,
+.status-open,
+.status-quoted {
+  color: var(--color-success);
+}
+
+@media (max-width: 900px) {
+  .admin-platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .platform-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .platform-admin-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.hub-panel {
+  padding: 24px;
+}
+
+.hub-panel + .hub-panel {
+  margin-top: 18px;
+}
+
+.forum-thread {
+  border-top: var(--border-soft);
+  padding: 16px 0;
+}
+
+.forum-thread p {
+  margin-bottom: 8px;
+}
+
+.forum-thread small {
+  color: var(--color-muted);
+}
+
+.compact-form {
+  border-top: var(--border-soft);
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 20px;
+}
+
+.compact-form h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-heading);
+  margin: 0;
+}
+
+.transport-offer {
+  display: grid;
+  gap: 6px;
+  padding: 15px;
+}
+
+.transport-offer .button {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+.hub-links {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.community-hub-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 0 var(--gutter) var(--space-section);
+}
+
+.community-hub-card {
+  color: var(--color-ink);
+  min-height: 220px;
+  padding: 22px;
+  text-decoration: none;
+}
+
+.community-hub-card:hover,
+.community-hub-card:focus-visible {
+  border-color: var(--color-accent);
+  transform: translateY(-3px);
+}
+
+.community-hub-card h2 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-heading);
+  margin: 14px 0 10px;
+}
+
+@media (max-width: 900px) {
+  .network-layout,
+  .insurance-layout,
+  .event-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplace-grid,
+  .community-hub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .network-profile-grid,
+  .marketplace-grid,
+  .community-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .network-request-card,
+  .hub-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marketplace-toolbar span {
+    margin-left: 0;
+    width: 100%;
+  }
+}

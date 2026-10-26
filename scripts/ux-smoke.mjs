@@ -80,7 +80,8 @@ assert.match(layout, /<WorkspaceLink to="\/directorio">Directorio<\/WorkspaceLin
 assert.doesNotMatch(layout, /Administrar directorio/);
 assert.match(layout, /isWorkspace/);
 assert.doesNotMatch(layout, />Búsquedas</);
-assert.match(layout, /can\("admin", "editor", "community"\).*Comunidad/s);
+assert.match(layout, /<NavLink to="\/comunidad">Comunidad<\/NavLink>/);
+assert.match(layout, /<NavLink to="\/red">Red<\/NavLink>/);
 assert.match(auth, /auth-form/);
 assert.match(auth, /accessDenied/);
 assert.match(app, /<Route path="\*" element={<NotFoundPage \/>} \/>/);

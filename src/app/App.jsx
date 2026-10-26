@@ -19,6 +19,9 @@ import { AiAccessPage } from "../pages/AiAccessPage.jsx";
 import { UserManagementPage } from "../pages/UserManagementPage.jsx";
 import { AboutPage } from "../pages/AboutPage.jsx";
 import { MailboxPage } from "../pages/MailboxPage.jsx";
+import { NetworkPage } from "../pages/NetworkPage.jsx";
+import { InsurancePage, MarketplacePage, TransportPage } from "../pages/PlatformPages.jsx";
+import { AdminPlatformPage } from "../pages/AdminPlatformPage.jsx";
 
 function NotFoundPage() {
   return (
@@ -45,6 +48,10 @@ export function App() {
         <Route path="/como-funciona" element={<AboutPage />} />
         <Route path="/directorio" element={<DirectoryPage />} />
         <Route path="/comunidad" element={<CommunityPage />} />
+        <Route path="/red" element={<NetworkPage />} />
+        <Route path="/seguros" element={<InsurancePage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/traslados" element={<TransportPage />} />
         <Route path="/publicar" element={<PublishPage />} />
         <Route path="/reemplazos" element={<ReplacementsPage />} />
         <Route path="/politica-editorial" element={<PolicyPage />} />
@@ -62,6 +69,7 @@ export function App() {
         <Route path="/admin/contenido/:id" element={<ContentPage />} />
         <Route path="/admin/prensa" element={<PressPage />} />
         <Route path="/admin/correo" element={<MailboxPage />} />
+        <Route path="/admin/plataforma" element={<AdminPlatformPage />} />
         <Route path="/admin/reemplazos" element={<AdminReplacementsPage />} />
         <Route path="/admin/directorio" element={<Navigate to="/directorio" replace />} />
         <Route path="/cuenta/accesos-ia" element={<AiAccessPage />} />
