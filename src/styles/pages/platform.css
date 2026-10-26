@@ -305,6 +305,35 @@
   margin: 0;
 }
 
+.insurance-products {
+  display: grid;
+  gap: 10px;
+}
+
+.insurance-products label.insurance-product {
+  align-items: flex-start;
+  display: flex;
+  font-weight: 700;
+}
+
+.insurance-products input[type="checkbox"] {
+  flex: 0 0 auto;
+  min-height: 20px;
+  padding: 0;
+  width: 20px;
+}
+
+.insurance-product span {
+  display: grid;
+  gap: 3px;
+}
+
+.insurance-product small {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 .marketplace-toolbar {
   align-items: center;
   display: flex;
