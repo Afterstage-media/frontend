@@ -11,6 +11,7 @@ const emptyPhotographer = {
   city: "",
   specialties: "",
   portfolioUrl: "",
+  portfolioUrls: "",
   instagram: "",
   bio: "",
   sampleCount: "",
@@ -48,6 +49,7 @@ export function NetworkPage() {
   const [coverageError, setCoverageError] = useState("");
   const [applicationFor, setApplicationFor] = useState(null);
   const [application, setApplication] = useState({
+    photographerId: "",
     applicantName: "",
     applicantEmail: "",
     portfolioUrl: "",
@@ -84,6 +86,11 @@ export function NetworkPage() {
             .split(",")
             .map((item) => item.trim())
             .filter(Boolean),
+          portfolioUrls: photographerForm.portfolioUrls
+            .split(/\r?\n|,/)
+            .map((item) => item.trim())
+            .filter(Boolean)
+            .slice(0, 10),
           sampleCount: Number(photographerForm.sampleCount || 0),
         }),
       });
@@ -125,7 +132,7 @@ export function NetworkPage() {
       });
       setCoverageNotice(result.message);
       setApplicationFor(null);
-      setApplication({ applicantName: "", applicantEmail: "", portfolioUrl: "", message: "" });
+      setApplication({ photographerId: "", applicantName: "", applicantEmail: "", portfolioUrl: "", message: "" });
     } catch (requestError) {
       setCoverageError(requestError.message);
     }
@@ -167,6 +174,15 @@ export function NetworkPage() {
                     {photographer.city} · {(photographer.specialties || []).join(" · ") || "Cobertura"}
                   </p>
                   {photographer.bio && <p>{photographer.bio}</p>}
+                  {!!photographer.portfolioUrls?.length && (
+                    <div className="network-portfolio-grid" aria-label={`Portfolio de ${photographer.name}`}>
+                      {photographer.portfolioUrls.slice(0, 10).map((photoUrl) => (
+                        <a href={photoUrl} key={photoUrl} rel="noreferrer" target="_blank">
+                          <img alt={`Foto de portfolio de ${photographer.name}`} loading="lazy" src={photoUrl} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   <div className="network-profile-links">
                     {photographer.portfolioUrl && (
                       <a href={photographer.portfolioUrl} target="_blank" rel="noreferrer">
@@ -257,6 +273,15 @@ export function NetworkPage() {
                 type="url"
                 value={photographerForm.portfolioUrl}
                 onChange={(event) => setPhotographerForm({ ...photographerForm, portfolioUrl: event.target.value })}
+              />
+            </label>
+            <label>
+              Fotos de portfolio (hasta 10 URLs, una por línea)
+              <textarea
+                placeholder="https://…/foto-01.jpg"
+                rows="3"
+                value={photographerForm.portfolioUrls}
+                onChange={(event) => setPhotographerForm({ ...photographerForm, portfolioUrls: event.target.value })}
               />
             </label>
             <label>
@@ -389,6 +414,20 @@ export function NetworkPage() {
             </button>
             <p className="eyebrow">Postulación</p>
             <h2>{applicationFor.title}</h2>
+            <label>
+              Perfil publicado (opcional)
+              <select
+                value={application.photographerId}
+                onChange={(event) => setApplication({ ...application, photographerId: event.target.value })}
+              >
+                <option value="">Voy a enviar los datos manualmente</option>
+                {photographers.map((photographer) => (
+                  <option key={photographer.id} value={photographer.id}>
+                    {photographer.name} · {photographer.city}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               Nombre
               <input

@@ -110,6 +110,32 @@
   text-underline-offset: 3px;
 }
 
+.network-portfolio-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.network-portfolio-grid a {
+  aspect-ratio: 1;
+  background: var(--color-paper);
+  display: block;
+  overflow: hidden;
+}
+
+.network-portfolio-grid img {
+  height: 100%;
+  object-fit: cover;
+  transition: transform 180ms ease;
+  width: 100%;
+}
+
+.network-portfolio-grid a:hover img,
+.network-portfolio-grid a:focus-visible img {
+  transform: scale(1.06);
+}
+
 .network-subsection-head {
   border-top: var(--border-soft);
   margin-top: 55px;
@@ -393,6 +419,19 @@
   min-width: 0;
 }
 
+.platform-admin-fields {
+  display: grid;
+  flex: 1 1 260px;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.platform-admin-fields input,
+.platform-admin-fields textarea {
+  min-width: 0;
+  width: 100%;
+}
+
 .platform-admin-row .actions {
   align-items: center;
   flex-wrap: wrap;
@@ -452,6 +491,26 @@
 
 .forum-thread small {
   color: var(--color-muted);
+}
+
+.forum-thread > .button {
+  margin-top: 14px;
+}
+
+.forum-post-list {
+  border-left: 2px solid var(--color-accent);
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0 4px;
+  padding-left: 14px;
+}
+
+.forum-post p {
+  margin: 0 0 4px;
+}
+
+.forum-reply-form {
+  margin-top: 16px;
 }
 
 .compact-form {

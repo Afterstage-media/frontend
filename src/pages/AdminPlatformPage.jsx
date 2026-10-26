@@ -29,6 +29,7 @@ function PlatformAdmin({ actor }) {
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(emptyOffer);
   const [listing, setListing] = useState(emptyListing);
+  const [insuranceDrafts, setInsuranceDrafts] = useState({});
   const [notice, setNotice] = useState("");
   const load = () =>
     api("/api/platform/snapshot")
@@ -73,6 +74,22 @@ function PlatformAdmin({ actor }) {
     } catch (requestError) {
       setError(requestError.message);
     }
+  };
+  const canEditCatalog = actor.roles?.some((role) => ["admin", "editor"].includes(role));
+  const updateInsuranceDraft = (item, field, value) =>
+    setInsuranceDrafts((current) => ({
+      ...current,
+      [item.id]: { ...current[item.id], [field]: value },
+    }));
+  const saveInsurance = (item) => {
+    const draft = insuranceDrafts[item.id] || {};
+    return patch(`/api/platform/insurance-requests/${item.id}`, {
+      providerName: draft.providerName ?? item.providerName ?? "",
+      quoteLabel: draft.quoteLabel ?? item.quoteLabel ?? "",
+      quoteUrl: draft.quoteUrl ?? item.quoteUrl ?? "",
+      policyNumber: draft.policyNumber ?? item.policyNumber ?? "",
+      policyUrl: draft.policyUrl ?? item.policyUrl ?? "",
+    });
   };
   if (!snapshot)
     return (
@@ -178,10 +195,126 @@ function PlatformAdmin({ actor }) {
                     <option value="quoted">Cotizada</option>
                     <option value="closed">Cerrada</option>
                   </select>
+                  <div className="platform-admin-fields">
+                    <input
+                      placeholder="Productor / aseguradora"
+                      defaultValue={item.providerName || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "providerName", event.target.value)}
+                    />
+                    <input
+                      placeholder="Cotización"
+                      defaultValue={item.quoteLabel || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "quoteLabel", event.target.value)}
+                    />
+                    <input
+                      placeholder="N.º de póliza"
+                      defaultValue={item.policyNumber || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "policyNumber", event.target.value)}
+                    />
+                    <input
+                      placeholder="URL de cotización"
+                      type="url"
+                      defaultValue={item.quoteUrl || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "quoteUrl", event.target.value)}
+                    />
+                    <input
+                      placeholder="URL de póliza"
+                      type="url"
+                      defaultValue={item.policyUrl || ""}
+                      onChange={(event) => updateInsuranceDraft(item, "policyUrl", event.target.value)}
+                    />
+                    <button className="button ghost" onClick={() => saveInsurance(item)} type="button">
+                      Guardar cotización
+                    </button>
+                  </div>
                 </article>
               ))
             ) : (
               <p className="muted">No hay consultas pendientes.</p>
+            )}
+          </section>
+          <section className="admin-platform-panel">
+            <p className="eyebrow">Selección y entrega</p>
+            <h2>Postulaciones de cobertura.</h2>
+            {snapshot.coverageApplications.length ? (
+              snapshot.coverageApplications.map((item) => {
+                const request = snapshot.coverageRequests.find((candidate) => candidate.id === item.requestId);
+                const photographer = snapshot.photographers.find((candidate) => candidate.id === item.photographerId);
+                return (
+                  <article className="platform-admin-row" key={item.id}>
+                    <div>
+                      <strong>{photographer?.name || item.applicantName}</strong>
+                      <span>
+                        {request?.title || "Cobertura"} · {item.applicantEmail}
+                      </span>
+                    </div>
+                    <select
+                      value={item.status}
+                      onChange={(event) =>
+                        patch(`/api/platform/coverage-applications/${item.id}`, { status: event.target.value })
+                      }
+                    >
+                      <option value="pending">Pendiente</option>
+                      <option value="shortlisted">Preseleccionada</option>
+                      <option value="accepted">Aceptada</option>
+                      <option value="rejected">Rechazada</option>
+                      <option value="withdrawn">Retirada</option>
+                    </select>
+                    <div className="platform-admin-fields">
+                      <input
+                        placeholder="URL del material entregado"
+                        defaultValue={item.deliveryUrl || ""}
+                        onBlur={(event) =>
+                          patch(`/api/platform/coverage-applications/${item.id}`, { deliveryUrl: event.target.value })
+                        }
+                      />
+                      <textarea
+                        placeholder="Notas de entrega / créditos"
+                        defaultValue={item.deliveryNotes || ""}
+                        onBlur={(event) =>
+                          patch(`/api/platform/coverage-applications/${item.id}`, {
+                            deliveryNotes: event.target.value,
+                          })
+                        }
+                        rows="2"
+                      />
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <p className="muted">Todavía no hay postulaciones.</p>
+            )}
+          </section>
+          <section className="admin-platform-panel">
+            <p className="eyebrow">Coordinación</p>
+            <h2>Pedidos de traslado.</h2>
+            {snapshot.transportRequests.length ? (
+              snapshot.transportRequests.map((item) => (
+                <article className="platform-admin-row" key={item.id}>
+                  <div>
+                    <strong>
+                      {item.name} · {item.partySize} persona(s)
+                    </strong>
+                    <span>
+                      {item.origin} · {item.email}
+                    </span>
+                  </div>
+                  <select
+                    value={item.status}
+                    onChange={(event) =>
+                      patch(`/api/platform/transport-requests/${item.id}`, { status: event.target.value })
+                    }
+                  >
+                    <option value="new">Nuevo</option>
+                    <option value="contacted">Contactado</option>
+                    <option value="confirmed">Confirmado</option>
+                    <option value="cancelled">Cancelado</option>
+                  </select>
+                </article>
+              ))
+            ) : (
+              <p className="muted">No hay pedidos de traslado.</p>
             )}
           </section>
           <section className="admin-platform-panel">
@@ -281,55 +414,57 @@ function PlatformAdmin({ actor }) {
               Publicar traslado ↗
             </button>
           </form>
-          <form className="form admin-platform-panel" onSubmit={createListing}>
-            <p className="eyebrow">Orux / Marketplace</p>
-            <h2>Agregar una propuesta.</h2>
-            <label>
-              Nombre
-              <input
-                required
-                value={listing.name}
-                onChange={(event) => setListing({ ...listing, name: event.target.value })}
-              />
-            </label>
-            <label>
-              Categoría
-              <select
-                value={listing.category}
-                onChange={(event) => setListing({ ...listing, category: event.target.value })}
-              >
-                <option value="merch">Merch</option>
-                <option value="service">Servicio</option>
-                <option value="benefit">Beneficio</option>
-              </select>
-            </label>
-            <label>
-              Descripción
-              <textarea
-                rows="3"
-                value={listing.description}
-                onChange={(event) => setListing({ ...listing, description: event.target.value })}
-              />
-            </label>
-            <label>
-              URL de Orux o producto
-              <input
-                type="url"
-                value={listing.productUrl}
-                onChange={(event) => setListing({ ...listing, productUrl: event.target.value })}
-              />
-            </label>
-            <label>
-              Precio / leyenda
-              <input
-                value={listing.priceLabel}
-                onChange={(event) => setListing({ ...listing, priceLabel: event.target.value })}
-              />
-            </label>
-            <button className="button dark" type="submit">
-              Agregar al catálogo ↗
-            </button>
-          </form>
+          {canEditCatalog && (
+            <form className="form admin-platform-panel" onSubmit={createListing}>
+              <p className="eyebrow">Orux / Marketplace</p>
+              <h2>Agregar una propuesta.</h2>
+              <label>
+                Nombre
+                <input
+                  required
+                  value={listing.name}
+                  onChange={(event) => setListing({ ...listing, name: event.target.value })}
+                />
+              </label>
+              <label>
+                Categoría
+                <select
+                  value={listing.category}
+                  onChange={(event) => setListing({ ...listing, category: event.target.value })}
+                >
+                  <option value="merch">Merch</option>
+                  <option value="service">Servicio</option>
+                  <option value="benefit">Beneficio</option>
+                </select>
+              </label>
+              <label>
+                Descripción
+                <textarea
+                  rows="3"
+                  value={listing.description}
+                  onChange={(event) => setListing({ ...listing, description: event.target.value })}
+                />
+              </label>
+              <label>
+                URL de Orux o producto
+                <input
+                  type="url"
+                  value={listing.productUrl}
+                  onChange={(event) => setListing({ ...listing, productUrl: event.target.value })}
+                />
+              </label>
+              <label>
+                Precio / leyenda
+                <input
+                  value={listing.priceLabel}
+                  onChange={(event) => setListing({ ...listing, priceLabel: event.target.value })}
+                />
+              </label>
+              <button className="button dark" type="submit">
+                Agregar al catálogo ↗
+              </button>
+            </form>
+          )}
         </div>
       </main>
     </Layout>
@@ -339,7 +474,7 @@ function PlatformAdmin({ actor }) {
 export function AdminPlatformPage() {
   return (
     <AuthGate allowedRoles={["admin", "editor", "press", "community"]}>
-      <PlatformAdmin />
+      {(actor) => <PlatformAdmin actor={actor} />}
     </AuthGate>
   );
 }
