@@ -24,6 +24,18 @@ const emptyListing = {
   externalId: "",
 };
 
+const insuranceProductLabels = {
+  ap: "Accidentes personales",
+  art: "ART",
+  vida: "Seguro de vida",
+  robo_equipos: "Robo de equipos",
+};
+
+const insuranceProductsLabel = (item) =>
+  item.coverageTypes?.length
+    ? item.coverageTypes.map((product) => insuranceProductLabels[product] || product).join(" + ")
+    : item.coverageType;
+
 function PlatformAdmin({ actor }) {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
@@ -199,8 +211,9 @@ function PlatformAdmin({ actor }) {
                   <div>
                     <strong>{item.name}</strong>
                     <span>
-                      {item.coverageType} · {item.email} · {item.peopleCount} persona(s)
+                      {insuranceProductsLabel(item)} · {item.email} · {item.peopleCount} persona(s)
                     </span>
+                    <small>DNI: {item.dni || "No indicado"}</small>
                     <small>
                       Aviso: {item.notificationStatus === "sent" ? "enviado" : item.notificationStatus || "pendiente"}
                       {item.mailThreadId ? " · hilo en bandeja creado" : ""}
