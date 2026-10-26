@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { api } from "../services/api.js";
@@ -22,9 +23,11 @@ const routeKindLabel = (kind) => (kind === "distribution" ? "Difusión" : "Perso
 const emptyRouteForm = { address: "", label: "", destinations: "" };
 
 function MailboxContent({ actor }) {
+  const [searchParams] = useSearchParams();
+  const requestedThreadId = searchParams.get("thread") || "";
   const [threads, setThreads] = useState([]);
   const [routes, setRoutes] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(requestedThreadId);
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");
