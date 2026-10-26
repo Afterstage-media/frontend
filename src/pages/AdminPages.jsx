@@ -196,6 +196,7 @@ function AdminDashboard({ actor }) {
       <section className="admin-utility-nav" aria-label="Herramientas de gestión">
         <span className="admin-utility-label">Atajos</span>
         <Link to="/admin/prensa">Agenda de prensa</Link>
+        <Link to="/admin/plataforma">Operaciones de plataforma</Link>
         <Link to="/directorio">Directorio</Link>
         <Link to="/admin/reemplazos">Reemplazos</Link>
         {actor.roles.includes("admin") && <Link to="/admin/instagram">Cuenta de Instagram</Link>}

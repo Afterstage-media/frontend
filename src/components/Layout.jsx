@@ -246,6 +246,7 @@ function LayoutShell({ children }) {
                   <NavLink to="/admin/redes">Redes</NavLink>
                   <NavLink to="/admin/prensa">Prensa</NavLink>
                   <NavLink to="/admin/correo">Correo</NavLink>
+                  {can("admin", "editor", "press", "community") && <NavLink to="/admin/plataforma">Plataforma</NavLink>}
                   <span className="nav-divider" aria-hidden="true" />
                   <span className="nav-group-label">Gestionar</span>
                   <NavLink to="/admin/directorio">Directorio</NavLink>
@@ -267,8 +268,12 @@ function LayoutShell({ children }) {
                   </NavLink>
                   <NavLink to="/notas">Notas</NavLink>
                   <NavLink to="/agenda">Agenda</NavLink>
-                  {can("admin", "editor", "community") && <NavLink to="/comunidad">Comunidad</NavLink>}
+                  <NavLink to="/comunidad">Comunidad</NavLink>
+                  <NavLink to="/red">Red</NavLink>
                   <NavLink to="/servicios">Servicios</NavLink>
+                  <NavLink to="/marketplace">Marketplace</NavLink>
+                  <NavLink to="/seguros">Seguros</NavLink>
+                  <NavLink to="/traslados">Traslados</NavLink>
                   {can("admin", "editor", "press", "directory") && <NavLink to="/directorio">Directorio</NavLink>}
                   {can("admin", "editor", "community") && <NavLink to="/publicar">Publicar</NavLink>}
                   {can("admin", "editor", "press", "community", "social") && (
@@ -317,6 +322,10 @@ function LayoutShell({ children }) {
                   <WorkspaceLink to="/notas">Notas</WorkspaceLink>
                   <WorkspaceLink to="/agenda">Agenda</WorkspaceLink>
                   <WorkspaceLink to="/servicios">Servicios</WorkspaceLink>
+                  <WorkspaceLink to="/red">Red de trabajo</WorkspaceLink>
+                  <WorkspaceLink to="/marketplace">Marketplace</WorkspaceLink>
+                  <WorkspaceLink to="/seguros">Seguros</WorkspaceLink>
+                  <WorkspaceLink to="/traslados">Traslados</WorkspaceLink>
                 </WorkspaceSection>
 
                 {(can("admin", "editor", "community") || can("press", "social")) && (
@@ -347,6 +356,9 @@ function LayoutShell({ children }) {
                   )}
                   {can("admin", "press") && (
                     <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>
+                  )}
+                  {can("admin", "editor", "press", "community") && (
+                    <WorkspaceLink to="/admin/plataforma">Operaciones de plataforma</WorkspaceLink>
                   )}
                   {can("admin", "social") && <WorkspaceLink to="/admin/instagram">Cuenta de Instagram</WorkspaceLink>}
                   {can("admin") && <WorkspaceLink to="/admin/usuarios">Usuarios</WorkspaceLink>}
