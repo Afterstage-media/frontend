@@ -19,6 +19,7 @@
   padding-bottom: 70px;
   padding-top: 85px;
   position: relative;
+  scroll-margin-top: 92px;
 }
 
 .page-intro::after {

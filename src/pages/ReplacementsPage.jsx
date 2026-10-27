@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
@@ -80,10 +81,20 @@ function Board() {
           ))}
         </div>
       ) : (
-        <EmptyState
-          title="Todavía no hay búsquedas abiertas."
-          message="Cuando aparezca una cobertura para sumar fotógrafos, noteros o videógrafos, la vas a encontrar acá."
-        />
+        <>
+          <EmptyState
+            title="Todavía no hay búsquedas abiertas."
+            message="Cuando aparezca una cobertura para sumar fotógrafos, noteros o videógrafos, la vas a encontrar acá."
+          />
+          <div className="empty-state-actions">
+            <Link className="button dark" to="/red">
+              Ofrecer mi trabajo
+            </Link>
+            <Link className="button ghost" to="/agenda">
+              Explorar la agenda
+            </Link>
+          </div>
+        </>
       )}
       {selected && (
         <form className="form" onSubmit={apply}>

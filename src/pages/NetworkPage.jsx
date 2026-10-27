@@ -242,7 +242,9 @@ export function NetworkPage() {
           <form className="form network-form" onSubmit={submitPhotographer}>
             <p className="eyebrow">Sumar perfil</p>
             <h2>Quiero trabajar con la red.</h2>
-            <p>El perfil queda en revisión antes de publicarse.</p>
+            <p>
+              Empezá con los datos básicos. El perfil queda en revisión antes de publicarse y después podés completarlo.
+            </p>
             <label>
               Nombre
               <input
@@ -262,6 +264,7 @@ export function NetworkPage() {
             <label>
               Especialidades
               <input
+                required
                 placeholder="Recitales, retrato, backstage"
                 value={photographerForm.specialties}
                 onChange={(event) => setPhotographerForm({ ...photographerForm, specialties: event.target.value })}
@@ -275,47 +278,54 @@ export function NetworkPage() {
                 onChange={(event) => setPhotographerForm({ ...photographerForm, portfolioUrl: event.target.value })}
               />
             </label>
-            <label>
-              Fotos de portfolio (hasta 10 URLs, una por línea)
-              <textarea
-                placeholder="https://…/foto-01.jpg"
-                rows="3"
-                value={photographerForm.portfolioUrls}
-                onChange={(event) => setPhotographerForm({ ...photographerForm, portfolioUrls: event.target.value })}
-              />
-            </label>
-            <label>
-              Instagram
-              <input
-                value={photographerForm.instagram}
-                onChange={(event) => setPhotographerForm({ ...photographerForm, instagram: event.target.value })}
-              />
-            </label>
-            <label>
-              Bio
-              <textarea
-                rows="3"
-                value={photographerForm.bio}
-                onChange={(event) => setPhotographerForm({ ...photographerForm, bio: event.target.value })}
-              />
-            </label>
-            <label>
-              Fotos de referencia
-              <input
-                min="0"
-                type="number"
-                value={photographerForm.sampleCount}
-                onChange={(event) => setPhotographerForm({ ...photographerForm, sampleCount: event.target.value })}
-              />
-            </label>
-            <label>
-              Disponibilidad
-              <input
-                placeholder="Fines de semana, AMBA…"
-                value={photographerForm.availability}
-                onChange={(event) => setPhotographerForm({ ...photographerForm, availability: event.target.value })}
-              />
-            </label>
+            <details className="form-optional-fields">
+              <summary>Agregar portfolio y disponibilidad (opcional)</summary>
+              <div className="form-optional-fields-content">
+                <label>
+                  Fotos de portfolio (hasta 10 URLs, una por línea)
+                  <textarea
+                    placeholder="https://…/foto-01.jpg"
+                    rows="3"
+                    value={photographerForm.portfolioUrls}
+                    onChange={(event) =>
+                      setPhotographerForm({ ...photographerForm, portfolioUrls: event.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Instagram
+                  <input
+                    value={photographerForm.instagram}
+                    onChange={(event) => setPhotographerForm({ ...photographerForm, instagram: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Bio
+                  <textarea
+                    rows="3"
+                    value={photographerForm.bio}
+                    onChange={(event) => setPhotographerForm({ ...photographerForm, bio: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Cantidad de fotos de referencia
+                  <input
+                    min="0"
+                    type="number"
+                    value={photographerForm.sampleCount}
+                    onChange={(event) => setPhotographerForm({ ...photographerForm, sampleCount: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Disponibilidad
+                  <input
+                    placeholder="Fines de semana, AMBA…"
+                    value={photographerForm.availability}
+                    onChange={(event) => setPhotographerForm({ ...photographerForm, availability: event.target.value })}
+                  />
+                </label>
+              </div>
+            </details>
             <label>
               Email de contacto
               <input
