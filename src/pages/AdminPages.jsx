@@ -946,8 +946,19 @@ function ContentEditorPage() {
     return (
       <Layout>
         <section className="page-intro">
-          <ErrorMessage error={error} />
-          <p className="muted">Cargando contenido…</p>
+          {error ? (
+            <>
+              <ErrorMessage error={error} />
+              <p className="muted">La publicación que buscás no está disponible o fue eliminada.</p>
+              <Link className="button" to="/admin">
+                Volver a redacción ↗
+              </Link>
+            </>
+          ) : (
+            <p className="muted" role="status" aria-live="polite">
+              Cargando contenido…
+            </p>
+          )}
         </section>
       </Layout>
     );
