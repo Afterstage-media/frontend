@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -29,6 +29,8 @@ const servicesStyles = await read("src/styles/pages/services.css");
 const navigationStyles = await read("src/styles/navigation.css");
 const navigationRedesignStyles = await read("src/styles/navigation-redesign.css");
 const styles = await read("src/styles/responsive.css");
+const pageFiles = (await readdir(path.join(root, "src/pages"))).filter((file) => file.endsWith(".jsx"));
+const pageSources = (await Promise.all(pageFiles.map((file) => read(`src/pages/${file}`)))).join("\n");
 
 assert.match(home, /LoadingState/);
 assert.match(home, /ErrorState/);
@@ -136,5 +138,7 @@ assert.match(navigationRedesignStyles, /\.header-search-form[\s\S]*position: abs
 assert.match(navigationRedesignStyles, /\.header-search-icon[\s\S]*position: absolute/);
 assert.match(layout, /WorkspaceSection/);
 assert.match(styles, /\.auth-form/);
+assert.doesNotMatch(pageSources, /useEffect\(load/);
+assert.doesNotMatch(pageSources, /useEffect\(async/);
 
 console.log("UX smoke checks passed: resilient states, navigation, auth layout and mobile rules are present.");
