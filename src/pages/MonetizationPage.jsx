@@ -41,6 +41,10 @@ const invalidFieldMessages = {
   description: "La descripción debe tener al menos 10 caracteres.",
 };
 
+const focusField = (name) => {
+  window.setTimeout(() => document.querySelector(`[name="${name}"]`)?.focus(), 0);
+};
+
 const promotionStatusLabels = {
   pending_payment: "Pendiente de pago",
   paid: "Pago recibido",
@@ -103,14 +107,23 @@ export function MonetizationPage() {
   const invalid = (event) => {
     event.preventDefault();
     setError(invalidFieldMessages[event.target.name] || "Completá los campos obligatorios.");
+    if (event.target.name) focusField(event.target.name);
   };
   const continueToDetails = (event) => {
     event.preventDefault();
     setError("");
-    if (!form.customerName.trim()) return setError(invalidFieldMessages.customerName);
-    if (!form.customerEmail.trim() || !isEmail(form.customerEmail.trim()))
-      return setError(invalidFieldMessages.customerEmail);
-    if (!form.title.trim()) return setError(invalidFieldMessages.title);
+    if (!form.customerName.trim()) {
+      setError(invalidFieldMessages.customerName);
+      return focusField("customerName");
+    }
+    if (!form.customerEmail.trim() || !isEmail(form.customerEmail.trim())) {
+      setError(invalidFieldMessages.customerEmail);
+      return focusField("customerEmail");
+    }
+    if (!form.title.trim()) {
+      setError(invalidFieldMessages.title);
+      return focusField("title");
+    }
     setFormStep(2);
   };
   const submit = async (event) => {
@@ -118,6 +131,13 @@ export function MonetizationPage() {
     const validationError = validatePromotionForm(form);
     if (validationError) {
       setError(validationError);
+      const invalidField = Object.entries(invalidFieldMessages).find(([name]) => {
+        if (name === "customerName") return !form.customerName.trim();
+        if (name === "customerEmail") return !form.customerEmail.trim() || !isEmail(form.customerEmail.trim());
+        if (name === "title") return !form.title.trim();
+        return form.description.trim().length < 10;
+      });
+      if (invalidField) focusField(invalidField[0]);
       return;
     }
     setLoading(true);

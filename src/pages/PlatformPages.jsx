@@ -46,6 +46,10 @@ const createEmptyInsurance = () => ({
 
 const insuranceProductLabel = (value) => insuranceProducts.find((product) => product.value === value)?.label || value;
 
+const focusField = (name) => {
+  window.setTimeout(() => document.querySelector(`[name="${name}"]`)?.focus(), 0);
+};
+
 export function InsurancePage() {
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get("eventId") || "";
@@ -58,18 +62,22 @@ export function InsurancePage() {
     setError("");
     if (!form.coverageTypes.length) {
       setError("Elegí al menos un producto para cotizar.");
+      focusField("coverageTypes");
       return;
     }
     if (!form.name.trim()) {
       setError("Ingresá tu nombre y apellido.");
+      focusField("name");
       return;
     }
     if (!form.dni.trim()) {
       setError("Ingresá tu DNI.");
+      focusField("dni");
       return;
     }
     if (!form.email.trim()) {
       setError("Ingresá un email para poder contactarte.");
+      focusField("email");
       return;
     }
     setInsuranceStep(2);
@@ -80,6 +88,7 @@ export function InsurancePage() {
     setError("");
     if (!form.coverageTypes.length) {
       setError("Elegí al menos un producto para cotizar.");
+      focusField("coverageTypes");
       return;
     }
     try {
@@ -151,6 +160,7 @@ export function InsurancePage() {
                 <label>
                   Nombre y apellido
                   <input
+                    name="name"
                     required
                     value={form.name}
                     onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -159,6 +169,7 @@ export function InsurancePage() {
                 <label>
                   DNI
                   <input
+                    name="dni"
                     required
                     value={form.dni}
                     onChange={(event) => setForm({ ...form, dni: event.target.value })}
@@ -167,6 +178,7 @@ export function InsurancePage() {
                 <label>
                   Organización
                   <input
+                    name="organization"
                     value={form.organization}
                     onChange={(event) => setForm({ ...form, organization: event.target.value })}
                   />
@@ -174,6 +186,7 @@ export function InsurancePage() {
                 <label>
                   Email
                   <input
+                    name="email"
                     required
                     type="email"
                     value={form.email}
@@ -183,7 +196,11 @@ export function InsurancePage() {
               </div>
               <label>
                 Teléfono
-                <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                />
               </label>
               <fieldset className="form-fieldset">
                 <legend>¿Qué querés cotizar?</legend>
@@ -196,6 +213,7 @@ export function InsurancePage() {
                     return (
                       <label className={`insurance-product ${selected ? "selected" : ""}`} key={product.value}>
                         <input
+                          name="coverageTypes"
                           type="checkbox"
                           checked={selected}
                           onChange={() =>
