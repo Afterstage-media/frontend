@@ -97,6 +97,33 @@
   margin: 0;
 }
 
+.auth-form h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 0.88;
+  margin: 0;
+}
+
+.auth-recovery-link {
+  background: transparent;
+  border: 0;
+  color: var(--color-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-recovery-link:hover,
+.auth-recovery-link:focus-visible {
+  color: var(--color-ink);
+}
+
 .form input::placeholder,
 .form textarea::placeholder,
 .editor-form input::placeholder,
