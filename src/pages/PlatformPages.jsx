@@ -533,10 +533,13 @@ export function InsurancePage() {
 }
 
 export function MarketplacePage() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(searchParams.get("category") || "");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const eventId = searchParams.get("eventId") || "";
+  const eventName = searchParams.get("eventName") || "";
   const load = () => {
     setLoading(true);
     setError("");
@@ -555,6 +558,12 @@ export function MarketplacePage() {
         <p className="eyebrow">Lo que queda después del show / 01</p>
         <h1>Una vidriera conectada a la escena.</h1>
         <p>Merchandising, servicios y beneficios administrados desde la infraestructura comercial de Orux.</p>
+        {eventName && (
+          <p className="event-context-banner" role="status">
+            <strong>Explorando opciones para {eventName}</strong>
+            {eventId && <Link to={`/agenda/evento/${eventId}`}>Volver al evento ↗</Link>}
+          </p>
+        )}
       </section>
       <section className="marketplace-toolbar" aria-label="Filtros del marketplace">
         <button className={!category ? "button dark" : "button ghost"} onClick={() => setCategory("")} type="button">

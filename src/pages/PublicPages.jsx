@@ -1,20 +1,28 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { EditorialIntro, SignalTicker } from "../components/EditorialPrimitives.jsx";
 export function CommunityPage() {
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get("eventId") || "";
+  const eventName = searchParams.get("eventName") || "";
+  const networkUrl = eventId ? `/red?${searchParams.toString()}` : "/red";
   return (
     <Layout>
       <SignalTicker items={["Comunidad", "Noteros", "Fotógrafos", "Bandas", "Fans"]} />
       <EditorialIntro
         eyebrow="Comunidad / 03"
         title="La escena se cuenta entre todes."
-        description="Una red para encontrar personas, oportunidades, coberturas, traslados y conversaciones alrededor de cada show."
+        description={
+          eventName
+            ? `Una red para encontrar personas, oportunidades y coberturas alrededor de ${eventName}.`
+            : "Una red para encontrar personas, oportunidades, coberturas, traslados y conversaciones alrededor de cada show."
+        }
         action={
           <div className="actions">
-            <Link className="button" to="/red">
+            <Link className="button" to={networkUrl}>
               Explorar la red ↗
             </Link>
             <Link className="button ghost" to="/agenda">
