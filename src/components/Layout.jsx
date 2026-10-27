@@ -35,12 +35,10 @@ function LayoutShell({ children }) {
   const reflectorStageRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const isWorkspaceRoute =
-    location.pathname.startsWith("/admin") ||
-    ["/directorio", "/publicar", "/reemplazos", "/cuenta", "/colaborador"].some(
-      (route) => location.pathname === route || location.pathname.startsWith(`${route}/`),
-    );
-  const isWorkspace = roles?.length > 0 && isWorkspaceRoute;
+  const hasStoredSession = typeof window !== "undefined" && Boolean(window.localStorage.getItem("afterstage-token"));
+  // Once a session exists, keep the workspace shell on every route, including public content.
+  // This prevents the header and navigation model from changing while a logged-in person browses.
+  const isWorkspace = roles?.length > 0 || (roles === null && hasStoredSession);
   const isAdminPath = location.pathname.startsWith("/admin") && roles?.length > 0;
 
   useEffect(() => {
@@ -358,6 +356,9 @@ function LayoutShell({ children }) {
                     {can("admin", "editor", "community") && (
                       <WorkspaceLink to="/publicar">Proponer contenido</WorkspaceLink>
                     )}
+                    {can("admin", "editor", "press", "community", "social") && (
+                      <WorkspaceLink to="/reemplazos">Postularse a coberturas</WorkspaceLink>
+                    )}
                   </WorkspaceSection>
                 )}
 
@@ -365,12 +366,7 @@ function LayoutShell({ children }) {
                   {can("admin", "editor", "press", "directory", "auditor") && (
                     <WorkspaceLink to="/directorio">Directorio</WorkspaceLink>
                   )}
-                  {can("admin", "editor", "press", "community", "social") && (
-                    <WorkspaceLink to="/reemplazos">Reemplazos</WorkspaceLink>
-                  )}
-                  {can("admin", "press") && (
-                    <WorkspaceLink to="/admin/reemplazos">Administrar reemplazos</WorkspaceLink>
-                  )}
+                  {can("admin", "press") && <WorkspaceLink to="/admin/reemplazos">Gestionar coberturas</WorkspaceLink>}
                   {can("admin", "editor", "press", "community") && (
                     <WorkspaceLink to="/admin/plataforma">Operaciones de plataforma</WorkspaceLink>
                   )}
