@@ -88,6 +88,7 @@ export function AgendaPage() {
   });
   const [loading, setLoading] = useState(true);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [eventLimit] = useState(() => (typeof window !== "undefined" && window.innerWidth <= 600 ? 6 : 12));
   const [locationMessage, setLocationMessage] = useState("");
   const [scrollOffset, setScrollOffset] = useState(0);
   const load = (nextFilters = filters) => {
@@ -173,7 +174,7 @@ export function AgendaPage() {
   const handleVisibleEventsChange = useCallback((eventIds) => {
     setVisibleEventIds(new Set(eventIds));
   }, []);
-  const visibleEvents = showAllEvents ? events : events.slice(0, 12);
+  const visibleEvents = showAllEvents ? events : events.slice(0, eventLimit);
   const mapVisibleEvents =
     visibleEventIds === null
       ? events.filter(eventHasCoordinates)
@@ -369,7 +370,7 @@ export function AgendaPage() {
                   Mostrar los {events.length - visibleEvents.length} eventos restantes ↓
                 </button>
               )}
-              {showAllEvents && events.length > 12 && (
+              {showAllEvents && events.length > eventLimit && (
                 <button className="button ghost events-show-more" onClick={() => setShowAllEvents(false)} type="button">
                   Mostrar menos ↑
                 </button>
