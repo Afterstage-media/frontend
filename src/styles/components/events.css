@@ -764,6 +764,37 @@
   text-underline-offset: 4px;
 }
 
+.event-related-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.event-context-link {
+  border: 1px solid color-mix(in srgb, var(--color-ink) 55%, transparent);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 7px 8px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.event-context-link:hover,
+.event-context-link:focus-visible {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  text-decoration: none;
+}
+
+.event-context-link-accent {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
 @keyframes event-in {
   from {
     opacity: 0;
