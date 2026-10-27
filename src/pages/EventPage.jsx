@@ -230,7 +230,7 @@ export function EventPage() {
             ) : (
               <p className="muted">Todavía no hay conversaciones. Abrí la primera.</p>
             )}
-            <form className="compact-form" onSubmit={submitThread}>
+            <form className="compact-form event-action-form" onSubmit={submitThread}>
               <h3>Abrir conversación</h3>
               <div className="form-grid">
                 <label>
@@ -331,7 +331,7 @@ export function EventPage() {
             ) : (
               <p className="muted">Todavía no hay traslados publicados para esta fecha.</p>
             )}
-            <form className="compact-form" onSubmit={submitTransport}>
+            <form className="compact-form event-action-form" onSubmit={submitTransport}>
               <label>
                 Nombre
                 <input

@@ -27,6 +27,9 @@ function LayoutShell({ children }) {
   const [roles, setRoles] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchScope, setSearchScope] = useState(() =>
+    typeof window !== "undefined" && window.location.pathname.startsWith("/agenda") ? "eventos" : "notas",
+  );
   const [collapsedSections, setCollapsedSections] = useState({});
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
@@ -141,7 +144,7 @@ function LayoutShell({ children }) {
   const submitSearch = (event) => {
     event.preventDefault();
     const query = searchQuery.trim();
-    const destination = location.pathname.startsWith("/agenda") ? "/agenda" : "/notas";
+    const destination = searchScope === "eventos" ? "/agenda" : "/notas";
     navigate(query ? `${destination}?q=${encodeURIComponent(query)}` : destination);
   };
 
@@ -212,22 +215,28 @@ function LayoutShell({ children }) {
           >
             <span /> <span /> <span />
           </button>
-          <form
-            aria-label={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"} en afterstage`}
-            className="header-search-form"
-            onSubmit={submitSearch}
-            role="search"
-          >
+          <form aria-label="Buscar en Afterstage" className="header-search-form" onSubmit={submitSearch} role="search">
             <span aria-hidden="true" className="header-search-icon">
               ⌕
             </span>
+            <label className="header-search-scope">
+              <span className="sr-only">Buscar en</span>
+              <select
+                aria-label="Alcance de búsqueda"
+                onChange={(event) => setSearchScope(event.target.value)}
+                value={searchScope}
+              >
+                <option value="notas">Notas</option>
+                <option value="eventos">Eventos</option>
+              </select>
+            </label>
             <input
-              aria-label={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"}`}
+              aria-label="Términos de búsqueda"
               onChange={(event) => setSearchQuery(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") submitSearch(event);
               }}
-              placeholder={`Buscar ${location.pathname.startsWith("/agenda") ? "eventos" : "notas"}`}
+              placeholder="Buscar en Afterstage"
               type="search"
               value={searchQuery}
             />

@@ -70,6 +70,9 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           required
         />
       </label>
+      <p className="auth-help">
+        ¿Perdiste el acceso? Escribinos desde el canal de contacto de Afterstage para recuperar tu cuenta.
+      </p>
       {collaborator && registering && (
         <label>
           Repetir contraseña

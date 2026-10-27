@@ -498,10 +498,20 @@ export function MarketplacePage() {
         ) : error ? (
           <ErrorMessage error={error} />
         ) : items.length === 0 ? (
-          <EmptyState
-            title="El catálogo se está armando."
-            message="Pronto vas a encontrar productos y beneficios de la escena."
-          />
+          <>
+            <EmptyState
+              title="El catálogo se está armando."
+              message="Pronto vas a encontrar productos y beneficios de la escena."
+            />
+            <div className="empty-state-actions">
+              <Link className="button dark" to="/servicios">
+                Ver servicios
+              </Link>
+              <Link className="button ghost" to="/red">
+                Explorar la red
+              </Link>
+            </div>
+          </>
         ) : (
           items.map((item) => (
             <article className="marketplace-card" key={item.id}>
@@ -529,6 +539,7 @@ export function MarketplacePage() {
 export function TransportPage() {
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
+  const [eventQuery, setEventQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(searchParams.get("eventId") || "");
   const [offers, setOffers] = useState([]);
   const [form, setForm] = useState({ name: "", email: "", origin: "", partySize: "1", notes: "", offerId: "" });
@@ -545,6 +556,15 @@ export function TransportPage() {
       .then(setOffers)
       .catch(() => setOffers([]));
   }, [selectedEvent]);
+  const visibleEvents = events.filter((event) => {
+    const query = eventQuery.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [event.artist, event.name, event.city, event.venue, event.startsAt]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(query);
+  });
   const submit = async (event) => {
     event.preventDefault();
     setStatus("");
@@ -572,23 +592,39 @@ export function TransportPage() {
         <div className="transport-events">
           <p className="eyebrow">Fechas próximas</p>
           <h2>¿A qué show vas?</h2>
+          <label className="transport-search">
+            Buscar por artista, ciudad o sala
+            <input
+              aria-label="Buscar una fecha de traslado"
+              onChange={(event) => setEventQuery(event.target.value)}
+              placeholder="Ej.: Rosario o nombre del artista"
+              type="search"
+              value={eventQuery}
+            />
+          </label>
           {events.length === 0 ? (
             <LoadingState label="Buscando fechas…" />
           ) : (
-            <div className="transport-event-list">
-              {events.map((event) => (
-                <button
-                  className={`transport-event ${selectedEvent === event.id ? "is-selected" : ""}`}
-                  key={event.id}
-                  onClick={() => setSelectedEvent(event.id)}
-                  type="button"
-                >
-                  <strong>{event.artist || event.name}</strong>
-                  <span>{event.city || event.venue || "Fecha"}</span>
-                  <small>{event.startsAt ? formatEventDateValue(event.startsAt) : "Consultar fecha"}</small>
-                </button>
-              ))}
-            </div>
+            <>
+              <p className="muted transport-results-count">
+                {visibleEvents.length} {visibleEvents.length === 1 ? "fecha encontrada" : "fechas encontradas"}
+              </p>
+              <div className="transport-event-list">
+                {visibleEvents.map((event) => (
+                  <button
+                    className={`transport-event ${selectedEvent === event.id ? "is-selected" : ""}`}
+                    key={event.id}
+                    onClick={() => setSelectedEvent(event.id)}
+                    type="button"
+                  >
+                    <strong>{event.artist || event.name}</strong>
+                    <span>{event.city || event.venue || "Fecha"}</span>
+                    <small>{event.startsAt ? formatEventDateValue(event.startsAt) : "Consultar fecha"}</small>
+                  </button>
+                ))}
+              </div>
+              {!visibleEvents.length && <p className="muted">No encontramos fechas con esa búsqueda.</p>}
+            </>
           )}
         </div>
         <div className="transport-request-panel">

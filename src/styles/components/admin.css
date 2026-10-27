@@ -654,6 +654,22 @@
   gap: 6px;
 }
 
+.admin-record-meta {
+  align-items: end;
+  color: var(--color-muted);
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  text-align: right;
+}
+
+.admin-record-cta {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .verification-actions {
   align-items: end;
   display: flex;

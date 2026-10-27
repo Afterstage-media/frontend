@@ -118,7 +118,10 @@ function ContentCard({ item, onSelect }) {
         <h3>{item.title}</h3>
         <p>{item.summary}</p>
       </div>
-      <span>{item.channels?.join(" · ")}</span>
+      <div className="admin-record-meta">
+        <span>{item.channels?.join(" · ")}</span>
+        <strong className="admin-record-cta">Abrir editor ↗</strong>
+      </div>
     </article>
   );
 }
