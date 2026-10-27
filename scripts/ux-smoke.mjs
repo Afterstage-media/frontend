@@ -147,13 +147,10 @@ assert.match(services, /Propuestas disponibles/);
 assert.match(services, /data-parallax/);
 assert.match(services, /IntersectionObserver/);
 assert.match(services, /prefers-reduced-motion/);
-<<<<<<< HEAD
 assert.match(platform, /MarketplacePage/);
 assert.match(platform, /searchParams.get\("eventId"\)/);
 assert.match(publicPages, /networkUrl/);
-=======
 assert.match(services, /Elegí qué resolver/);
->>>>>>> origin/main
 assert.match(servicesStyles, /top: var\(--services-header-offset\)/);
 assert.match(servicesStyles, /scroll-margin-top/);
 assert.match(servicesStyles, /service-request-intro h1/);
