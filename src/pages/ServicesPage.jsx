@@ -92,6 +92,8 @@ export function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeLane, setActiveLane] = useState("entradas");
+  const [selectedLane, setSelectedLane] = useState("entradas");
+  const [showAll, setShowAll] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -190,8 +192,42 @@ export function ServicesPage() {
           </div>
         </section>
 
+        <section className="services-intent-filter" aria-labelledby="services-intent-title">
+          <div>
+            <p className="eyebrow">Elegí por dónde empezar</p>
+            <h2 id="services-intent-title">¿Qué querés resolver?</h2>
+          </div>
+          <div className="services-intent-options" role="tablist" aria-label="Objetivo del servicio">
+            {lanes.map((lane) => (
+              <button
+                aria-selected={selectedLane === lane.id && !showAll}
+                className={selectedLane === lane.id && !showAll ? "is-active" : ""}
+                key={lane.id}
+                onClick={() => {
+                  setSelectedLane(lane.id);
+                  setActiveLane(lane.id);
+                  setShowAll(false);
+                }}
+                role="tab"
+                type="button"
+              >
+                {lane.eyebrow}
+              </button>
+            ))}
+            <button
+              aria-selected={showAll}
+              className={showAll ? "is-active" : ""}
+              onClick={() => setShowAll(true)}
+              role="tab"
+              type="button"
+            >
+              Ver todo
+            </button>
+          </div>
+        </section>
+
         <nav className="services-jump-nav" aria-label="Secciones de servicios">
-          {lanes.map((lane) => (
+          {(showAll ? lanes : lanes.filter((lane) => lane.id === selectedLane)).map((lane) => (
             <a aria-current={activeLane === lane.id ? "true" : undefined} href={`#${lane.id}`} key={lane.id}>
               <span>{lane.number}</span> {lane.eyebrow}
             </a>
@@ -204,7 +240,7 @@ export function ServicesPage() {
           <ErrorState message="No pudimos cargar el catálogo de servicios." onRetry={load} />
         ) : (
           <div className="services-lanes">
-            {lanes.map((lane) => {
+            {(showAll ? lanes : lanes.filter((lane) => lane.id === selectedLane)).map((lane) => {
               const laneProducts = lane.productIds.map((id) => byId.get(id)).filter(Boolean);
               return (
                 <section className={`services-lane ${lane.className}`} data-reveal id={lane.id} key={lane.id}>

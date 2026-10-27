@@ -25,6 +25,60 @@
   grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.75fr);
 }
 
+.network-mode-switcher {
+  margin: 0 auto;
+  max-width: var(--content-width);
+  padding: 0 var(--gutter) 8px;
+}
+
+.network-mode-switcher .eyebrow {
+  margin-bottom: 10px;
+}
+
+.network-mode-switcher [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.network-mode-switcher button {
+  background: transparent;
+  border: var(--border-soft);
+  color: var(--color-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  min-height: 46px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.network-mode-switcher button:hover,
+.network-mode-switcher button:focus-visible,
+.network-mode-switcher button.is-active {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.network-mode-switcher button.is-active {
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+}
+
+.network-form-guide {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.network-form-guide .eyebrow,
+.network-form-guide p {
+  color: rgb(255 255 255 / 82%);
+}
+
+.network-form-guide h2 {
+  color: var(--color-white);
+}
+
 .network-main,
 .event-hub-main {
   min-width: 0;
@@ -664,6 +718,15 @@
 }
 
 @media (max-width: 620px) {
+  .network-mode-switcher {
+    padding-inline: var(--gutter-mobile);
+  }
+
+  .network-mode-switcher [role="tablist"],
+  .network-mode-switcher button {
+    width: 100%;
+  }
+
   .network-profile-grid,
   .marketplace-grid,
   .community-hub-grid {

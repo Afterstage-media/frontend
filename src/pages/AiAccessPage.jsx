@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -55,6 +55,22 @@ function AccessLedger() {
   useEffect(() => {
     load();
   }, []);
+
+  const connectionGroups = useMemo(() => {
+    const groups = new Map();
+    connections.forEach((connection) => {
+      const key = `${connection.application || "Aplicación"}::${connection.clientId || "sin-id"}`;
+      const current = groups.get(key) || {
+        key,
+        application: connection.application || "Aplicación",
+        clientId: connection.clientId,
+        connections: [],
+      };
+      current.connections.push(connection);
+      groups.set(key, current);
+    });
+    return [...groups.values()];
+  }, [connections]);
 
   const revoke = async (connection) => {
     const confirmed = window.confirm(
@@ -130,41 +146,52 @@ function AccessLedger() {
             </div>
           ) : (
             <div className="ai-access-connections">
-              {connections.map((connection) => (
-                <article className="ai-access-connection" key={connection.id}>
+              {connectionGroups.map((group) => (
+                <article className="ai-access-connection" key={group.key}>
                   <div className="ai-access-connection-topline">
                     <span className="ai-access-status">
-                      <span /> Activa
+                      <span /> {group.connections.length}{" "}
+                      {group.connections.length === 1 ? "autorización" : "autorizaciones"}
                     </span>
-                    <span className="ai-access-date">Concedida {formatDate(connection.issuedAt)}</span>
+                    <span className="ai-access-date">Misma aplicación</span>
                   </div>
                   <div className="ai-access-connection-body">
                     <div>
-                      <h3>{connection.application}</h3>
-                      <p className="muted">ID de aplicación: {connection.clientId}</p>
-                    </div>
-                    <button
-                      className="button danger"
-                      type="button"
-                      disabled={revoking === connection.id}
-                      onClick={() => revoke(connection)}
-                    >
-                      {revoking === connection.id ? "Revocando…" : "Revocar acceso"}
-                    </button>
-                  </div>
-                  <div className="ai-access-scopes">
-                    <span className="ai-access-scopes-label">Permisos concedidos</span>
-                    <div>
-                      {connection.scopes.map((scope) => (
-                        <span className="ai-access-scope" key={scope}>
-                          {readableScope(scope)}
-                        </span>
-                      ))}
+                      <h3>{group.application}</h3>
+                      <p className="muted">ID de aplicación: {group.clientId || "No informado"}</p>
                     </div>
                   </div>
-                  <p className="ai-access-expiry">
-                    Token de renovación vigente hasta {formatDate(connection.expiresAt)}
-                  </p>
+                  <div className="ai-access-authorizations">
+                    {group.connections.map((connection, index) => (
+                      <div className="ai-access-authorization" key={connection.id}>
+                        <div className="ai-access-authorization-heading">
+                          <strong>Autorización {index + 1}</strong>
+                          <span>Concedida {formatDate(connection.issuedAt)}</span>
+                        </div>
+                        <div className="ai-access-scopes">
+                          <span className="ai-access-scopes-label">Permisos concedidos</span>
+                          <div>
+                            {connection.scopes.map((scope) => (
+                              <span className="ai-access-scope" key={scope}>
+                                {readableScope(scope)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ai-access-authorization-footer">
+                          <p className="ai-access-expiry">Vigente hasta {formatDate(connection.expiresAt)}</p>
+                          <button
+                            className="button danger"
+                            type="button"
+                            disabled={revoking === connection.id}
+                            onClick={() => revoke(connection)}
+                          >
+                            {revoking === connection.id ? "Revocando…" : "Revocar esta autorización"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </article>
               ))}
             </div>

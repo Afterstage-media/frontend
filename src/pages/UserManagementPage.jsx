@@ -375,8 +375,7 @@ function UserManagement() {
           ) : loading ? (
             <div className="users-empty">Cargando usuarios…</div>
           ) : visibleUsers.length ? (
-            <div className="users-table-wrap" tabIndex="0" aria-label="Tabla de usuarios desplazable horizontalmente">
-              <p className="users-table-hint">Deslizá horizontalmente para ver todas las columnas.</p>
+            <div className="users-table-wrap" aria-label="Tabla de usuarios">
               <table className="users-table">
                 <thead>
                   <tr>
@@ -392,7 +391,7 @@ function UserManagement() {
                 <tbody>
                   {visibleUsers.map((user) => (
                     <tr className={user.active === false ? "is-inactive" : ""} key={user.id}>
-                      <td>
+                      <td data-label="Persona">
                         <div className="user-identity">
                           <span className="user-avatar">{initials(user)}</span>
                           <span>
@@ -401,16 +400,18 @@ function UserManagement() {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Roles">
                         <RolePills roles={user.roles} />
                       </td>
-                      <td>
+                      <td data-label="Estado">
                         <span className={`user-status ${user.active === false ? "is-inactive" : ""}`}>
                           <i /> {user.active === false ? "Desactivado" : "Activo"}
                         </span>
                       </td>
-                      <td className="user-date">{formatDate(user.updatedAt || user.createdAt)}</td>
-                      <td className="user-actions-cell">
+                      <td className="user-date" data-label="Última actualización">
+                        {formatDate(user.updatedAt || user.createdAt)}
+                      </td>
+                      <td className="user-actions-cell" data-label="Acciones">
                         <button className="user-edit-button" onClick={() => setSelectedUser(user)} type="button">
                           Gestionar <span aria-hidden="true">↗</span>
                         </button>

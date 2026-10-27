@@ -76,6 +76,32 @@ export function HomeQuickLinks() {
   );
 }
 
+export function HomeIntent() {
+  const intents = [
+    ["Encontrar una fecha", "Agenda de shows y festivales", "/agenda"],
+    ["Leer y descubrir", "Notas, artistas y contexto", "/notas"],
+    ["Mover un proyecto", "Servicios para la escena", "/servicios"],
+    ["Trabajar en red", "Perfiles, coberturas y colaboraciones", "/red"],
+  ];
+  return (
+    <section className="home-intent" aria-labelledby="home-intent-title">
+      <div>
+        <p className="eyebrow">¿Qué estás buscando?</p>
+        <h2 id="home-intent-title">Entrá por tu próximo paso.</h2>
+      </div>
+      <div className="home-intent-grid">
+        {intents.map(([title, detail, to]) => (
+          <Link className="home-intent-card" key={to} to={to}>
+            <strong>{title}</strong>
+            <span>{detail}</span>
+            <b aria-hidden="true">↗</b>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function HomeMission() {
   return (
     <section className="home-mission" aria-labelledby="home-mission-title">
