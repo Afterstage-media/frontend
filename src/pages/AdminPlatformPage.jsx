@@ -47,7 +47,9 @@ function PlatformAdmin({ actor }) {
     api("/api/platform/snapshot")
       .then(setSnapshot)
       .catch((requestError) => setError(requestError.message));
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
   const patch = async (path, body) => {
     setError("");
     setNotice("");
