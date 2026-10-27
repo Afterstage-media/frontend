@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout.jsx";
 import { HomePage } from "../pages/HomePage.jsx";
 import { NotesPage } from "../pages/NotesPage.jsx";
@@ -22,6 +22,12 @@ import { MailboxPage } from "../pages/MailboxPage.jsx";
 import { NetworkPage } from "../pages/NetworkPage.jsx";
 import { InsurancePage, MarketplacePage, TransportPage } from "../pages/PlatformPages.jsx";
 import { AdminPlatformPage } from "../pages/AdminPlatformPage.jsx";
+import { LoginForm } from "../components/AuthGate.jsx";
+
+function AccessPage() {
+  const navigate = useNavigate();
+  return <LoginForm showCollaborator={false} onReady={() => navigate("/")} />;
+}
 
 function NotFoundPage() {
   return (
@@ -60,6 +66,7 @@ export function App() {
         <Route path="/admin/redes" element={<SocialPage />} />
         <Route path="/admin/instagram" element={<InstagramSettingsPage />} />
         <Route path="/colaborador" element={<CollaboratorPage />} />
+        <Route path="/acceso" element={<AccessPage />} />
         <Route path="/servicios" element={<ServicesPage />} />
         <Route path="/contratar" element={<MonetizationPage />} />
         <Route path="/monetizar" element={<Navigate to="/servicios" replace />} />

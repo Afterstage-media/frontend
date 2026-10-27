@@ -186,6 +186,11 @@ export function ServicesPage() {
               Hay fechas que necesitan entradas, festivales que necesitan equipo, viajes que necesitan público y
               canciones que necesitan una forma de circular.
             </p>
+            <div className="services-intro-actions">
+              <a className="button dark" href="#services-intent-title">
+                Elegí qué resolver ↓
+              </a>
+            </div>
           </div>
           <div className="services-intro-mark" data-parallax="0.12" data-reveal aria-hidden="true">
             <span>AFTER</span>
