@@ -1424,7 +1424,9 @@ function PressDashboard() {
               ].map(([key, label]) => (
                 <button
                   aria-selected={activeSection === key}
+                  aria-controls={`press-${key}`}
                   className={activeSection === key ? "is-active" : ""}
+                  id={`press-tab-${key}`}
                   key={key}
                   onClick={() => setActiveSection(key)}
                   role="tab"
@@ -1434,7 +1436,14 @@ function PressDashboard() {
                 </button>
               ))}
             </nav>
-            <section className="press-overview-panel" data-press-section="overview" role="tabpanel">
+            <section
+              aria-labelledby="press-tab-overview"
+              className="press-overview-panel"
+              data-press-section="overview"
+              hidden={activeSection !== "overview"}
+              id="press-overview"
+              role="tabpanel"
+            >
               <div>
                 <p className="press-card-kicker">Panel de trabajo</p>
                 <h2>¿Qué necesitás hacer?</h2>
@@ -1455,13 +1464,22 @@ function PressDashboard() {
                 </button>
               </div>
             </section>
-            <section className="press-dossier-section" data-press-section="dossier" id="press-dossier" role="tabpanel">
+            <section
+              aria-labelledby="press-tab-dossier"
+              className="press-dossier-section"
+              data-press-section="dossier"
+              hidden={activeSection !== "dossier"}
+              id="press-dossier"
+              role="tabpanel"
+            >
               <MediaKitForm mediaKit={snapshot.mediaKit} onSaved={load} />
             </section>
             <section
               className="press-dossier-section"
               data-press-section="events"
-              id="press-operations"
+              hidden={activeSection !== "events"}
+              id="press-events"
+              aria-labelledby="press-tab-events"
               role="tabpanel"
             >
               <form
@@ -1562,7 +1580,9 @@ function PressDashboard() {
             <section
               className="press-dossier-section"
               data-press-section="contacts"
+              hidden={activeSection !== "contacts"}
               id="press-contacts"
+              aria-labelledby="press-tab-contacts"
               role="tabpanel"
             >
               <form
@@ -1621,7 +1641,9 @@ function PressDashboard() {
             <section
               className="press-dossier-section"
               data-press-section="accreditations"
+              hidden={activeSection !== "accreditations"}
               id="press-accreditations"
+              aria-labelledby="press-tab-accreditations"
               role="tabpanel"
             >
               <form
@@ -1749,7 +1771,9 @@ function PressDashboard() {
             <section
               className="press-dossier-section"
               data-press-section="coverages"
+              hidden={activeSection !== "coverages"}
               id="press-coverages"
+              aria-labelledby="press-tab-coverages"
               role="tabpanel"
             >
               <form
@@ -1824,7 +1848,14 @@ function PressDashboard() {
                 </div>
               </form>
             </section>
-            <section className="press-records" data-press-section="activity" id="press-activity" role="tabpanel">
+            <section
+              aria-labelledby="press-tab-activity"
+              className="press-records"
+              data-press-section="activity"
+              hidden={activeSection !== "activity"}
+              id="press-activity"
+              role="tabpanel"
+            >
               <div className="press-section-heading">
                 <div>
                   <p className="press-card-kicker">Seguimiento</p>
