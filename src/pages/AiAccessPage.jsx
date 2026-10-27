@@ -150,7 +150,8 @@ function AccessLedger() {
                 <article className="ai-access-connection" key={group.key}>
                   <div className="ai-access-connection-topline">
                     <span className="ai-access-status">
-                      <span /> {group.connections.length} {group.connections.length === 1 ? "autorización" : "autorizaciones"}
+                      <span /> {group.connections.length}{" "}
+                      {group.connections.length === 1 ? "autorización" : "autorizaciones"}
                     </span>
                     <span className="ai-access-date">Misma aplicación</span>
                   </div>

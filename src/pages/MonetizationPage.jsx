@@ -108,7 +108,8 @@ export function MonetizationPage() {
     event.preventDefault();
     setError("");
     if (!form.customerName.trim()) return setError(invalidFieldMessages.customerName);
-    if (!form.customerEmail.trim() || !isEmail(form.customerEmail.trim())) return setError(invalidFieldMessages.customerEmail);
+    if (!form.customerEmail.trim() || !isEmail(form.customerEmail.trim()))
+      return setError(invalidFieldMessages.customerEmail);
     if (!form.title.trim()) return setError(invalidFieldMessages.title);
     setFormStep(2);
   };

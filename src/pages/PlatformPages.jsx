@@ -147,338 +147,359 @@ export function InsurancePage() {
           </div>
           {insuranceStep === 1 && (
             <>
-          <label>
-            Nombre y apellido
-            <input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-          </label>
-          <label>
-            DNI
-            <input required value={form.dni} onChange={(event) => setForm({ ...form, dni: event.target.value })} />
-          </label>
-          <label>
-            Organización
-            <input
-              value={form.organization}
-              onChange={(event) => setForm({ ...form, organization: event.target.value })}
-            />
-          </label>
-          <label>
-            Email
-            <input
-              required
-              type="email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-            />
-          </label>
-          <label>
-            Teléfono
-            <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
-          </label>
-          <fieldset className="form-fieldset">
-            <legend>¿Qué querés cotizar?</legend>
-            <p className="muted">
-              Podés seleccionar más de un producto. La compañía puede pedir información adicional.
-            </p>
-            <div className="insurance-products">
-              {insuranceProducts.map((product) => {
-                const selected = form.coverageTypes.includes(product.value);
-                return (
-                  <label className={`insurance-product ${selected ? "selected" : ""}`} key={product.value}>
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() =>
-                        setForm({
-                          ...form,
-                          coverageTypes: selected
-                            ? form.coverageTypes.filter((value) => value !== product.value)
-                            : [...form.coverageTypes, product.value],
-                        })
-                      }
-                    />
-                    <span>
-                      <strong>{product.label}</strong>
-                      <small>{product.hint}</small>
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-          <fieldset className="form-fieldset">
-            <legend>Datos generales del evento</legend>
-            <label>
-              Nombre del evento
-              <input
-                value={form.productDetails.eventName}
-                onChange={(event) =>
-                  setForm({ ...form, productDetails: { ...form.productDetails, eventName: event.target.value } })
-                }
-              />
-            </label>
-            <label>
-              Lugar
-              <input
-                value={form.productDetails.eventLocation}
-                onChange={(event) =>
-                  setForm({ ...form, productDetails: { ...form.productDetails, eventLocation: event.target.value } })
-                }
-              />
-            </label>
-            <label>
-              Descripción de la actividad
-              <textarea
-                rows="3"
-                value={form.productDetails.eventDescription}
-                onChange={(event) =>
-                  setForm({ ...form, productDetails: { ...form.productDetails, eventDescription: event.target.value } })
-                }
-              />
-            </label>
-          </fieldset>
-          <div className="form-grid">
-            <label>
-              Desde
-              <input
-                type="datetime-local"
-                value={form.startsAt}
-                onChange={(event) => setForm({ ...form, startsAt: event.target.value })}
-              />
-            </label>
-            <label>
-              Hasta
-              <input
-                type="datetime-local"
-                value={form.endsAt}
-                onChange={(event) => setForm({ ...form, endsAt: event.target.value })}
-              />
-            </label>
-          </div>
-          <p className="form-step-note">Con estos datos podemos entender el evento y qué productos necesitás cotizar.</p>
-          <ErrorMessage error={error} />
-          <button className="button dark" onClick={continueInsurance} type="button">
-            Continuar con los detalles →
-          </button>
+              <label>
+                Nombre y apellido
+                <input
+                  required
+                  value={form.name}
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                />
+              </label>
+              <label>
+                DNI
+                <input required value={form.dni} onChange={(event) => setForm({ ...form, dni: event.target.value })} />
+              </label>
+              <label>
+                Organización
+                <input
+                  value={form.organization}
+                  onChange={(event) => setForm({ ...form, organization: event.target.value })}
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  required
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
+                />
+              </label>
+              <label>
+                Teléfono
+                <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+              </label>
+              <fieldset className="form-fieldset">
+                <legend>¿Qué querés cotizar?</legend>
+                <p className="muted">
+                  Podés seleccionar más de un producto. La compañía puede pedir información adicional.
+                </p>
+                <div className="insurance-products">
+                  {insuranceProducts.map((product) => {
+                    const selected = form.coverageTypes.includes(product.value);
+                    return (
+                      <label className={`insurance-product ${selected ? "selected" : ""}`} key={product.value}>
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() =>
+                            setForm({
+                              ...form,
+                              coverageTypes: selected
+                                ? form.coverageTypes.filter((value) => value !== product.value)
+                                : [...form.coverageTypes, product.value],
+                            })
+                          }
+                        />
+                        <span>
+                          <strong>{product.label}</strong>
+                          <small>{product.hint}</small>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+              <fieldset className="form-fieldset">
+                <legend>Datos generales del evento</legend>
+                <label>
+                  Nombre del evento
+                  <input
+                    value={form.productDetails.eventName}
+                    onChange={(event) =>
+                      setForm({ ...form, productDetails: { ...form.productDetails, eventName: event.target.value } })
+                    }
+                  />
+                </label>
+                <label>
+                  Lugar
+                  <input
+                    value={form.productDetails.eventLocation}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        productDetails: { ...form.productDetails, eventLocation: event.target.value },
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Descripción de la actividad
+                  <textarea
+                    rows="3"
+                    value={form.productDetails.eventDescription}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        productDetails: { ...form.productDetails, eventDescription: event.target.value },
+                      })
+                    }
+                  />
+                </label>
+              </fieldset>
+              <div className="form-grid">
+                <label>
+                  Desde
+                  <input
+                    type="datetime-local"
+                    value={form.startsAt}
+                    onChange={(event) => setForm({ ...form, startsAt: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Hasta
+                  <input
+                    type="datetime-local"
+                    value={form.endsAt}
+                    onChange={(event) => setForm({ ...form, endsAt: event.target.value })}
+                  />
+                </label>
+              </div>
+              <p className="form-step-note">
+                Con estos datos podemos entender el evento y qué productos necesitás cotizar.
+              </p>
+              <ErrorMessage error={error} />
+              <button className="button dark" onClick={continueInsurance} type="button">
+                Continuar con los detalles →
+              </button>
             </>
           )}
           {insuranceStep === 2 && (
             <>
-          {form.coverageTypes.includes("ap") && (
-            <fieldset className="form-fieldset">
-              <legend>Accidentes personales</legend>
-              <div className="form-grid">
-                <label>
-                  Personas a asegurar
-                  <input
-                    required
-                    min="1"
-                    type="number"
-                    value={form.productDetails.apPeopleCount}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        peopleCount: event.target.value,
-                        productDetails: { ...form.productDetails, apPeopleCount: event.target.value },
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Suma asegurada por persona
-                  <input
-                    required
-                    placeholder="Ej.: $10.000.000"
-                    value={form.productDetails.apInsuredSumLabel}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, apInsuredSumLabel: event.target.value },
-                      })
-                    }
-                  />
-                </label>
-              </div>
-            </fieldset>
-          )}
-          {form.coverageTypes.includes("art") && (
-            <fieldset className="form-fieldset">
-              <legend>ART</legend>
+              {form.coverageTypes.includes("ap") && (
+                <fieldset className="form-fieldset">
+                  <legend>Accidentes personales</legend>
+                  <div className="form-grid">
+                    <label>
+                      Personas a asegurar
+                      <input
+                        required
+                        min="1"
+                        type="number"
+                        value={form.productDetails.apPeopleCount}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            peopleCount: event.target.value,
+                            productDetails: { ...form.productDetails, apPeopleCount: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Suma asegurada por persona
+                      <input
+                        required
+                        placeholder="Ej.: $10.000.000"
+                        value={form.productDetails.apInsuredSumLabel}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            productDetails: { ...form.productDetails, apInsuredSumLabel: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                </fieldset>
+              )}
+              {form.coverageTypes.includes("art") && (
+                <fieldset className="form-fieldset">
+                  <legend>ART</legend>
+                  <label>
+                    Empleador o razón social
+                    <input
+                      required
+                      value={form.productDetails.artEmployer}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, artEmployer: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Actividad
+                    <input
+                      required
+                      value={form.productDetails.artActivity}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, artActivity: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Cantidad de trabajadores
+                    <input
+                      required
+                      min="1"
+                      type="number"
+                      value={form.productDetails.artWorkerCount}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, artWorkerCount: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                </fieldset>
+              )}
+              {form.coverageTypes.includes("vida") && (
+                <fieldset className="form-fieldset">
+                  <legend>Seguro de vida</legend>
+                  <label>
+                    Persona asegurada
+                    <input
+                      required
+                      value={form.productDetails.vidaInsuredName}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, vidaInsuredName: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                  <div className="form-grid">
+                    <label>
+                      Edad
+                      <input
+                        min="0"
+                        type="number"
+                        value={form.productDetails.vidaInsuredAge}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            productDetails: { ...form.productDetails, vidaInsuredAge: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Suma asegurada
+                      <input
+                        required
+                        placeholder="Ej.: $20.000.000"
+                        value={form.productDetails.vidaInsuredSumLabel}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            productDetails: { ...form.productDetails, vidaInsuredSumLabel: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    Beneficiario(s)
+                    <input
+                      value={form.productDetails.vidaBeneficiary}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, vidaBeneficiary: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                </fieldset>
+              )}
+              {form.coverageTypes.includes("robo_equipos") && (
+                <fieldset className="form-fieldset">
+                  <legend>Robo de equipos</legend>
+                  <label>
+                    Equipos a asegurar
+                    <textarea
+                      required
+                      rows="3"
+                      value={form.productDetails.equipmentDescription}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, equipmentDescription: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                  <div className="form-grid">
+                    <label>
+                      Valor total
+                      <input
+                        required
+                        placeholder="Ej.: USD 15.000"
+                        value={form.productDetails.equipmentValueLabel}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            productDetails: { ...form.productDetails, equipmentValueLabel: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Cantidad de equipos
+                      <input
+                        required
+                        min="1"
+                        type="number"
+                        value={form.productDetails.equipmentCount}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            productDetails: { ...form.productDetails, equipmentCount: event.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    Números de serie o inventario (opcional)
+                    <textarea
+                      rows="2"
+                      value={form.productDetails.equipmentSerials}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, equipmentSerials: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                </fieldset>
+              )}
               <label>
-                Empleador o razón social
-                <input
-                  required
-                  value={form.productDetails.artEmployer}
-                  onChange={(event) =>
-                    setForm({ ...form, productDetails: { ...form.productDetails, artEmployer: event.target.value } })
-                  }
-                />
-              </label>
-              <label>
-                Actividad
-                <input
-                  required
-                  value={form.productDetails.artActivity}
-                  onChange={(event) =>
-                    setForm({ ...form, productDetails: { ...form.productDetails, artActivity: event.target.value } })
-                  }
-                />
-              </label>
-              <label>
-                Cantidad de trabajadores
-                <input
-                  required
-                  min="1"
-                  type="number"
-                  value={form.productDetails.artWorkerCount}
-                  onChange={(event) =>
-                    setForm({ ...form, productDetails: { ...form.productDetails, artWorkerCount: event.target.value } })
-                  }
-                />
-              </label>
-            </fieldset>
-          )}
-          {form.coverageTypes.includes("vida") && (
-            <fieldset className="form-fieldset">
-              <legend>Seguro de vida</legend>
-              <label>
-                Persona asegurada
-                <input
-                  required
-                  value={form.productDetails.vidaInsuredName}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      productDetails: { ...form.productDetails, vidaInsuredName: event.target.value },
-                    })
-                  }
-                />
-              </label>
-              <div className="form-grid">
-                <label>
-                  Edad
-                  <input
-                    min="0"
-                    type="number"
-                    value={form.productDetails.vidaInsuredAge}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, vidaInsuredAge: event.target.value },
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Suma asegurada
-                  <input
-                    required
-                    placeholder="Ej.: $20.000.000"
-                    value={form.productDetails.vidaInsuredSumLabel}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, vidaInsuredSumLabel: event.target.value },
-                      })
-                    }
-                  />
-                </label>
-              </div>
-              <label>
-                Beneficiario(s)
-                <input
-                  value={form.productDetails.vidaBeneficiary}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      productDetails: { ...form.productDetails, vidaBeneficiary: event.target.value },
-                    })
-                  }
-                />
-              </label>
-            </fieldset>
-          )}
-          {form.coverageTypes.includes("robo_equipos") && (
-            <fieldset className="form-fieldset">
-              <legend>Robo de equipos</legend>
-              <label>
-                Equipos a asegurar
+                Detalles
                 <textarea
-                  required
-                  rows="3"
-                  value={form.productDetails.equipmentDescription}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      productDetails: { ...form.productDetails, equipmentDescription: event.target.value },
-                    })
-                  }
+                  rows="5"
+                  value={form.notes}
+                  onChange={(event) => setForm({ ...form, notes: event.target.value })}
                 />
               </label>
-              <div className="form-grid">
-                <label>
-                  Valor total
-                  <input
-                    required
-                    placeholder="Ej.: USD 15.000"
-                    value={form.productDetails.equipmentValueLabel}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, equipmentValueLabel: event.target.value },
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Cantidad de equipos
-                  <input
-                    required
-                    min="1"
-                    type="number"
-                    value={form.productDetails.equipmentCount}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, equipmentCount: event.target.value },
-                      })
-                    }
-                  />
-                </label>
+              <div className="form-step-actions">
+                <button className="button ghost" onClick={() => setInsuranceStep(1)} type="button">
+                  ← Volver
+                </button>
+                <button className="button dark" type="submit">
+                  Pedir cotización ↗
+                </button>
               </div>
-              <label>
-                Números de serie o inventario (opcional)
-                <textarea
-                  rows="2"
-                  value={form.productDetails.equipmentSerials}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      productDetails: { ...form.productDetails, equipmentSerials: event.target.value },
-                    })
-                  }
-                />
-              </label>
-            </fieldset>
-          )}
-          <label>
-            Detalles
-            <textarea
-              rows="5"
-              value={form.notes}
-              onChange={(event) => setForm({ ...form, notes: event.target.value })}
-            />
-          </label>
-          <div className="form-step-actions">
-            <button className="button ghost" onClick={() => setInsuranceStep(1)} type="button">
-              ← Volver
-            </button>
-            <button className="button dark" type="submit">
-              Pedir cotización ↗
-            </button>
-          </div>
-          {error && <ErrorMessage error={error} />}
-          {status && <p className="success">{status}</p>}
+              {error && <ErrorMessage error={error} />}
+              {status && <p className="success">{status}</p>}
             </>
           )}
         </form>
