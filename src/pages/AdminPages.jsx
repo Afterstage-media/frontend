@@ -201,7 +201,7 @@ function AdminDashboard({ actor }) {
         <Link to="/admin/prensa">Agenda de prensa</Link>
         <Link to="/admin/plataforma">Operaciones de plataforma</Link>
         <Link to="/directorio">Directorio</Link>
-        <Link to="/admin/reemplazos">Reemplazos</Link>
+        <Link to="/admin/reemplazos">Gestionar coberturas</Link>
         {actor.roles.includes("admin") && <Link to="/admin/instagram">Cuenta de Instagram</Link>}
         {actor.roles.includes("admin") && <Link to="/admin/usuarios">Usuarios</Link>}
       </section>
