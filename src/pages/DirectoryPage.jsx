@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { TokenGate } from "./AdminPages.jsx";
+import { useModalFocus } from "../utils/useModalFocus.js";
 
 const kinds = {
   band: "Banda",
@@ -155,7 +156,10 @@ function voteSummary(item) {
 }
 
 function DirectoryCard({ item, onOpen, featured = false }) {
-  const open = () => onOpen(item);
+  const open = (event) => {
+    event?.currentTarget?.focus();
+    onOpen(item);
+  };
   return (
     <article
       className={`directory-card${featured ? " directory-card-featured" : ""}`}
@@ -163,7 +167,7 @@ function DirectoryCard({ item, onOpen, featured = false }) {
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          open();
+          open(event);
         }
       }}
       role="button"
@@ -371,7 +375,7 @@ function DirectoryEditForm({ item, isNew = false, onCancel, onSaved }) {
 }
 
 function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
-  const closeButtonRef = useRef(null);
+  const dialogRef = useModalFocus(onClose);
   const [detail, setDetail] = useState(item);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -385,11 +389,6 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
     }
   });
   useEffect(() => {
-    closeButtonRef.current?.focus();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event) => event.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKeyDown);
     let cancelled = false;
     api(`/api/directory/${item.id}`)
       .then((fullItem) => {
@@ -401,10 +400,8 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
       });
     return () => {
       cancelled = true;
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKeyDown);
     };
-  }, [item.id, onClose]);
+  }, [item.id]);
   const saveUpdated = (updated) => {
     setDetail(updated);
     setEditing(false);
@@ -433,7 +430,13 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
   const totalVotes = (detail.reliableVotes ?? 0) + (detail.unreliableVotes ?? 0);
   return (
     <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside aria-labelledby="directory-detail-title" aria-modal="true" className="detail-panel" role="dialog">
+      <aside
+        ref={dialogRef}
+        aria-labelledby="directory-detail-title"
+        aria-modal="true"
+        className="detail-panel"
+        role="dialog"
+      >
         {editing ? (
           <DirectoryEditForm item={detail} onCancel={() => setEditing(false)} onSaved={saveUpdated} />
         ) : (
@@ -445,13 +448,7 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
                   {kinds[detail.kind] || detail.kind} {detail.city ? `· ${detail.city}` : ""}
                 </p>
               </div>
-              <button
-                ref={closeButtonRef}
-                className="icon-button"
-                onClick={onClose}
-                type="button"
-                aria-label="Cerrar ficha"
-              >
+              <button className="icon-button" onClick={onClose} type="button" aria-label="Cerrar ficha">
                 ×
               </button>
             </div>
@@ -590,9 +587,16 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
 }
 
 function DirectoryCreatePanel({ onClose, onSaved }) {
+  const dialogRef = useModalFocus(onClose);
   return (
     <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside aria-label="Nueva ficha de directorio" aria-modal="true" className="detail-panel" role="dialog">
+      <aside
+        ref={dialogRef}
+        aria-label="Nueva ficha de directorio"
+        aria-modal="true"
+        className="detail-panel"
+        role="dialog"
+      >
         <DirectoryEditForm item={empty} isNew onCancel={onClose} onSaved={onSaved} />
       </aside>
     </div>

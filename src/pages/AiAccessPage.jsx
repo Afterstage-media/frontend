@@ -132,7 +132,11 @@ function AccessLedger() {
           </div>
 
           <ErrorMessage error={error} />
-          {notice && <p className="success">{notice}</p>}
+          {notice && (
+            <p aria-live="polite" className="success" role="status">
+              {notice}
+            </p>
+          )}
 
           {loading ? (
             <div className="ai-access-state" role="status">

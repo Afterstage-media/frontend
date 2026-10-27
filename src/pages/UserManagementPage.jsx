@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, encryptAuthSecret } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { useModalFocus } from "../utils/useModalFocus.js";
 
 const roleOptions = [
   ["admin", "Administrador"],
@@ -61,6 +62,7 @@ function RolePills({ roles }) {
 }
 
 function UserForm({ user, onCancel, onSaved }) {
+  const dialogRef = useModalFocus(onCancel);
   const editing = Boolean(user);
   const [form, setForm] = useState(() =>
     user ? { ...emptyForm, ...user, password: "", passwordConfirmation: "" } : { ...emptyForm },
@@ -123,7 +125,7 @@ function UserForm({ user, onCancel, onSaved }) {
   };
 
   return (
-    <aside className="user-drawer" aria-labelledby="user-form-title">
+    <aside ref={dialogRef} className="user-drawer" aria-labelledby="user-form-title" aria-modal="true" role="dialog">
       <div className="user-drawer-header">
         <div>
           <p className="eyebrow">{editing ? "Editar acceso" : "Nuevo acceso"}</p>
