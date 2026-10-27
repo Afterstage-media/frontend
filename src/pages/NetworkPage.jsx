@@ -47,6 +47,7 @@ export function NetworkPage() {
   const [coverageNotice, setCoverageNotice] = useState("");
   const [photographerError, setPhotographerError] = useState("");
   const [coverageError, setCoverageError] = useState("");
+  const [networkMode, setNetworkMode] = useState("browse");
   const [applicationFor, setApplicationFor] = useState(null);
   const [application, setApplication] = useState({
     photographerId: "",
@@ -147,6 +148,21 @@ export function NetworkPage() {
         <p>Perfiles, coberturas y oportunidades reales para que cada evento encuentre a las personas que necesita.</p>
       </section>
 
+      <nav className="network-mode-switcher" aria-label="Qué querés hacer en la red">
+        <p className="eyebrow">Elegí un camino</p>
+        <div role="tablist" aria-label="Acciones de la red">
+          <button aria-selected={networkMode === "browse"} className={networkMode === "browse" ? "is-active" : ""} onClick={() => setNetworkMode("browse")} role="tab" type="button">
+            Explorar perfiles y búsquedas
+          </button>
+          <button aria-selected={networkMode === "photographer"} className={networkMode === "photographer" ? "is-active" : ""} onClick={() => setNetworkMode("photographer")} role="tab" type="button">
+            Sumá tu perfil
+          </button>
+          <button aria-selected={networkMode === "coverage"} className={networkMode === "coverage" ? "is-active" : ""} onClick={() => setNetworkMode("coverage")} role="tab" type="button">
+            Pedí una cobertura
+          </button>
+        </div>
+      </nav>
+
       <section className="network-layout">
         <div className="network-main">
           <div className="section-head">
@@ -238,7 +254,18 @@ export function NetworkPage() {
           </div>
         </div>
 
-        <aside className="network-forms">
+        <aside className="network-forms" aria-label="Acción seleccionada">
+          {networkMode === "browse" && (
+            <div className="network-form network-form-guide">
+              <p className="eyebrow">Encontrar colaboradores</p>
+              <h2>Explorá la red.</h2>
+              <p>Revisá perfiles publicados y postulá a las búsquedas abiertas cuando encuentres una oportunidad.</p>
+              <button className="button dark" onClick={() => document.querySelector(".network-subsection-head")?.scrollIntoView({ behavior: "smooth" })} type="button">
+                Ver búsquedas abiertas ↓
+              </button>
+            </div>
+          )}
+          {networkMode === "photographer" && (
           <form className="form network-form" onSubmit={submitPhotographer}>
             <p className="eyebrow">Sumar perfil</p>
             <h2>Quiero trabajar con la red.</h2>
@@ -340,7 +367,8 @@ export function NetworkPage() {
             </button>
             <FormNotice error={photographerError} message={photographerNotice} />
           </form>
-
+          )}
+          {networkMode === "coverage" && (
           <form className="form network-form" onSubmit={submitCoverage}>
             <p className="eyebrow">Publicar búsqueda</p>
             <h2>Necesito cobertura.</h2>
@@ -413,6 +441,7 @@ export function NetworkPage() {
             </button>
             <FormNotice error={coverageError} message={coverageNotice} />
           </form>
+          )}
         </aside>
       </section>
 

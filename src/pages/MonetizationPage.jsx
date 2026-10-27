@@ -81,6 +81,7 @@ export function MonetizationPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formStep, setFormStep] = useState(1);
   useEffect(() => {
     api("/api/public/monetization/products")
       .then((items) => {
@@ -102,6 +103,14 @@ export function MonetizationPage() {
   const invalid = (event) => {
     event.preventDefault();
     setError(invalidFieldMessages[event.target.name] || "Completá los campos obligatorios.");
+  };
+  const continueToDetails = (event) => {
+    event.preventDefault();
+    setError("");
+    if (!form.customerName.trim()) return setError(invalidFieldMessages.customerName);
+    if (!form.customerEmail.trim() || !isEmail(form.customerEmail.trim())) return setError(invalidFieldMessages.customerEmail);
+    if (!form.title.trim()) return setError(invalidFieldMessages.title);
+    setFormStep(2);
   };
   const submit = async (event) => {
     event.preventDefault();
@@ -168,41 +177,69 @@ export function MonetizationPage() {
         <form className="form editor-form" noValidate onInvalid={invalid} onSubmit={submit}>
           <h2>Contanos un poco más.</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
-          {[
-            ["customerName", "Nombre y apellido", "text", true],
-            ["customerEmail", "Email", "email", true],
-            ["organization", "Banda, proyecto u organización", "text"],
-            ["title", "Título de tu propuesta", "text", true],
-            ["city", "Ciudad", "text"],
-            ["eventDate", "Fecha", "date"],
-            ["instagram", "Instagram", "text"],
-            ["website", "Website", "url"],
-          ].map(([name, label, type, required]) => (
-            <label key={name}>
-              {label}
-              <input name={name} type={type} value={form[name]} onChange={change} required={required} />
-            </label>
-          ))}
-          <label>
-            Descripción
-            <textarea name="description" value={form.description} onChange={change} minLength="10" required />
-          </label>
-          <label>
-            Notas
-            <textarea name="notes" value={form.notes} onChange={change} />
-          </label>
-          <label>
-            Preferencia de contacto
-            <select name="contactPreference" value={form.contactPreference} onChange={change}>
-              <option value="email">Email</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="instagram">Instagram</option>
-            </select>
-          </label>
-          <ErrorMessage error={error} />
-          <button type="submit" className="button dark" disabled={loading || !selected}>
-            {loading ? "Enviando…" : selected?.priceArs ? "Enviar y continuar al pago ↗" : "Pedir presupuesto"}
-          </button>
+          <div className="form-progress" aria-label={`Paso ${formStep} de 2`}>
+            <span className={formStep === 1 ? "is-active" : "is-complete"}>01 · Tu propuesta</span>
+            <span className={formStep === 2 ? "is-active" : ""}>02 · Detalles y contacto</span>
+          </div>
+          {formStep === 1 ? (
+            <>
+              {[
+                ["customerName", "Nombre y apellido", "text", true],
+                ["customerEmail", "Email", "email", true],
+                ["organization", "Banda, proyecto u organización", "text"],
+                ["title", "Título de tu propuesta", "text", true],
+              ].map(([name, label, type, required]) => (
+                <label key={name}>
+                  {label}
+                  <input name={name} type={type} value={form[name]} onChange={change} required={required} />
+                </label>
+              ))}
+              <p className="form-step-note">Primero necesitamos saber quién sos y qué querés poner en movimiento.</p>
+              <ErrorMessage error={error} />
+              <button type="button" className="button dark" onClick={continueToDetails}>
+                Continuar con los detalles →
+              </button>
+            </>
+          ) : (
+            <>
+              {[
+                ["city", "Ciudad", "text"],
+                ["eventDate", "Fecha", "date"],
+                ["instagram", "Instagram", "text"],
+                ["website", "Website", "url"],
+              ].map(([name, label, type]) => (
+                <label key={name}>
+                  {label}
+                  <input name={name} type={type} value={form[name]} onChange={change} />
+                </label>
+              ))}
+              <label>
+                Descripción
+                <textarea name="description" value={form.description} onChange={change} minLength="10" required />
+              </label>
+              <label>
+                Notas
+                <textarea name="notes" value={form.notes} onChange={change} />
+              </label>
+              <label>
+                Preferencia de contacto
+                <select name="contactPreference" value={form.contactPreference} onChange={change}>
+                  <option value="email">Email</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="instagram">Instagram</option>
+                </select>
+              </label>
+              <ErrorMessage error={error} />
+              <div className="form-step-actions">
+                <button type="button" className="button ghost" onClick={() => setFormStep(1)}>
+                  ← Volver
+                </button>
+                <button type="submit" className="button dark" disabled={loading || !selected}>
+                  {loading ? "Enviando…" : selected?.priceArs ? "Enviar y continuar al pago ↗" : "Pedir presupuesto"}
+                </button>
+              </div>
+            </>
+          )}
         </form>
       </section>
     </Layout>

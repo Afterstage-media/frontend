@@ -225,6 +225,41 @@
   color: var(--color-muted);
 }
 
+.ai-access-authorizations {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.ai-access-authorization {
+  background: color-mix(in srgb, var(--color-paper) 76%, var(--color-surface));
+  border: var(--border-soft);
+  padding: 16px;
+}
+
+.ai-access-authorization-heading,
+.ai-access-authorization-footer {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.ai-access-authorization-heading span {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.ai-access-authorization .ai-access-scopes {
+  padding-bottom: 12px;
+  padding-top: 15px;
+}
+
+.ai-access-authorization-footer .button {
+  font-size: 0.73rem;
+  padding: 9px 12px;
+}
+
 .ai-access-state {
   align-items: center;
   border: var(--border-dashed);
@@ -318,6 +353,16 @@
   }
 
   .ai-access-connection-body .button {
+    width: 100%;
+  }
+
+  .ai-access-authorization-heading,
+  .ai-access-authorization-footer {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .ai-access-authorization-footer .button {
     width: 100%;
   }
 }

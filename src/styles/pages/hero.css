@@ -1399,7 +1399,82 @@
   font-size: clamp(1.65rem, 2.45vw, 2.8rem);
 }
 
+.home-intent {
+  border-bottom: var(--border);
+  border-top: var(--border);
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 42px var(--gutter);
+}
+
+.home-intent h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.7rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 0.88;
+  margin: 8px 0 0;
+}
+
+.home-intent-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-intent-card {
+  border: var(--border-soft);
+  display: grid;
+  gap: 7px;
+  min-height: 92px;
+  padding: 14px;
+  position: relative;
+  text-decoration: none;
+}
+
+.home-intent-card:hover,
+.home-intent-card:focus-visible {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-white);
+}
+
+.home-intent-card strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.home-intent-card span {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  max-width: 24ch;
+}
+
+.home-intent-card:hover span,
+.home-intent-card:focus-visible span {
+  color: rgb(255 255 255 / 82%);
+}
+
+.home-intent-card b {
+  font-size: 1.3rem;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
 @media (max-width: 760px) {
+  .home-intent {
+    display: block;
+    padding-inline: var(--gutter-mobile);
+  }
+
+  .home-intent-grid {
+    margin-top: 24px;
+  }
+
   .home-hero {
     display: block;
     min-height: 0;
@@ -1424,6 +1499,10 @@
 }
 
 @media (max-width: 480px) {
+  .home-intent-grid {
+    grid-template-columns: 1fr;
+  }
+
   .home-quick-links {
     grid-template-columns: 1fr;
   }

@@ -35,8 +35,13 @@ function LayoutShell({ children }) {
   const reflectorStageRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const isWorkspace = roles?.length > 0;
-  const isAdminPath = location.pathname.startsWith("/admin") && isWorkspace;
+  const isWorkspaceRoute =
+    location.pathname.startsWith("/admin") ||
+    ["/directorio", "/publicar", "/reemplazos", "/cuenta", "/colaborador"].some(
+      (route) => location.pathname === route || location.pathname.startsWith(`${route}/`),
+    );
+  const isWorkspace = roles?.length > 0 && isWorkspaceRoute;
+  const isAdminPath = location.pathname.startsWith("/admin") && roles?.length > 0;
 
   useEffect(() => {
     const refreshRoles = () => {

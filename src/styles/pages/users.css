@@ -617,7 +617,84 @@
   }
 
   .users-table-hint {
+    display: none;
+  }
+
+  .users-table-wrap {
+    background: transparent;
+    border: 0;
+    overflow: visible;
+  }
+
+  .users-table,
+  .users-table tbody,
+  .users-table tr,
+  .users-table td {
     display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .users-table thead {
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .users-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .users-table tbody tr {
+    background: var(--color-surface);
+    border: var(--border-soft);
+    padding: 12px 16px;
+  }
+
+  .users-table tbody tr:last-child td,
+  .users-table td {
+    border-bottom: 0;
+    padding: 10px 0;
+  }
+
+  .users-table td {
+    align-items: start;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(112px, 34%) minmax(0, 1fr);
+  }
+
+  .users-table td::before {
+    color: var(--color-muted);
+    content: attr(data-label);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    padding-top: 3px;
+    text-transform: uppercase;
+  }
+
+  .users-table td:first-child {
+    padding-top: 4px;
+  }
+
+  .users-table .user-actions-cell {
+    display: block;
+    padding-top: 14px;
+  }
+
+  .users-table .user-actions-cell::before {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .users-table .user-edit-button {
+    width: 100%;
   }
 }
 

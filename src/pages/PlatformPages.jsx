@@ -52,6 +52,28 @@ export function InsurancePage() {
   const [form, setForm] = useState(createEmptyInsurance);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [insuranceStep, setInsuranceStep] = useState(1);
+  const continueInsurance = (event) => {
+    event.preventDefault();
+    setError("");
+    if (!form.coverageTypes.length) {
+      setError("Elegí al menos un producto para cotizar.");
+      return;
+    }
+    if (!form.name.trim()) {
+      setError("Ingresá tu nombre y apellido.");
+      return;
+    }
+    if (!form.dni.trim()) {
+      setError("Ingresá tu DNI.");
+      return;
+    }
+    if (!form.email.trim()) {
+      setError("Ingresá un email para poder contactarte.");
+      return;
+    }
+    setInsuranceStep(2);
+  };
   const submit = async (event) => {
     event.preventDefault();
     setStatus("");
@@ -119,6 +141,12 @@ export function InsurancePage() {
           )}
         </div>
         <form className="form insurance-form" onSubmit={submit}>
+          <div className="form-progress" aria-label={`Paso ${insuranceStep} de 2`}>
+            <span className={insuranceStep === 1 ? "is-active" : "is-complete"}>01 · Base del pedido</span>
+            <span className={insuranceStep === 2 ? "is-active" : ""}>02 · Detalles de cobertura</span>
+          </div>
+          {insuranceStep === 1 && (
+            <>
           <label>
             Nombre y apellido
             <input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
@@ -227,6 +255,15 @@ export function InsurancePage() {
               />
             </label>
           </div>
+          <p className="form-step-note">Con estos datos podemos entender el evento y qué productos necesitás cotizar.</p>
+          <ErrorMessage error={error} />
+          <button className="button dark" onClick={continueInsurance} type="button">
+            Continuar con los detalles →
+          </button>
+            </>
+          )}
+          {insuranceStep === 2 && (
+            <>
           {form.coverageTypes.includes("ap") && (
             <fieldset className="form-fieldset">
               <legend>Accidentes personales</legend>
@@ -432,11 +469,18 @@ export function InsurancePage() {
               onChange={(event) => setForm({ ...form, notes: event.target.value })}
             />
           </label>
-          <button className="button dark" type="submit">
-            Pedir cotización ↗
-          </button>
+          <div className="form-step-actions">
+            <button className="button ghost" onClick={() => setInsuranceStep(1)} type="button">
+              ← Volver
+            </button>
+            <button className="button dark" type="submit">
+              Pedir cotización ↗
+            </button>
+          </div>
           {error && <ErrorMessage error={error} />}
           {status && <p className="success">{status}</p>}
+            </>
+          )}
         </form>
       </section>
     </Layout>
