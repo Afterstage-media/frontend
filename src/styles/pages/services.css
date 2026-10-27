@@ -539,7 +539,16 @@
 
   .services-lane,
   .service-request-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .service-request-layout > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .service-request-layout .editor-form {
+    max-width: none;
   }
 
   .services-lane:nth-child(even) .services-lane-image,
