@@ -605,15 +605,19 @@ export function TransportPage() {
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [eventQuery, setEventQuery] = useState("");
+  const [showAllEvents, setShowAllEvents] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(searchParams.get("eventId") || "");
   const [offers, setOffers] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", origin: "", partySize: "1", notes: "", offerId: "" });
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
+    setEventsLoading(true);
     api("/api/public/events?limit=80")
       .then((items) => setEvents(items))
-      .catch((requestError) => setError(requestError.message));
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setEventsLoading(false));
   }, []);
   useEffect(() => {
     if (!selectedEvent) return;
@@ -621,7 +625,7 @@ export function TransportPage() {
       .then(setOffers)
       .catch(() => setOffers([]));
   }, [selectedEvent]);
-  const visibleEvents = events.filter((event) => {
+  const matchingEvents = events.filter((event) => {
     const query = eventQuery.trim().toLocaleLowerCase();
     if (!query) return true;
     return [event.artist, event.name, event.city, event.venue, event.startsAt]
@@ -630,6 +634,7 @@ export function TransportPage() {
       .toLocaleLowerCase()
       .includes(query);
   });
+  const visibleEvents = showAllEvents ? matchingEvents : matchingEvents.slice(0, 20);
   const submit = async (event) => {
     event.preventDefault();
     setStatus("");
@@ -667,12 +672,17 @@ export function TransportPage() {
               value={eventQuery}
             />
           </label>
-          {events.length === 0 ? (
+          {eventsLoading ? (
             <LoadingState label="Buscando fechas…" />
+          ) : events.length === 0 ? (
+            <EmptyState
+              title="No hay fechas cargadas."
+              message="Cuando aparezcan eventos, vas a poder elegirlos y pedir tu traslado acá."
+            />
           ) : (
             <>
               <p className="muted transport-results-count">
-                {visibleEvents.length} {visibleEvents.length === 1 ? "fecha encontrada" : "fechas encontradas"}
+                {matchingEvents.length} {matchingEvents.length === 1 ? "fecha encontrada" : "fechas encontradas"}
               </p>
               <div className="transport-event-list">
                 {visibleEvents.map((event) => (
@@ -688,7 +698,25 @@ export function TransportPage() {
                   </button>
                 ))}
               </div>
-              {!visibleEvents.length && <p className="muted">No encontramos fechas con esa búsqueda.</p>}
+              {matchingEvents.length > visibleEvents.length && (
+                <button
+                  className="button ghost transport-show-more"
+                  onClick={() => setShowAllEvents(true)}
+                  type="button"
+                >
+                  Mostrar las {matchingEvents.length - visibleEvents.length} fechas restantes ↓
+                </button>
+              )}
+              {showAllEvents && matchingEvents.length > 20 && (
+                <button
+                  className="button ghost transport-show-more"
+                  onClick={() => setShowAllEvents(false)}
+                  type="button"
+                >
+                  Mostrar menos ↑
+                </button>
+              )}
+              {!matchingEvents.length && <p className="muted">No encontramos fechas con esa búsqueda.</p>}
             </>
           )}
         </div>
