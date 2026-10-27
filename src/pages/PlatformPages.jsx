@@ -70,11 +70,6 @@ export function InsurancePage() {
       focusField("name");
       return;
     }
-    if (!form.dni.trim()) {
-      setError("Ingresá tu DNI.");
-      focusField("dni");
-      return;
-    }
     if (!form.email.trim()) {
       setError("Ingresá un email para poder contactarte.");
       focusField("email");
@@ -125,7 +120,6 @@ export function InsurancePage() {
   };
   return (
     <Layout>
-      <SignalTicker items={["Seguros", "Eventos", "Equipos", "Personas"]} />
       <section className="page-intro insurance-intro">
         <p className="eyebrow">Protección para la escena / 01</p>
         <h1>Que el evento avance con todo en regla.</h1>
@@ -167,23 +161,6 @@ export function InsurancePage() {
                   />
                 </label>
                 <label>
-                  DNI
-                  <input
-                    name="dni"
-                    required
-                    value={form.dni}
-                    onChange={(event) => setForm({ ...form, dni: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Organización
-                  <input
-                    name="organization"
-                    value={form.organization}
-                    onChange={(event) => setForm({ ...form, organization: event.target.value })}
-                  />
-                </label>
-                <label>
                   Email
                   <input
                     name="email"
@@ -194,14 +171,6 @@ export function InsurancePage() {
                   />
                 </label>
               </div>
-              <label>
-                Teléfono
-                <input
-                  name="phone"
-                  value={form.phone}
-                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                />
-              </label>
               <fieldset className="form-fieldset">
                 <legend>¿Qué querés cotizar?</legend>
                 <p className="muted">
@@ -234,8 +203,49 @@ export function InsurancePage() {
                   })}
                 </div>
               </fieldset>
+              <p className="form-step-note">
+                Con estos datos alcanza para empezar. En el próximo paso te pedimos el contexto del evento.
+              </p>
+              <ErrorMessage error={error} />
+              <button className="button dark" onClick={continueInsurance} type="button">
+                Continuar con los detalles →
+              </button>
+            </>
+          )}
+          {insuranceStep === 2 && (
+            <>
               <fieldset className="form-fieldset">
-                <legend>Datos generales del evento</legend>
+                <legend>Datos de contacto</legend>
+                <div className="form-grid">
+                  <label>
+                    DNI
+                    <input
+                      name="dni"
+                      required
+                      value={form.dni}
+                      onChange={(event) => setForm({ ...form, dni: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Teléfono
+                    <input
+                      name="phone"
+                      value={form.phone}
+                      onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Organización
+                  <input
+                    name="organization"
+                    value={form.organization}
+                    onChange={(event) => setForm({ ...form, organization: event.target.value })}
+                  />
+                </label>
+              </fieldset>
+              <fieldset className="form-fieldset">
+                <legend>Datos del evento</legend>
                 <label>
                   Nombre del evento
                   <input
@@ -245,18 +255,36 @@ export function InsurancePage() {
                     }
                   />
                 </label>
-                <label>
-                  Lugar
-                  <input
-                    value={form.productDetails.eventLocation}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        productDetails: { ...form.productDetails, eventLocation: event.target.value },
-                      })
-                    }
-                  />
-                </label>
+                <div className="form-grid">
+                  <label>
+                    Lugar
+                    <input
+                      value={form.productDetails.eventLocation}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          productDetails: { ...form.productDetails, eventLocation: event.target.value },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Desde
+                    <input
+                      type="datetime-local"
+                      value={form.startsAt}
+                      onChange={(event) => setForm({ ...form, startsAt: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Hasta
+                    <input
+                      type="datetime-local"
+                      value={form.endsAt}
+                      onChange={(event) => setForm({ ...form, endsAt: event.target.value })}
+                    />
+                  </label>
+                </div>
                 <label>
                   Descripción de la actividad
                   <textarea
@@ -271,35 +299,6 @@ export function InsurancePage() {
                   />
                 </label>
               </fieldset>
-              <div className="form-grid">
-                <label>
-                  Desde
-                  <input
-                    type="datetime-local"
-                    value={form.startsAt}
-                    onChange={(event) => setForm({ ...form, startsAt: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Hasta
-                  <input
-                    type="datetime-local"
-                    value={form.endsAt}
-                    onChange={(event) => setForm({ ...form, endsAt: event.target.value })}
-                  />
-                </label>
-              </div>
-              <p className="form-step-note">
-                Con estos datos podemos entender el evento y qué productos necesitás cotizar.
-              </p>
-              <ErrorMessage error={error} />
-              <button className="button dark" onClick={continueInsurance} type="button">
-                Continuar con los detalles →
-              </button>
-            </>
-          )}
-          {insuranceStep === 2 && (
-            <>
               {form.coverageTypes.includes("ap") && (
                 <fieldset className="form-fieldset">
                   <legend>Accidentes personales</legend>

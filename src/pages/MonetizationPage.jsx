@@ -207,7 +207,6 @@ export function MonetizationPage() {
               {[
                 ["customerName", "Nombre y apellido", "text", true],
                 ["customerEmail", "Email", "email", true],
-                ["organization", "Banda, proyecto u organización", "text"],
                 ["title", "Título de tu propuesta", "text", true],
               ].map(([name, label, type, required]) => (
                 <label key={name}>
@@ -223,6 +222,10 @@ export function MonetizationPage() {
             </>
           ) : (
             <>
+              <label>
+                Banda, proyecto u organización
+                <input name="organization" type="text" value={form.organization} onChange={change} />
+              </label>
               {[
                 ["city", "Ciudad", "text"],
                 ["eventDate", "Fecha", "date"],
