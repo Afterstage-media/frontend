@@ -19,7 +19,21 @@ const splitDestinations = (value) =>
     .split(/[\n,;]+/)
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
-const routeKindLabel = (kind) => (kind === "distribution" ? "Difusión" : "Personal");
+const mailboxAddressLabel = (address) => {
+  const localPart = String(address || "")
+    .split("@", 1)[0]
+    .trim();
+  if (!localPart) return "";
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+};
+const mailboxDisplayLabel = (mailbox) =>
+  mailbox?.kind === "distribution" || mailbox?.mailboxType === "distribution"
+    ? mailboxAddressLabel(mailbox.address || mailbox.mailbox) || "Sin dirección"
+    : "Personal";
 const emptyRouteForm = { address: "", label: "", destinations: "" };
 
 function MailboxContent({ actor }) {
@@ -88,6 +102,7 @@ function MailboxContent({ actor }) {
   const routeByAddress = useMemo(() => new Map(routes.map((route) => [route.address, route])), [routes]);
   const routeForThread = (item) => routeByAddress.get(item.mailbox) || item;
   const threadKind = (item) => routeForThread(item)?.mailboxType || routeForThread(item)?.kind || "personal";
+  const threadDisplayLabel = (item) => mailboxDisplayLabel(routeForThread(item));
   const filteredThreads = useMemo(
     () => threads.filter((item) => filter === "all" || threadKind(item) === filter),
     [filter, routes, threads],
@@ -96,6 +111,14 @@ function MailboxContent({ actor }) {
   const distributionRoutes = routes.filter((route) => route.kind === "distribution");
   const distributionCount = threads.filter((item) => threadKind(item) === "distribution").length;
   const personalCount = threads.filter((item) => threadKind(item) === "personal").length;
+  const distributionMailboxLabels = [
+    ...new Set(
+      threads
+        .filter((item) => threadKind(item) === "distribution")
+        .map((item) => threadDisplayLabel(item))
+        .filter(Boolean),
+    ),
+  ];
 
   const startRouteEdit = (route) => {
     setEditingRoute(route.address);
@@ -219,7 +242,10 @@ function MailboxContent({ actor }) {
               {[
                 ["all", `Todas · ${threads.length}`],
                 ["personal", `Personales · ${personalCount}`],
-                ["distribution", `Difusiones · ${distributionCount}`],
+                [
+                  "distribution",
+                  `${distributionMailboxLabels.join(", ") || "Correos grupales"} · ${distributionCount}`,
+                ],
               ].map(([value, label]) => (
                 <button
                   aria-pressed={filter === value}
@@ -268,7 +294,7 @@ function MailboxContent({ actor }) {
                     <div>
                       <div className="mailbox-route-card-title">
                         <strong>{route.label}</strong>
-                        <span className="mailbox-kind mailbox-kind-distribution">Difusión</span>
+                        <span className="mailbox-kind mailbox-kind-distribution">{mailboxDisplayLabel(route)}</span>
                       </div>
                       <p>{route.address}</p>
                       <ul>
@@ -360,9 +386,7 @@ function MailboxContent({ actor }) {
                   </span>
                   <span className="mailbox-thread-participants">{item.participants?.join(", ")}</span>
                   <span className="mailbox-thread-preview">{item.preview || "Sin contenido"}</span>
-                  <span className={`mailbox-kind mailbox-kind-${threadKind(item)}`}>
-                    {routeKindLabel(threadKind(item))}
-                  </span>
+                  <span className={`mailbox-kind mailbox-kind-${threadKind(item)}`}>{threadDisplayLabel(item)}</span>
                   {item.unreadCount > 0 && <span className="mailbox-unread">{item.unreadCount}</span>}
                 </button>
               ))}
@@ -376,7 +400,7 @@ function MailboxContent({ actor }) {
                     <div className="mailbox-conversation-kicker">
                       <p className="eyebrow">Conversación</p>
                       <span className={`mailbox-kind mailbox-kind-${thread.mailboxType || "personal"}`}>
-                        {routeKindLabel(thread.mailboxType)}
+                        {threadDisplayLabel(thread)}
                       </span>
                     </div>
                     <div>
