@@ -545,7 +545,9 @@ export function MarketplacePage() {
       .catch((requestError) => setError(requestError.message))
       .finally(() => setLoading(false));
   };
-  useEffect(load, [category]);
+  useEffect(() => {
+    load();
+  }, [category]);
   return (
     <Layout>
       <SignalTicker items={["Marketplace", "Orux", "Merch", "Beneficios"]} />

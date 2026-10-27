@@ -38,7 +38,9 @@ export function EventPage() {
       });
   };
 
-  useEffect(load, [id]);
+  useEffect(() => {
+    load();
+  }, [id]);
 
   const submitThread = async (submitEvent) => {
     submitEvent.preventDefault();

@@ -104,7 +104,9 @@ export function ServicesPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   useEffect(() => {
     const page = pageRef.current;
