@@ -43,6 +43,12 @@
   flex: 1 1 220px;
 }
 
+.form-grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .auth-form {
   background: var(--color-surface);
   border: var(--border);
@@ -147,4 +153,10 @@ fieldset label {
   display: grid;
   gap: 24px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 620px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }

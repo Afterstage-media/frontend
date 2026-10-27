@@ -147,34 +147,40 @@ export function InsurancePage() {
           </div>
           {insuranceStep === 1 && (
             <>
-              <label>
-                Nombre y apellido
-                <input
-                  required
-                  value={form.name}
-                  onChange={(event) => setForm({ ...form, name: event.target.value })}
-                />
-              </label>
-              <label>
-                DNI
-                <input required value={form.dni} onChange={(event) => setForm({ ...form, dni: event.target.value })} />
-              </label>
-              <label>
-                Organización
-                <input
-                  value={form.organization}
-                  onChange={(event) => setForm({ ...form, organization: event.target.value })}
-                />
-              </label>
-              <label>
-                Email
-                <input
-                  required
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => setForm({ ...form, email: event.target.value })}
-                />
-              </label>
+              <div className="form-grid insurance-contact-grid">
+                <label>
+                  Nombre y apellido
+                  <input
+                    required
+                    value={form.name}
+                    onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  />
+                </label>
+                <label>
+                  DNI
+                  <input
+                    required
+                    value={form.dni}
+                    onChange={(event) => setForm({ ...form, dni: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Organización
+                  <input
+                    value={form.organization}
+                    onChange={(event) => setForm({ ...form, organization: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    required
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => setForm({ ...form, email: event.target.value })}
+                  />
+                </label>
+              </div>
               <label>
                 Teléfono
                 <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />

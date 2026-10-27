@@ -264,7 +264,9 @@
 }
 
 .insurance-layout {
-  grid-template-columns: 0.8fr 1.2fr;
+  align-items: start;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(560px, 1.15fr);
+  max-width: 1280px;
 }
 
 .transport-layout {
@@ -357,7 +359,10 @@
 }
 
 .insurance-copy {
+  align-self: start;
   padding-top: 18px;
+  position: sticky;
+  top: 92px;
 }
 
 .insurance-copy ol {
@@ -384,8 +389,23 @@
 }
 
 .insurance-form {
+  background: var(--color-surface);
+  border: var(--border);
+  box-shadow: 8px 8px 0 var(--color-ink);
+  box-sizing: border-box;
   max-width: none;
   margin: 0;
+  padding: clamp(24px, 3vw, 38px);
+  width: 100%;
+}
+
+.insurance-form > .form-progress {
+  background: var(--color-surface);
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  position: sticky;
+  top: 72px;
+  z-index: 3;
 }
 
 .insurance-products {
@@ -719,6 +739,14 @@
   .insurance-layout,
   .event-hub-grid {
     grid-template-columns: 1fr;
+  }
+
+  .insurance-copy {
+    position: static;
+  }
+
+  .insurance-form > .form-progress {
+    position: static;
   }
 
   .marketplace-grid,
