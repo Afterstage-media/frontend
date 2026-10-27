@@ -87,12 +87,14 @@ export function AgendaPage() {
     radiusKm: "25",
   });
   const [loading, setLoading] = useState(true);
+  const [showAllEvents, setShowAllEvents] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [scrollOffset, setScrollOffset] = useState(0);
   const load = (nextFilters = filters) => {
     setLoading(true);
     setError("");
     setVisibleEventIds(null);
+    setShowAllEvents(false);
     const params = new URLSearchParams({ limit: "100" });
     if (nextFilters.lat && nextFilters.lng) {
       params.set("lat", nextFilters.lat);
@@ -171,7 +173,7 @@ export function AgendaPage() {
   const handleVisibleEventsChange = useCallback((eventIds) => {
     setVisibleEventIds(new Set(eventIds));
   }, []);
-  const visibleEvents = events;
+  const visibleEvents = showAllEvents ? events : events.slice(0, 12);
   const mapVisibleEvents =
     visibleEventIds === null
       ? events.filter(eventHasCoordinates)
@@ -358,7 +360,21 @@ export function AgendaPage() {
           ) : error ? (
             <p className="muted">La agenda no pudo actualizarse. Usá “Intentar de nuevo” para volver a consultar.</p>
           ) : visibleEvents.length ? (
-            visibleEvents.map((event, index) => <EventCard event={event} index={index} key={eventMapKey(event)} />)
+            <>
+              {visibleEvents.map((event, index) => (
+                <EventCard event={event} index={index} key={eventMapKey(event)} />
+              ))}
+              {events.length > visibleEvents.length && (
+                <button className="button ghost events-show-more" onClick={() => setShowAllEvents(true)} type="button">
+                  Mostrar los {events.length - visibleEvents.length} eventos restantes ↓
+                </button>
+              )}
+              {showAllEvents && events.length > 12 && (
+                <button className="button ghost events-show-more" onClick={() => setShowAllEvents(false)} type="button">
+                  Mostrar menos ↑
+                </button>
+              )}
+            </>
           ) : (
             <EmptyState
               title="No hay eventos con estos filtros."
