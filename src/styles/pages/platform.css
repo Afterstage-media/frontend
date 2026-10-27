@@ -2,7 +2,18 @@
 .insurance-intro,
 .marketplace-intro,
 .admin-platform-intro {
-  max-width: 1180px;
+  max-width: none;
+  min-height: 0;
+  padding-bottom: 48px;
+  padding-top: clamp(48px, 7vw, 82px);
+}
+
+.admin-platform-intro h1 {
+  max-width: 780px;
+}
+
+.admin-platform-intro > p:not(.eyebrow) {
+  max-width: 620px;
 }
 
 .network-intro h1,
@@ -494,7 +505,7 @@
 .admin-platform {
   margin: 0 auto;
   max-width: var(--content-width);
-  padding: var(--space-section) var(--gutter);
+  padding: 34px var(--gutter) 90px;
 }
 
 .platform-metrics {
@@ -509,6 +520,7 @@
   border: var(--border-soft);
   display: grid;
   gap: 5px;
+  min-height: 112px;
   padding: 18px;
 }
 
@@ -525,23 +537,57 @@
 }
 
 .admin-platform-grid {
+  align-items: start;
   display: grid;
-  gap: 18px;
+  gap: 24px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .admin-platform-panel {
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-paper));
+  border: var(--border-soft);
   margin: 0;
   max-width: none;
-  padding: 22px;
+  padding: 24px;
+}
+
+.admin-platform-panel > .eyebrow {
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.admin-platform-panel > h2 {
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  letter-spacing: var(--tracking-heading);
+  line-height: 0.92;
+  margin: 9px 0 22px;
+}
+
+.admin-platform-panel > .muted {
+  align-items: center;
+  border-top: var(--border-soft);
+  display: flex;
+  min-height: 92px;
+  margin: 0;
+  padding: 18px 4px 4px;
+}
+
+.admin-platform-panel.form {
+  align-content: start;
+  gap: 14px;
+}
+
+.admin-platform-panel.form .button {
+  justify-self: start;
+  margin-top: 4px;
 }
 
 .platform-admin-row {
   align-items: center;
   border-top: var(--border-soft);
-  display: flex;
+  display: grid;
   gap: 14px;
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 15px 0;
 }
 
@@ -555,6 +601,8 @@
   display: grid;
   flex: 1 1 260px;
   gap: 8px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-width: 220px;
 }
 
@@ -594,13 +642,21 @@
 }
 
 @media (max-width: 620px) {
+  .admin-platform {
+    padding-top: 24px;
+  }
+
   .platform-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .platform-admin-row {
     align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .platform-admin-fields {
+    grid-template-columns: 1fr;
   }
 }
 
