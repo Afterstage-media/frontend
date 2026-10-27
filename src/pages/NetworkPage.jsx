@@ -72,7 +72,9 @@ export function NetworkPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, [eventId]);
+  useEffect(() => {
+    load();
+  }, [eventId]);
 
   const submitPhotographer = async (event) => {
     event.preventDefault();

@@ -276,7 +276,9 @@ export function AdminMonetizationPage() {
     api(`/api/monetization/promotions${status ? `?status=${status}` : ""}`)
       .then(setItems)
       .catch((e) => setError(e.message));
-  useEffect(load, [status]);
+  useEffect(() => {
+    load();
+  }, [status]);
   const update = async (id, nextStatus, featuredUntil) => {
     setError("");
     setNotice("");

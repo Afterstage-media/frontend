@@ -320,7 +320,9 @@ function SocialDashboard() {
       .then(setMetrics)
       .catch(() => undefined);
   };
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
   const visible = items.filter((item) =>
     `${item.title} ${item.summary} ${item.instagramCopy} ${(item.tags || []).join(" ")}`
       .toLowerCase()

@@ -24,7 +24,9 @@ function InstagramSettings() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const removeConnection = async (accountId) => {
     if (
