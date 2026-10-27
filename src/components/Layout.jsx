@@ -414,4 +414,9 @@ function LayoutShell({ children }) {
   );
 }
 export const Loading = () => <p className="muted">Cargando…</p>;
-export const ErrorMessage = ({ error }) => (error ? <p className="error">{error}</p> : null);
+export const ErrorMessage = ({ error }) =>
+  error ? (
+    <p aria-live="polite" className="error" role="alert">
+      {error}
+    </p>
+  ) : null;

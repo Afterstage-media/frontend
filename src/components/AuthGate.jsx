@@ -54,6 +54,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         {collaborator ? "Email" : "Usuario o email"}
         <input
           autoComplete={collaborator ? "email" : "username"}
+          name="identifier"
           type={collaborator ? "email" : "text"}
           value={identifier}
           onChange={(event) => setIdentifier(event.target.value)}
@@ -64,6 +65,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         Contraseña
         <input
           autoComplete="current-password"
+          name="password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -78,6 +80,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           Repetir contraseña
           <input
             autoComplete="new-password"
+            name="passwordConfirmation"
             type="password"
             value={passwordConfirmation}
             onChange={(event) => setPasswordConfirmation(event.target.value)}
@@ -182,7 +185,11 @@ export function AuthGate({ allowedRoles, children }) {
             setError("");
           }}
         />
-        {error && <p className="error token-gate">{error}</p>}
+        {error && (
+          <p aria-live="polite" className="error token-gate" role="alert">
+            {error}
+          </p>
+        )}
       </Layout>
     );
 
