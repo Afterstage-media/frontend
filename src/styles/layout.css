@@ -17,9 +17,12 @@
   min-height: 390px;
   overflow: hidden;
   padding-bottom: 70px;
+  padding-left: max(var(--gutter), calc((100% - var(--content-width)) / 2 + var(--gutter)));
+  padding-right: max(var(--gutter), calc((100% - var(--content-width)) / 2 + var(--gutter)));
   padding-top: 85px;
   position: relative;
   scroll-margin-top: 92px;
+  width: 100%;
 }
 
 .page-intro::after {
@@ -42,10 +45,6 @@
   margin: 0 auto;
   max-width: var(--content-width);
   padding: 0 var(--gutter) var(--space-section);
-}
-
-.page-intro {
-  max-width: 1180px;
 }
 
 .publish-intro {
