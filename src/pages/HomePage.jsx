@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ContentCard } from "../components/ContentCard.jsx";
-import { SectionHeading } from "../components/EditorialPrimitives.jsx";
+import { SectionHeading } from "../components/ui/SectionHeading.jsx";
 import { HomeHero, HomeIntent, HomeMission, HomeQuickLinks } from "../components/HomeEditorial.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 export function HomePage() {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, encryptAuthSecret } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
+import { TextField } from "./ui/TextField.jsx";
 
 const tokenKey = "afterstage-token";
 
@@ -103,17 +104,15 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         <p className="eyebrow">Volver a entrar</p>
         <h1>Recuperá tu acceso.</h1>
         <p>Indicá el email de tu cuenta y te enviamos un enlace de recuperación.</p>
-        <label>
-          Email
-          <input
-            autoComplete="email"
-            name="recoveryEmail"
-            type="email"
-            value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
-            required
-          />
-        </label>
+        <TextField
+          autoComplete="email"
+          label="Email"
+          name="recoveryEmail"
+          onChange={(event) => setIdentifier(event.target.value)}
+          required
+          type="email"
+          value={identifier}
+        />
         <p className="auth-help">
           Por seguridad, siempre mostramos el mismo mensaje aunque el email no esté registrado.
         </p>
@@ -138,30 +137,26 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         <p className="eyebrow">Nuevo acceso</p>
         <h1>Elegí una contraseña nueva.</h1>
         <p>Usá al menos 12 caracteres. La contraseña se cifra antes de enviarse.</p>
-        <label>
-          Nueva contraseña
-          <input
-            autoComplete="new-password"
-            name="newPassword"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            minLength={12}
-            required
-          />
-        </label>
-        <label>
-          Repetir contraseña
-          <input
-            autoComplete="new-password"
-            name="passwordConfirmation"
-            type="password"
-            value={passwordConfirmation}
-            onChange={(event) => setPasswordConfirmation(event.target.value)}
-            minLength={12}
-            required
-          />
-        </label>
+        <TextField
+          autoComplete="new-password"
+          label="Nueva contraseña"
+          minLength={12}
+          name="newPassword"
+          onChange={(event) => setPassword(event.target.value)}
+          required
+          type="password"
+          value={password}
+        />
+        <TextField
+          autoComplete="new-password"
+          label="Repetir contraseña"
+          minLength={12}
+          name="passwordConfirmation"
+          onChange={(event) => setPasswordConfirmation(event.target.value)}
+          required
+          type="password"
+          value={passwordConfirmation}
+        />
         {recoverySent && (
           <p className="success" role="status">
             Contraseña actualizada. Ya podés iniciar sesión.
@@ -187,44 +182,38 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           ? "Participá de la comunidad y enviá propuestas autenticadas."
           : "Usá tu usuario o email y contraseña del medio."}
       </p>
-      <label>
-        {collaborator ? "Email" : "Usuario o email"}
-        <input
-          autoComplete={collaborator ? "email" : "username"}
-          name="identifier"
-          type={collaborator ? "email" : "text"}
-          value={identifier}
-          onChange={(event) => setIdentifier(event.target.value)}
-          required
-        />
-      </label>
-      <label>
-        Contraseña
-        <input
-          autoComplete="current-password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-      </label>
+      <TextField
+        autoComplete={collaborator ? "email" : "username"}
+        label={collaborator ? "Email" : "Usuario o email"}
+        name="identifier"
+        onChange={(event) => setIdentifier(event.target.value)}
+        required
+        type={collaborator ? "email" : "text"}
+        value={identifier}
+      />
+      <TextField
+        autoComplete="current-password"
+        label="Contraseña"
+        name="password"
+        onChange={(event) => setPassword(event.target.value)}
+        required
+        type="password"
+        value={password}
+      />
       <button className="auth-recovery-link" type="button" onClick={() => setAuthMode("recover")}>
         ¿Perdiste el acceso? Recuperá tu contraseña
       </button>
       {collaborator && registering && (
-        <label>
-          Repetir contraseña
-          <input
-            autoComplete="new-password"
-            name="passwordConfirmation"
-            type="password"
-            value={passwordConfirmation}
-            onChange={(event) => setPasswordConfirmation(event.target.value)}
-            minLength={12}
-            required
-          />
-        </label>
+        <TextField
+          autoComplete="new-password"
+          label="Repetir contraseña"
+          minLength={12}
+          name="passwordConfirmation"
+          onChange={(event) => setPasswordConfirmation(event.target.value)}
+          required
+          type="password"
+          value={passwordConfirmation}
+        />
       )}
       <button className="button dark" disabled={loading} type="submit">
         {loading ? "Procesando…" : registering ? "Crear cuenta" : "Ingresar"}

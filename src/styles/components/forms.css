@@ -65,6 +65,28 @@
   gap: var(--space-xs);
 }
 
+.form-field {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.form-field-label {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.form-field-label small,
+.form-field-hint {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.form-field-hint {
+  line-height: 1.35;
+}
+
 .form input,
 .form textarea,
 .form select,
@@ -147,6 +169,17 @@ fieldset {
   display: grid;
   gap: var(--space-sm);
   padding: var(--space-md);
+}
+
+.form-fieldset > legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  padding-inline: 4px;
+}
+
+.form-fieldset > .muted {
+  margin: 0;
 }
 
 fieldset label {

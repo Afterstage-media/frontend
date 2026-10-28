@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+export { EditorialIntro, PageTitle } from "./ui/PageTitle.jsx";
+export { SectionHeading } from "./ui/SectionHeading.jsx";
 
 export function SignalTicker({
   items = ["Coberturas reales", "Agenda de acá", "Historias desde adentro", "Bajo la superficie"],
@@ -14,33 +15,6 @@ export function SignalTicker({
           </span>
         ))}
       </div>
-    </div>
-  );
-}
-
-export function EditorialIntro({ eyebrow, title, description, action, className = "" }) {
-  return (
-    <section className={`page-intro ${className}`.trim()}>
-      <p className="eyebrow">{eyebrow}</p>
-      <h1>{title}</h1>
-      {description && <p>{description}</p>}
-      {action && <div className="actions intro-actions">{action}</div>}
-    </section>
-  );
-}
-
-export function SectionHeading({ eyebrow, title, to, linkLabel = "Ver todo" }) {
-  return (
-    <div className="section-head">
-      <div>
-        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-        <h2>{title}</h2>
-      </div>
-      {to && (
-        <Link className="section-link" to={to}>
-          {linkLabel} <span>↗</span>
-        </Link>
-      )}
     </div>
   );
 }

@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { FormActions } from "../components/ui/FormActions.jsx";
+import { FormProgress } from "../components/ui/FormProgress.jsx";
+import { SelectField } from "../components/ui/SelectField.jsx";
+import { TextAreaField } from "../components/ui/TextAreaField.jsx";
+import { TextField } from "../components/ui/TextField.jsx";
 
 const initial = {
   productId: "",
@@ -181,16 +186,13 @@ export function MonetizationPage() {
           <p className="eyebrow">Tu pedido</p>
           <h2>{selected?.name || "Elegí un servicio"}</h2>
           <p>{selected?.delivery || "Te respondemos con el próximo paso."}</p>
-          <label>
-            Cambiar servicio
-            <select name="productId" value={form.productId} onChange={change}>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectField label="Cambiar servicio" name="productId" onChange={change} value={form.productId}>
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </SelectField>
           <Link className="text-link" to="/servicios">
             Ver cómo se distribuyen los servicios <span>↗</span>
           </Link>
@@ -198,22 +200,25 @@ export function MonetizationPage() {
         <form className="form editor-form" noValidate onInvalid={invalid} onSubmit={submit}>
           <h2>Contanos un poco más.</h2>
           <p className="muted">Completá los datos y te confirmamos el próximo paso.</p>
-          <div className="form-progress" aria-label={`Paso ${formStep} de 2`}>
-            <span className={formStep === 1 ? "is-active" : "is-complete"}>01 · Tu propuesta</span>
-            <span className={formStep === 2 ? "is-active" : ""}>02 · Detalles y contacto</span>
-          </div>
+          <FormProgress current={formStep} steps={["Tu propuesta", "Detalles y contacto"]} />
           {formStep === 1 ? (
             <>
-              {[
-                ["customerName", "Nombre y apellido", "text", true],
-                ["customerEmail", "Email", "email", true],
-                ["title", "Título de tu propuesta", "text", true],
-              ].map(([name, label, type, required]) => (
-                <label key={name}>
-                  {label}
-                  <input name={name} type={type} value={form[name]} onChange={change} required={required} />
-                </label>
-              ))}
+              <TextField
+                label="Nombre y apellido"
+                name="customerName"
+                onChange={change}
+                required
+                value={form.customerName}
+              />
+              <TextField
+                label="Email"
+                name="customerEmail"
+                onChange={change}
+                required
+                type="email"
+                value={form.customerEmail}
+              />
+              <TextField label="Título de tu propuesta" name="title" onChange={change} required value={form.title} />
               <p className="form-step-note">Primero necesitamos saber quién sos y qué querés poner en movimiento.</p>
               <ErrorMessage error={error} />
               <button type="button" className="button dark" onClick={continueToDetails}>
@@ -222,46 +227,44 @@ export function MonetizationPage() {
             </>
           ) : (
             <>
-              <label>
-                Banda, proyecto u organización
-                <input name="organization" type="text" value={form.organization} onChange={change} />
-              </label>
-              {[
-                ["city", "Ciudad", "text"],
-                ["eventDate", "Fecha", "date"],
-                ["instagram", "Instagram", "text"],
-                ["website", "Website", "url"],
-              ].map(([name, label, type]) => (
-                <label key={name}>
-                  {label}
-                  <input name={name} type={type} value={form[name]} onChange={change} />
-                </label>
-              ))}
-              <label>
-                Descripción
-                <textarea name="description" value={form.description} onChange={change} minLength="10" required />
-              </label>
-              <label>
-                Notas
-                <textarea name="notes" value={form.notes} onChange={change} />
-              </label>
-              <label>
-                Preferencia de contacto
-                <select name="contactPreference" value={form.contactPreference} onChange={change}>
-                  <option value="email">Email</option>
-                  <option value="whatsapp">WhatsApp</option>
-                  <option value="instagram">Instagram</option>
-                </select>
-              </label>
+              <TextField
+                label="Banda, proyecto u organización"
+                name="organization"
+                onChange={change}
+                value={form.organization}
+              />
+              <TextField label="Ciudad" name="city" onChange={change} value={form.city} />
+              <TextField label="Fecha" name="eventDate" onChange={change} type="date" value={form.eventDate} />
+              <TextField label="Instagram" name="instagram" onChange={change} value={form.instagram} />
+              <TextField label="Website" name="website" onChange={change} type="url" value={form.website} />
+              <TextAreaField
+                label="Descripción"
+                minLength="10"
+                name="description"
+                onChange={change}
+                required
+                value={form.description}
+              />
+              <TextAreaField label="Notas" name="notes" onChange={change} optional value={form.notes} />
+              <SelectField
+                label="Preferencia de contacto"
+                name="contactPreference"
+                onChange={change}
+                value={form.contactPreference}
+              >
+                <option value="email">Email</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram</option>
+              </SelectField>
               <ErrorMessage error={error} />
-              <div className="form-step-actions">
+              <FormActions>
                 <button type="button" className="button ghost" onClick={() => setFormStep(1)}>
                   ← Volver
                 </button>
                 <button type="submit" className="button dark" disabled={loading || !selected}>
                   {loading ? "Enviando…" : selected?.priceArs ? "Enviar y continuar al pago ↗" : "Pedir presupuesto"}
                 </button>
-              </div>
+              </FormActions>
             </>
           )}
         </form>

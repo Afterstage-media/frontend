@@ -3,7 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
-import { EditorialIntro, SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { EditorialIntro } from "../components/ui/PageTitle.jsx";
 export function CommunityPage() {
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get("eventId") || "";
