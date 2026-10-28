@@ -75,6 +75,8 @@ assert.match(agenda, /Intentar de nuevo/);
 assert.match(agenda, /EmptyState/);
 assert.match(agenda, /navigator\.geolocation/);
 assert.match(agenda, /Radio de búsqueda/);
+assert.match(agenda, /Seleccionar artista/);
+assert.match(agenda, /Filtrar por fecha/);
 assert.match(agenda, /<EventMap/);
 assert.match(eventMap, /tile\.openstreetmap\.org/);
 assert.match(eventMap, /radiusKm/);

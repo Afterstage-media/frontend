@@ -201,13 +201,17 @@
 
 .agenda-date-actions {
   align-items: end;
-  display: flex;
-  gap: var(--space-sm);
+  display: grid;
+  gap: 7px var(--space-sm);
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
 }
 
+.agenda-date-actions .agenda-filter-label {
+  grid-column: 1 / -1;
+}
+
 .agenda-date-actions select {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
