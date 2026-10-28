@@ -169,7 +169,7 @@ export function ServicesPage() {
       revealObserver.disconnect();
       laneObserver.disconnect();
     };
-  }, [loading]);
+  }, [loading, selectedLane, showAll]);
 
   const byId = new Map(products.map((product) => [product.id, product]));
 
