@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../services/api.js";
-import { Link } from "react-router-dom";
 import { Layout, Loading } from "../components/Layout.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
 export function ArticlePage() {
   const { slug } = useParams();
   const [item, setItem] = useState(null);
@@ -51,9 +51,9 @@ export function ArticlePage() {
           <h1>Nota no disponible.</h1>
           <p className="muted">No encontramos esta nota o ya no está publicada.</p>
           <p className="error">{error}</p>
-          <Link className="button dark" to="/notas">
+          <ButtonLink className="dark" to="/notas">
             Volver al archivo
-          </Link>
+          </ButtonLink>
         </section>
       </Layout>
     );
@@ -106,9 +106,9 @@ export function ArticlePage() {
           <p key={index}>{paragraph}</p>
         ))}
         <div className="article-share-actions">
-          <button className="button article-share-primary" type="button" onClick={() => share(false)}>
+          <Button className="article-share-primary" type="button" onClick={() => share(false)}>
             Compartir nota ↗
-          </button>
+          </Button>
           <button className="article-copy-action" type="button" onClick={() => share(true)}>
             Copiar copy para Instagram
           </button>

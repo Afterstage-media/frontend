@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Button } from "../components/ui/Button.jsx";
 
 const formatExpiry = (value) => {
   if (!value) return "Sin vencimiento informado";
@@ -59,9 +60,9 @@ function InstagramSettings() {
         <h1>Instagram conectado.</h1>
         <p>Autorizá la cuenta desde Instagram. Afterstage recibe el código en el backend y guarda el acceso cifrado.</p>
         <div className="actions">
-          <button className="button" onClick={() => (window.location.href = "/api/integrations/instagram/connect")}>
+          <Button onClick={() => (window.location.href = "/api/integrations/instagram/connect")}>
             Conectar una cuenta ↗
-          </button>
+          </Button>
         </div>
       </section>
       <ErrorMessage error={error} />
@@ -79,14 +80,14 @@ function InstagramSettings() {
               </div>
               <div className="actions">
                 <span>{connection.scopes?.length || 0} permisos</span>
-                <button
-                  className="button ghost"
+                <Button
                   type="button"
                   disabled={removingAccountId === connection.accountId}
                   onClick={() => removeConnection(connection.accountId)}
+                  variant="ghost"
                 >
                   {removingAccountId === connection.accountId ? "Removiendo…" : "Remover conexión"}
-                </button>
+                </Button>
               </div>
             </article>
           ))}

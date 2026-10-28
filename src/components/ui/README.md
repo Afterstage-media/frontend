@@ -18,6 +18,12 @@ accesibilidad y estados.
 - `TextField`, `TextAreaField`, `SelectField` y `FormSection`: campos y agrupaciones de formularios.
 - `FormProgress` y `FormActions`: formularios de varios pasos.
 - `LoadingState`, `ErrorState` y `EmptyState`: estados de carga, error y vacío.
+- `Container`: ancho de contenido compartido, con variante amplia para grillas.
+- `Dialog` y `Drawer`: modales y paneles laterales con foco atrapado, cierre por Escape y cierre al tocar el fondo.
+- `IconButton`: acción compacta para cerrar o ejecutar una acción identificada por `aria-label`.
+- `SegmentedControl` y `FilterBar`: filtros agrupados con estado seleccionado explícito.
+- `StatusBadge` y `Notice`: estados persistentes y mensajes de feedback accesibles.
+- `DataTable` e `ItemList`: colecciones reutilizables con estados vacíos y adaptación responsive.
 
 ## Reglas de uso
 
@@ -30,6 +36,11 @@ accesibilidad y estados.
    definir la caja base o la grilla.
 6. Los anchos, gutters, alturas y escalas viven en tokens y CSS compartido. Las páginas no agregan medidas arbitrarias.
 7. Los estados de carga, error y vacío son componentes explícitos y deben ofrecer una acción recuperable cuando existe.
+8. Los modales y drawers se montan con `Dialog`/`Drawer`; no se crean backdrops, foco ni listeners de Escape en cada página.
+9. Las tablas y listas de datos usan `DataTable`/`ItemList` para mantener el mismo estado vacío, lectura móvil y estructura.
+10. Un filtro de selección única usa `SegmentedControl`; un conjunto de filtros usa `FilterBar` y siempre debe anunciar su propósito.
+11. Un feedback de éxito, error o advertencia usa `Notice`; el texto no se comunica solo por color.
+12. Un estado de entidad usa `StatusBadge`; el tono visual acompaña una etiqueta textual comprensible.
 
 Si aparece una diferencia entre dos rutas, primero se corrige el componente o el token compartido. Solo se crea una
 variante cuando existe una diferencia real de tarea y queda cubierta por un test.

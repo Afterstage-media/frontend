@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Button } from "../components/ui/Button.jsx";
+import { Notice } from "../components/ui/Notice.jsx";
+import { StatusBadge } from "../components/ui/StatusBadge.jsx";
 import { api } from "../services/api.js";
 
 const emptyOffer = {
@@ -141,7 +144,7 @@ function PlatformAdmin({ actor }) {
       </section>
       <main className="admin-platform">
         <ErrorMessage error={error} />
-        {notice && <p className="success">{notice}</p>}
+        {notice && <Notice tone="success">{notice}</Notice>}
         <section className="platform-metrics">
           <article>
             <strong>{snapshot.photographers.length}</strong>
@@ -178,24 +181,26 @@ function PlatformAdmin({ actor }) {
                     </span>
                   </div>
                   <div className="actions">
-                    <span className={`status-pill status-${item.status}`}>{item.status}</span>
+                    <StatusBadge className="status-pill" tone={item.status}>
+                      {item.status}
+                    </StatusBadge>
                     {item.status !== "published" && (
-                      <button
-                        className="button ghost"
+                      <Button
                         onClick={() => patch(`/api/platform/photographers/${item.id}`, { status: "published" })}
+                        variant="ghost"
                         type="button"
                       >
                         Publicar
-                      </button>
+                      </Button>
                     )}
                     {item.status !== "archived" && (
-                      <button
-                        className="button ghost"
+                      <Button
                         onClick={() => patch(`/api/platform/photographers/${item.id}`, { status: "archived" })}
+                        variant="ghost"
                         type="button"
                       >
                         Archivar
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </article>
@@ -278,12 +283,12 @@ function PlatformAdmin({ actor }) {
                       defaultValue={item.commissionNotes || ""}
                       onChange={(event) => updateInsuranceDraft(item, "commissionNotes", event.target.value)}
                     />
-                    <button className="button ghost" onClick={() => saveInsurance(item)} type="button">
+                    <Button onClick={() => saveInsurance(item)} variant="ghost" type="button">
                       Guardar cotización
-                    </button>
-                    <button className="button ghost" onClick={() => renewInsurance(item)} type="button">
+                    </Button>
+                    <Button onClick={() => renewInsurance(item)} variant="ghost" type="button">
                       Reutilizar datos
-                    </button>
+                    </Button>
                     {item.mailThreadId && (
                       <a
                         className="button ghost"
@@ -476,9 +481,9 @@ function PlatformAdmin({ actor }) {
                 />
               </label>
             </div>
-            <button className="button dark" type="submit">
+            <Button variant="dark" type="submit">
               Publicar traslado ↗
-            </button>
+            </Button>
           </form>
           {canEditCatalog && (
             <form className="form admin-platform-panel" onSubmit={createListing}>
@@ -526,9 +531,9 @@ function PlatformAdmin({ actor }) {
                   onChange={(event) => setListing({ ...listing, priceLabel: event.target.value })}
                 />
               </label>
-              <button className="button dark" type="submit">
+              <Button variant="dark" type="submit">
                 Agregar al catálogo ↗
-              </button>
+              </Button>
             </form>
           )}
         </div>

@@ -82,6 +82,7 @@
   }
 
   .content-section,
+  .content-container,
   .ui-state-error,
   .auth-form {
     padding-left: var(--gutter-mobile);

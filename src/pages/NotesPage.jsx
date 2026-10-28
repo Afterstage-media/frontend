@@ -8,6 +8,7 @@ import { SectionHeading } from "../components/ui/SectionHeading.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 import { CardContainer } from "../components/ui/CardContainer.jsx";
+import { ButtonLink } from "../components/ui/Button.jsx";
 import { normalizeSearchText } from "../utils/search.js";
 export function NotesPage() {
   const [searchParams] = useSearchParams();
@@ -71,12 +72,12 @@ export function NotesPage() {
           />
           {!query && (
             <div className="empty-state-actions">
-              <Link className="button dark" to="/agenda">
+              <ButtonLink className="dark" to="/agenda">
                 Explorar la agenda ↗
-              </Link>
-              <Link className="button ghost" to="/como-funciona">
+              </ButtonLink>
+              <ButtonLink className="ghost" to="/como-funciona">
                 Conocer Afterstage
-              </Link>
+              </ButtonLink>
             </div>
           )}
         </section>

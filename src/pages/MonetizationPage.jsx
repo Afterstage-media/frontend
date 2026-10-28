@@ -349,18 +349,18 @@ export function AdminMonetizationPage() {
                   onChange={(e) => update(item.id, item.status, e.target.value)}
                 />
               </label>
-              <button className="button" onClick={() => update(item.id, "in_review")} type="button">
+              <Button onClick={() => update(item.id, "in_review")} type="button">
                 Pasar a revisión
-              </button>
-              <button className="button" onClick={() => update(item.id, "approved")} type="button">
+              </Button>
+              <Button onClick={() => update(item.id, "approved")} type="button">
                 Aprobar
-              </button>
-              <button className="button ghost" onClick={() => update(item.id, "rejected")} type="button">
+              </Button>
+              <Button onClick={() => update(item.id, "rejected")} variant="ghost" type="button">
                 Rechazar
-              </button>
-              <button className="button dark" onClick={() => update(item.id, "fulfilled")} type="button">
+              </Button>
+              <Button onClick={() => update(item.id, "fulfilled")} variant="dark" type="button">
                 Marcar entregada
-              </button>
+              </Button>
             </div>
           </article>
         ))}

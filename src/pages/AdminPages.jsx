@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
+import { StatusBadge } from "../components/ui/StatusBadge.jsx";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
 const labels = {
@@ -355,9 +357,9 @@ function SocialDashboard() {
             <p className="eyebrow">Empezar por una idea</p>
             <h2>¿Qué querés mover hoy?</h2>
           </div>
-          <Link className="button dark" to="/admin/nueva?mode=instagram">
+          <ButtonLink className="dark" to="/admin/nueva?mode=instagram">
             Pieza libre ↗
-          </Link>
+          </ButtonLink>
         </div>
         <div className="social-template-grid">
           <Link
@@ -813,7 +815,9 @@ function ContentForm({
             <ErrorMessage error={error} />
             {status && <p className="success">{status}</p>}
           </div>
-          <button className="button dark">{submitLabel}</button>
+          <Button variant="dark" type="submit">
+            {submitLabel}
+          </Button>
         </div>
       </section>
     </form>
@@ -833,7 +837,7 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
           <p className="eyebrow">Flujo editorial</p>
           <h2>Qué sigue</h2>
         </div>
-        <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
+        <StatusBadge tone={item.status}>{labels[item.status] || item.status}</StatusBadge>
       </div>
       <ol className="workflow-steps" aria-label="Progreso editorial">
         {workflowStages.map((stage, index) => (
@@ -860,68 +864,69 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
       </div>
       <div className="workflow-actions">
         {item.status === "idea" && (
-          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+          <Button className="button-wide" onClick={() => onTransition("draft")} variant="dark" type="button">
             Empezar borrador
-          </button>
+          </Button>
         )}
         {item.status === "draft" && (
-          <button className="button dark button-wide" onClick={() => onTransition("review")} type="button">
+          <Button className="button-wide" onClick={() => onTransition("review")} variant="dark" type="button">
             Enviar a revisión
-          </button>
+          </Button>
         )}
         {item.status === "failed" && (
-          <button className="button dark button-wide" onClick={() => onTransition("draft")} type="button">
+          <Button className="button-wide" onClick={() => onTransition("draft")} variant="dark" type="button">
             Volver a borrador
-          </button>
+          </Button>
         )}
         {item.status === "review" && (
           <>
-            <button className="button dark button-wide" onClick={() => onTransition("approved")} type="button">
+            <Button className="button-wide" onClick={() => onTransition("approved")} variant="dark" type="button">
               Aprobar nota
-            </button>
-            <button className="button ghost button-wide" onClick={() => onTransition("draft")} type="button">
+            </Button>
+            <Button className="button-wide" onClick={() => onTransition("draft")} variant="ghost" type="button">
               Volver a borrador
-            </button>
+            </Button>
           </>
         )}
         {item.status === "approved" && item.scheduledAt && (
-          <button className="button ghost button-wide" onClick={() => onTransition("scheduled")} type="button">
+          <Button className="button-wide" onClick={() => onTransition("scheduled")} variant="ghost" type="button">
             Programar publicación
-          </button>
+          </Button>
         )}
         {canPublish && (
-          <button className="button dark button-wide" onClick={() => onPublish(false)} type="button">
+          <Button className="button-wide" onClick={() => onPublish(false)} variant="dark" type="button">
             Publicar ahora
-          </button>
+          </Button>
         )}
         {item.status === "publishing" && <p className="publish-hint">La publicación está en proceso.</p>}
         {isPublished && (
           <>
             <p className="publish-hint">La nota está publicada. Los cambios se guardan directamente.</p>
-            <button
-              className="button ghost button-wide"
+            <Button
+              className="button-wide"
               onClick={() => {
                 if (window.confirm("¿Retirar esta nota del sitio público y devolverla a borrador?")) {
                   onTransition("draft");
                 }
               }}
+              variant="ghost"
               type="button"
             >
               Retirar del sitio
-            </button>
+            </Button>
             {item.channels?.includes("instagram") && (
-              <button className="button ghost button-wide" onClick={onRepublishInstagram} type="button">
+              <Button className="button-wide" onClick={onRepublishInstagram} variant="ghost" type="button">
                 Recompartir en Instagram
-              </button>
+              </Button>
             )}
           </>
         )}
       </div>
       <details className="editor-advanced-actions">
         <summary>Acciones avanzadas</summary>
-        <button className="button ghost button-wide" onClick={onPreview} type="button">
+        <Button className="button-wide" onClick={onPreview} variant="ghost" type="button">
           Simular publicación
-        </button>
+        </Button>
       </details>
     </section>
   );
@@ -952,9 +957,7 @@ function ContentEditorPage() {
             <>
               <ErrorMessage error={error} />
               <p className="muted">La publicación que buscás no está disponible o fue eliminada.</p>
-              <Link className="button" to="/admin">
-                Volver a redacción ↗
-              </Link>
+              <ButtonLink to="/admin">Volver a redacción ↗</ButtonLink>
             </>
           ) : (
             <p className="muted" role="status" aria-live="polite">
@@ -1169,15 +1172,15 @@ function ContentEditorPage() {
                 rows="5"
               />
               <div className="editor-ai-actions">
-                <button className="button" onClick={() => generate("full_article")} type="button">
+                <Button onClick={() => generate("full_article")} type="button">
                   Generar nota
-                </button>
-                <button className="button" onClick={() => generate("social_copy")} type="button">
+                </Button>
+                <Button onClick={() => generate("social_copy")} type="button">
                   Generar copys
-                </button>
-                <button className="button ghost" onClick={() => generate("improve")} type="button">
+                </Button>
+                <Button onClick={() => generate("improve")} variant="ghost" type="button">
                   Mejorar texto
-                </button>
+                </Button>
               </div>
             </section>
 
@@ -1210,9 +1213,9 @@ function ContentEditorPage() {
                   onChange={(e) => setFiles(e.target.files)}
                 />
               </label>
-              <button className="button ghost button-wide" onClick={upload} disabled={!files.length} type="button">
+              <Button className="button-wide" onClick={upload} disabled={!files.length} variant="ghost" type="button">
                 Subir medios
-              </button>
+              </Button>
             </section>
 
             <EditorialWorkflow
@@ -1288,9 +1291,9 @@ function MediaKitForm({ mediaKit, onSaved }) {
         ))}
       </div>
       <div className="press-form-actions">
-        <button className="button dark" type="submit">
+        <Button variant="dark" type="submit">
           Guardar dossier
-        </button>
+        </Button>
         {status && (
           <p aria-live="polite" className="success">
             {status}
@@ -1395,12 +1398,12 @@ function PressDashboard() {
           </div>
           <div className="press-hero-actions" aria-label="Acciones rápidas">
             <span>Acciones frecuentes</span>
-            <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+            <Button onClick={() => setActiveSection("events")} variant="dark" type="button">
               + Nuevo evento
-            </button>
-            <button className="button ghost" onClick={() => setActiveSection("accreditations")} type="button">
+            </Button>
+            <Button onClick={() => setActiveSection("accreditations")} variant="ghost" type="button">
               Solicitar acreditación
-            </button>
+            </Button>
           </div>
           <ErrorMessage error={error} />
         </section>
@@ -1463,18 +1466,18 @@ function PressDashboard() {
                 <p>Elegí una sección para trabajar sin recorrer formularios que no necesitás ahora.</p>
               </div>
               <div className="press-overview-actions">
-                <button className="button dark" onClick={() => setActiveSection("events")} type="button">
+                <Button onClick={() => setActiveSection("events")} variant="dark" type="button">
                   Cargar evento
-                </button>
-                <button className="button ghost" onClick={() => setActiveSection("contacts")} type="button">
+                </Button>
+                <Button onClick={() => setActiveSection("contacts")} variant="ghost" type="button">
                   Cargar contacto
-                </button>
-                <button className="button ghost" onClick={() => setActiveSection("accreditations")} type="button">
+                </Button>
+                <Button onClick={() => setActiveSection("accreditations")} variant="ghost" type="button">
                   Solicitar acreditación
-                </button>
-                <button className="button ghost" onClick={() => setActiveSection("dossier")} type="button">
+                </Button>
+                <Button onClick={() => setActiveSection("dossier")} variant="ghost" type="button">
                   Editar dossier
-                </button>
+                </Button>
               </div>
             </section>
             <section
@@ -1584,9 +1587,9 @@ function PressDashboard() {
                   )}
                 </div>
                 <div className="press-form-actions">
-                  <button className="button dark" type="submit">
+                  <Button variant="dark" type="submit">
                     Guardar evento
-                  </button>
+                  </Button>
                 </div>
               </form>
             </section>
@@ -1645,9 +1648,9 @@ function PressDashboard() {
                   ))}
                 </div>
                 <div className="press-form-actions">
-                  <button className="button dark" type="submit">
+                  <Button variant="dark" type="submit">
                     Guardar contacto
-                  </button>
+                  </Button>
                 </div>
               </form>
             </section>
@@ -1775,9 +1778,9 @@ function PressDashboard() {
                   </label>
                 </div>
                 <div className="press-form-actions">
-                  <button className="button dark" type="submit">
+                  <Button variant="dark" type="submit">
                     Guardar solicitud
-                  </button>
+                  </Button>
                 </div>
               </form>
             </section>
@@ -1855,9 +1858,9 @@ function PressDashboard() {
                   </label>
                 </div>
                 <div className="press-form-actions">
-                  <button className="button dark" type="submit">
+                  <Button variant="dark" type="submit">
                     Guardar cobertura
-                  </button>
+                  </Button>
                 </div>
               </form>
             </section>
@@ -1888,9 +1891,9 @@ function PressDashboard() {
                         <span>
                           {item.subject} · {item.status}
                         </span>
-                        <button className="button ghost" onClick={() => send(item.id)} type="button">
+                        <Button onClick={() => send(item.id)} variant="ghost" type="button">
                           Enviar correo
-                        </button>
+                        </Button>
                       </article>
                     ))
                   ) : (

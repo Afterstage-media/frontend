@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Button } from "../components/ui/Button.jsx";
 import { api } from "../services/api.js";
 
 const formatDate = (value) => {
@@ -262,13 +263,14 @@ function MailboxContent({ actor }) {
           <div className="mailbox-toolbar-actions">
             <span className="mailbox-toolbar-count">{filteredThreads.length} conversaciones</span>
             {canManageRoutes && (
-              <button
-                className="button ghost mailbox-routes-toggle"
+              <Button
+                className="mailbox-routes-toggle"
                 onClick={() => setRoutesOpen((open) => !open)}
+                variant="ghost"
                 type="button"
               >
                 {routesOpen ? "Cerrar gestión" : "Gestionar difusiones"}
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -282,9 +284,9 @@ function MailboxContent({ actor }) {
                 <h2>Direcciones de difusión.</h2>
                 <p>Administrá quién recibe cada alias grupal de Afterstage.</p>
               </div>
-              <button className="button dark" onClick={resetRouteForm} type="button">
+              <Button onClick={resetRouteForm} variant="dark" type="button">
                 Nueva difusión
-              </button>
+              </Button>
             </header>
             <div className="mailbox-routes-grid">
               <div className="mailbox-route-list">
@@ -304,12 +306,12 @@ function MailboxContent({ actor }) {
                       </ul>
                     </div>
                     <div className="mailbox-route-actions">
-                      <button className="button ghost" onClick={() => startRouteEdit(route)} type="button">
+                      <Button onClick={() => startRouteEdit(route)} variant="ghost" type="button">
                         Editar
-                      </button>
-                      <button className="button ghost danger" onClick={() => deleteRoute(route)} type="button">
+                      </Button>
+                      <Button className="danger" onClick={() => deleteRoute(route)} variant="ghost" type="button">
                         Eliminar
-                      </button>
+                      </Button>
                     </div>
                   </article>
                 ))}
@@ -348,13 +350,13 @@ function MailboxContent({ actor }) {
                 </label>
                 <div className="mailbox-route-form-actions">
                   {editingRoute && (
-                    <button className="button ghost" onClick={resetRouteForm} type="button">
+                    <Button onClick={resetRouteForm} variant="ghost" type="button">
                       Cancelar
-                    </button>
+                    </Button>
                   )}
-                  <button className="button dark" disabled={savingRoute} type="submit">
+                  <Button disabled={savingRoute} variant="dark" type="submit">
                     {savingRoute ? "Guardando…" : editingRoute ? "Guardar cambios" : "Crear difusión"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
@@ -447,9 +449,9 @@ function MailboxContent({ actor }) {
                     />
                     <div className="mailbox-reply-actions">
                       <span className="muted">La respuesta saldrá desde Afterstage.</span>
-                      <button className="button dark" disabled={sending || !draft.trim()} type="submit">
+                      <Button disabled={sending || !draft.trim()} variant="dark" type="submit">
                         {sending ? "Enviando…" : "Enviar respuesta ↗"}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 </>

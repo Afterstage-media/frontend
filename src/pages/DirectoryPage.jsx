@@ -4,7 +4,9 @@ import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { TokenGate } from "./AdminPages.jsx";
-import { useModalFocus } from "../utils/useModalFocus.js";
+import { Button } from "../components/ui/Button.jsx";
+import { Dialog } from "../components/ui/Dialog.jsx";
+import { IconButton } from "../components/ui/IconButton.jsx";
 
 const kinds = {
   band: "Banda",
@@ -232,9 +234,9 @@ function DirectoryEditForm({ item, isNew = false, onCancel, onSaved }) {
           <p className="eyebrow">{isNew ? "Carga editorial" : "Editar ficha"}</p>
           <h2>{isNew ? "Nueva ficha" : "Actualizar datos"}</h2>
         </div>
-        <button className="icon-button" onClick={onCancel} type="button" aria-label="Cerrar edición">
+        <IconButton label="Cerrar edición" onClick={onCancel}>
           ×
-        </button>
+        </IconButton>
       </div>
       <p className="muted">
         {isNew
@@ -363,19 +365,18 @@ function DirectoryEditForm({ item, isNew = false, onCancel, onSaved }) {
       </label>
       <ErrorMessage error={error} />
       <div className="detail-actions">
-        <button className="button dark" disabled={saving} type="submit">
+        <Button disabled={saving} variant="dark" type="submit">
           {saving ? "Guardando…" : isNew ? "Crear ficha" : "Guardar cambios"}
-        </button>
-        <button className="button ghost" onClick={onCancel} type="button">
+        </Button>
+        <Button onClick={onCancel} variant="ghost" type="button">
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );
 }
 
 function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
-  const dialogRef = useModalFocus(onClose);
   const [detail, setDetail] = useState(item);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -429,177 +430,168 @@ function DirectoryDetail({ item, canEdit, onClose, onUpdated }) {
   const socials = Object.entries(detail.socials || {}).filter(([, value]) => value && !Array.isArray(value));
   const totalVotes = (detail.reliableVotes ?? 0) + (detail.unreliableVotes ?? 0);
   return (
-    <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside
-        ref={dialogRef}
-        aria-labelledby="directory-detail-title"
-        aria-modal="true"
-        className="detail-panel"
-        role="dialog"
-      >
-        {editing ? (
-          <DirectoryEditForm item={detail} onCancel={() => setEditing(false)} onSaved={saveUpdated} />
-        ) : (
-          <>
-            <div className="detail-panel-heading">
-              <div>
-                <p className="eyebrow">Ficha de directorio</p>
-                <p className="detail-kind">
-                  {kinds[detail.kind] || detail.kind} {detail.city ? `· ${detail.city}` : ""}
-                </p>
-              </div>
-              <button className="icon-button" onClick={onClose} type="button" aria-label="Cerrar ficha">
-                ×
-              </button>
+    <Dialog
+      backdropClassName="detail-backdrop"
+      labelledBy="directory-detail-title"
+      onClose={onClose}
+      panelAs="aside"
+      panelClassName="detail-panel"
+    >
+      {editing ? (
+        <DirectoryEditForm item={detail} onCancel={() => setEditing(false)} onSaved={saveUpdated} />
+      ) : (
+        <>
+          <div className="detail-panel-heading">
+            <div>
+              <p className="eyebrow">Ficha de directorio</p>
+              <p className="detail-kind">
+                {kinds[detail.kind] || detail.kind} {detail.city ? `· ${detail.city}` : ""}
+              </p>
             </div>
-            <h2 id="directory-detail-title" className="detail-title">
-              {detail.name}
-            </h2>
-            {detail.aliases?.length > 0 && (
-              <p className="detail-aliases">También conocido como {detail.aliases.join(" · ")}</p>
-            )}
-            <div className={`detail-verification detail-verification-${detail.verificationStatus || "unverified"}`}>
-              <span className="verification-dot" />
-              <div>
-                <strong>{verificationLabels[detail.verificationStatus] || "Sin verificar"}</strong>
-                <span>{detail.reliabilityScore ?? 0}% de confiabilidad editorial</span>
-              </div>
+            <IconButton label="Cerrar ficha" onClick={onClose}>
+              ×
+            </IconButton>
+          </div>
+          <h2 id="directory-detail-title" className="detail-title">
+            {detail.name}
+          </h2>
+          {detail.aliases?.length > 0 && (
+            <p className="detail-aliases">También conocido como {detail.aliases.join(" · ")}</p>
+          )}
+          <div className={`detail-verification detail-verification-${detail.verificationStatus || "unverified"}`}>
+            <span className="verification-dot" />
+            <div>
+              <strong>{verificationLabels[detail.verificationStatus] || "Sin verificar"}</strong>
+              <span>{detail.reliabilityScore ?? 0}% de confiabilidad editorial</span>
             </div>
-            {loading ? (
-              <p className="muted">Cargando datos completos…</p>
-            ) : (
-              <>
-                <p className="detail-description">
-                  {detail.description || "No hay una descripción cargada para esta ficha."}
+          </div>
+          {loading ? (
+            <p className="muted">Cargando datos completos…</p>
+          ) : (
+            <>
+              <p className="detail-description">
+                {detail.description || "No hay una descripción cargada para esta ficha."}
+              </p>
+              <dl className="detail-fields">
+                <DetailField label="Ubicación">{[detail.city, detail.country].filter(Boolean).join(", ")}</DetailField>
+                <DetailField label="Coordenadas">
+                  {detail.latitude !== null && detail.longitude !== null
+                    ? `${detail.latitude}, ${detail.longitude}`
+                    : ""}
+                </DetailField>
+                <DetailField label="Teléfonos">{detail.phones?.join(" · ")}</DetailField>
+                <DetailField label="Emails">{detail.emails?.join(" · ")}</DetailField>
+                <DetailField label="Fuente">{detail.source}</DetailField>
+                <DetailField label="Última actualización">
+                  {detail.updatedAt ? new Date(detail.updatedAt).toLocaleDateString("es-AR") : ""}
+                </DetailField>
+              </dl>
+              {detail.website && (
+                <p className="detail-website">
+                  <a href={detail.website} target="_blank" rel="noreferrer">
+                    Visitar sitio web ↗
+                  </a>
                 </p>
-                <dl className="detail-fields">
-                  <DetailField label="Ubicación">
-                    {[detail.city, detail.country].filter(Boolean).join(", ")}
-                  </DetailField>
-                  <DetailField label="Coordenadas">
-                    {detail.latitude !== null && detail.longitude !== null
-                      ? `${detail.latitude}, ${detail.longitude}`
-                      : ""}
-                  </DetailField>
-                  <DetailField label="Teléfonos">{detail.phones?.join(" · ")}</DetailField>
-                  <DetailField label="Emails">{detail.emails?.join(" · ")}</DetailField>
-                  <DetailField label="Fuente">{detail.source}</DetailField>
-                  <DetailField label="Última actualización">
-                    {detail.updatedAt ? new Date(detail.updatedAt).toLocaleDateString("es-AR") : ""}
-                  </DetailField>
-                </dl>
-                {detail.website && (
-                  <p className="detail-website">
-                    <a href={detail.website} target="_blank" rel="noreferrer">
-                      Visitar sitio web ↗
-                    </a>
-                  </p>
-                )}
-                {detail.contacts?.length > 0 && (
-                  <section className="detail-section">
-                    <h3>Contactos</h3>
-                    <div className="contact-list">
-                      {detail.contacts.map((contact, index) => (
-                        <div className="contact-row" key={`${contact.name}-${index}`}>
-                          <strong>{contact.name}</strong>
-                          <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ")}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
-                {socials.length > 0 && (
-                  <section className="detail-section">
-                    <h3>Enlaces</h3>
-                    <div className="detail-links">
-                      {socials.map(([key, value]) =>
-                        externalHref(value) ? (
-                          <a href={externalHref(value)} key={key} rel="noreferrer" target="_blank">
-                            {key} <span>{value}</span>
-                          </a>
-                        ) : (
-                          <div className="detail-link-row" key={key}>
-                            <strong>{key}</strong> <span>{value}</span>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </section>
-                )}
-                {detail.tags?.length > 0 && (
-                  <div className="tag-list">
-                    {detail.tags.map((tag) => (
-                      <span key={tag}>#{tag}</span>
+              )}
+              {detail.contacts?.length > 0 && (
+                <section className="detail-section">
+                  <h3>Contactos</h3>
+                  <div className="contact-list">
+                    {detail.contacts.map((contact, index) => (
+                      <div className="contact-row" key={`${contact.name}-${index}`}>
+                        <strong>{contact.name}</strong>
+                        <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ")}</span>
+                      </div>
                     ))}
                   </div>
-                )}
-              </>
-            )}
-            <section className="trust-box">
-              <div>
-                <p className="eyebrow">Señal de la comunidad</p>
-                <h3>¿Estos datos siguen siendo confiables?</h3>
-                <p>{voteSummary(detail)}</p>
-              </div>
-              <div
-                className="vote-meter"
-                aria-label={`${detail.reliableVotes ?? 0} votos confiables y ${detail.unreliableVotes ?? 0} votos para revisar`}
+                </section>
+              )}
+              {socials.length > 0 && (
+                <section className="detail-section">
+                  <h3>Enlaces</h3>
+                  <div className="detail-links">
+                    {socials.map(([key, value]) =>
+                      externalHref(value) ? (
+                        <a href={externalHref(value)} key={key} rel="noreferrer" target="_blank">
+                          {key} <span>{value}</span>
+                        </a>
+                      ) : (
+                        <div className="detail-link-row" key={key}>
+                          <strong>{key}</strong> <span>{value}</span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </section>
+              )}
+              {detail.tags?.length > 0 && (
+                <div className="tag-list">
+                  {detail.tags.map((tag) => (
+                    <span key={tag}>#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          <section className="trust-box">
+            <div>
+              <p className="eyebrow">Señal de la comunidad</p>
+              <h3>¿Estos datos siguen siendo confiables?</h3>
+              <p>{voteSummary(detail)}</p>
+            </div>
+            <div
+              className="vote-meter"
+              aria-label={`${detail.reliableVotes ?? 0} votos confiables y ${detail.unreliableVotes ?? 0} votos para revisar`}
+            >
+              <span style={{ width: `${totalVotes ? ((detail.reliableVotes ?? 0) / totalVotes) * 100 : 0}%` }} />
+            </div>
+            <div className="vote-actions">
+              <button
+                className={`vote-button ${myVote === "reliable" ? "is-selected" : ""}`}
+                disabled={Boolean(myVote) || voting}
+                onClick={() => submitVote("reliable")}
+                type="button"
               >
-                <span style={{ width: `${totalVotes ? ((detail.reliableVotes ?? 0) / totalVotes) * 100 : 0}%` }} />
-              </div>
-              <div className="vote-actions">
-                <button
-                  className={`vote-button ${myVote === "reliable" ? "is-selected" : ""}`}
-                  disabled={Boolean(myVote) || voting}
-                  onClick={() => submitVote("reliable")}
-                  type="button"
-                >
-                  <span>↑</span> Sí, es confiable
-                </button>
-                <button
-                  className={`vote-button ${myVote === "needs_review" ? "is-selected is-negative" : ""}`}
-                  disabled={Boolean(myVote) || voting}
-                  onClick={() => submitVote("needs_review")}
-                  type="button"
-                >
-                  <span>↓</span> Necesita revisión
-                </button>
-              </div>
-              {myVote ? <p className="vote-note">Ya registraste tu voto para esta ficha.</p> : null}
-              {voteMessage ? <p className="vote-note">{voteMessage}</p> : null}
-            </section>
-            <div className="detail-actions">
-              <button className="button dark" disabled={!canEdit} onClick={() => setEditing(true)} type="button">
-                Editar datos
+                <span>↑</span> Sí, es confiable
               </button>
-              <button className="button ghost" onClick={onClose} type="button">
-                Cerrar
+              <button
+                className={`vote-button ${myVote === "needs_review" ? "is-selected is-negative" : ""}`}
+                disabled={Boolean(myVote) || voting}
+                onClick={() => submitVote("needs_review")}
+                type="button"
+              >
+                <span>↓</span> Necesita revisión
               </button>
             </div>
-            {!canEdit && (
-              <p className="detail-permission-note">Solo los roles de directorio pueden editar esta ficha.</p>
-            )}
-          </>
-        )}
-      </aside>
-    </div>
+            {myVote ? <p className="vote-note">Ya registraste tu voto para esta ficha.</p> : null}
+            {voteMessage ? <p className="vote-note">{voteMessage}</p> : null}
+          </section>
+          <div className="detail-actions">
+            <Button disabled={!canEdit} onClick={() => setEditing(true)} variant="dark" type="button">
+              Editar datos
+            </Button>
+            <Button onClick={onClose} variant="ghost" type="button">
+              Cerrar
+            </Button>
+          </div>
+          {!canEdit && <p className="detail-permission-note">Solo los roles de directorio pueden editar esta ficha.</p>}
+        </>
+      )}
+    </Dialog>
   );
 }
 
 function DirectoryCreatePanel({ onClose, onSaved }) {
-  const dialogRef = useModalFocus(onClose);
   return (
-    <div className="detail-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside
-        ref={dialogRef}
-        aria-label="Nueva ficha de directorio"
-        aria-modal="true"
-        className="detail-panel"
-        role="dialog"
-      >
-        <DirectoryEditForm item={empty} isNew onCancel={onClose} onSaved={onSaved} />
-      </aside>
-    </div>
+    <Dialog
+      aria-label="Nueva ficha de directorio"
+      backdropClassName="detail-backdrop"
+      onClose={onClose}
+      panelAs="aside"
+      panelClassName="detail-panel"
+    >
+      <DirectoryEditForm item={empty} isNew onCancel={onClose} onSaved={onSaved} />
+    </Dialog>
   );
 }
 
@@ -658,9 +650,9 @@ function DirectoryBrowser({ user }) {
           </p>
           {canEdit && (
             <div className="directory-intro-actions">
-              <button className="button dark" onClick={() => setCreating(true)} type="button">
+              <Button onClick={() => setCreating(true)} variant="dark" type="button">
                 Nuevo ↗
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -750,9 +742,9 @@ function DirectoryBrowser({ user }) {
                   onChange={(event) => setLocation({ ...location, radiusKm: event.target.value })}
                 />
               </label>
-              <button className="button" onClick={load} type="button">
+              <Button onClick={load} type="button">
                 Aplicar
-              </button>
+              </Button>
             </div>
           </details>
         </div>
@@ -777,9 +769,9 @@ function DirectoryBrowser({ user }) {
                 : "Probá con otro nombre, ciudad o etiqueta."}
             </p>
             {items.length > 0 && visibleItems.length === 0 && (
-              <button className="button button-secondary" onClick={() => setKind("all")} type="button">
+              <Button className="button-secondary" onClick={() => setKind("all")} type="button">
                 Ver todos los tipos
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -937,7 +929,9 @@ function AdminDirectoryEditor() {
           </div>
           <div className="admin-directory-form-actions">
             <p>Los datos quedan disponibles para revisión editorial antes de publicarse.</p>
-            <button className="button dark">Guardar entrada</button>
+            <Button variant="dark" type="submit">
+              Guardar entrada
+            </Button>
           </div>
         </form>
         <div className="admin-directory-toolbar">

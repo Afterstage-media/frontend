@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ErrorState, LoadingState } from "../components/UiState.jsx";
+import { ButtonLink } from "../components/ui/Button.jsx";
 
 const lanes = [
   {
@@ -187,9 +188,9 @@ export function ServicesPage() {
               canciones que necesitan una forma de circular.
             </p>
             <div className="services-intro-actions">
-              <a className="button dark" href="#services-intent-title">
+              <ButtonLink className="dark" href="#services-intent-title">
                 Elegí qué resolver ↓
-              </a>
+              </ButtonLink>
             </div>
           </div>
           <div className="services-intro-mark" data-parallax="0.12" data-reveal aria-hidden="true">
@@ -283,9 +284,9 @@ export function ServicesPage() {
         <section className="services-closer" data-reveal>
           <p className="eyebrow">¿Tenés otra idea?</p>
           <h2>Contanos qué querés poner en movimiento.</h2>
-          <Link className="button dark" to="/contratar">
+          <ButtonLink className="dark" to="/contratar">
             Abrir una conversación ↗
-          </Link>
+          </ButtonLink>
         </section>
       </div>
     </Layout>
