@@ -7,6 +7,7 @@ import { EditorialIntro } from "../components/ui/PageTitle.jsx";
 import { SectionHeading } from "../components/ui/SectionHeading.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
+import { CardContainer } from "../components/ui/CardContainer.jsx";
 import { normalizeSearchText } from "../utils/search.js";
 export function NotesPage() {
   const [searchParams] = useSearchParams();
@@ -53,11 +54,11 @@ export function NotesPage() {
           <ErrorState message="El archivo no está disponible en este momento." onRetry={load} />
         </section>
       ) : filteredItems.length ? (
-        <div className="cards editorial-grid">
+        <CardContainer className="editorial-grid">
           {filteredItems.map((item, index) => (
             <ContentCard item={item} index={index} key={item.id} />
           ))}
-        </div>
+        </CardContainer>
       ) : (
         <section className="content-section">
           <EmptyState

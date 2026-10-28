@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Button } from "../components/ui/Button.jsx";
 import { FormActions } from "../components/ui/FormActions.jsx";
 import { FormProgress } from "../components/ui/FormProgress.jsx";
 import { SelectField } from "../components/ui/SelectField.jsx";
@@ -221,9 +222,9 @@ export function MonetizationPage() {
               <TextField label="Título de tu propuesta" name="title" onChange={change} required value={form.title} />
               <p className="form-step-note">Primero necesitamos saber quién sos y qué querés poner en movimiento.</p>
               <ErrorMessage error={error} />
-              <button type="button" className="button dark" onClick={continueToDetails}>
+              <Button className="dark" onClick={continueToDetails}>
                 Continuar con los detalles →
-              </button>
+              </Button>
             </>
           ) : (
             <>
@@ -258,12 +259,12 @@ export function MonetizationPage() {
               </SelectField>
               <ErrorMessage error={error} />
               <FormActions>
-                <button type="button" className="button ghost" onClick={() => setFormStep(1)}>
+                <Button className="ghost" onClick={() => setFormStep(1)}>
                   ← Volver
-                </button>
-                <button type="submit" className="button dark" disabled={loading || !selected}>
+                </Button>
+                <Button className="dark" disabled={loading || !selected} type="submit">
                   {loading ? "Enviando…" : selected?.priceArs ? "Enviar y continuar al pago ↗" : "Pedir presupuesto"}
-                </button>
+                </Button>
               </FormActions>
             </>
           )}

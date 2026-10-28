@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ContentCard } from "../components/ContentCard.jsx";
 import { SectionHeading } from "../components/ui/SectionHeading.jsx";
 import { HomeHero, HomeIntent, HomeMission, HomeQuickLinks } from "../components/HomeEditorial.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
+import { ButtonLink } from "../components/ui/Button.jsx";
+import { CardContainer } from "../components/ui/CardContainer.jsx";
+import { Section } from "../components/ui/Section.jsx";
 export function HomePage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export function HomePage() {
       <HomeQuickLinks />
       <HomeIntent />
       <HomeMission />
-      <section className="section">
+      <Section>
         <SectionHeading
           eyebrow="Desde adentro"
           title="Lo último que nos movió"
@@ -39,23 +41,23 @@ export function HomePage() {
         ) : error ? (
           <ErrorState message="No pudimos cargar el archivo editorial." onRetry={load} />
         ) : items.length ? (
-          <div className="cards">
+          <CardContainer>
             {items.map((item, index) => (
               <ContentCard item={item} index={index} key={item.id} />
             ))}
-          </div>
+          </CardContainer>
         ) : (
           <EmptyState
             title="El archivo está tomando forma."
             message="Encontrar un plan en la agenda también es parte de la escena. Conocé cómo podés ser parte de afterstage."
             action={
-              <Link className="button ghost" to="/colaborador">
+              <ButtonLink className="ghost" to="/colaborador">
                 Sumate a la escena ↗
-              </Link>
+              </ButtonLink>
             }
           />
         )}
-      </section>
+      </Section>
     </Layout>
   );
 }

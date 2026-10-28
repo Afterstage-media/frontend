@@ -4,10 +4,12 @@ import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, LoadingState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { FormActions } from "../components/ui/FormActions.jsx";
 import { FormProgress } from "../components/ui/FormProgress.jsx";
 import { FormSection } from "../components/ui/FormSection.jsx";
 import { TextField } from "../components/ui/TextField.jsx";
+import { Toggle } from "../components/ui/Toggle.jsx";
 import { formatEventDateValue } from "../utils/eventDates.js";
 
 const insuranceProducts = [
@@ -203,9 +205,9 @@ export function InsurancePage() {
                 Con estos datos alcanza para empezar. En el próximo paso te pedimos el contexto del evento.
               </p>
               <ErrorMessage error={error} />
-              <button className="button dark" onClick={continueInsurance} type="button">
+              <Button className="dark" onClick={continueInsurance}>
                 Continuar con los detalles →
-              </button>
+              </Button>
             </>
           )}
           {insuranceStep === 2 && (
@@ -505,12 +507,12 @@ export function InsurancePage() {
                 />
               </label>
               <FormActions>
-                <button className="button ghost" onClick={() => setInsuranceStep(1)} type="button">
+                <Button className="ghost" onClick={() => setInsuranceStep(1)}>
                   ← Volver
-                </button>
-                <button className="button dark" type="submit">
+                </Button>
+                <Button className="dark" type="submit">
                   Pedir cotización ↗
-                </button>
+                </Button>
               </FormActions>
               {error && <ErrorMessage error={error} />}
               {status && <p className="success">{status}</p>}
@@ -556,30 +558,34 @@ export function MarketplacePage() {
         )}
       </section>
       <section className="marketplace-toolbar" aria-label="Filtros del marketplace">
-        <button className={!category ? "button dark" : "button ghost"} onClick={() => setCategory("")} type="button">
+        <Toggle
+          className={!category ? "button dark" : "button ghost"}
+          onClick={() => setCategory("")}
+          pressed={!category}
+        >
           Todo
-        </button>
-        <button
+        </Toggle>
+        <Toggle
           className={category === "merch" ? "button dark" : "button ghost"}
           onClick={() => setCategory("merch")}
-          type="button"
+          pressed={category === "merch"}
         >
           Merch
-        </button>
-        <button
+        </Toggle>
+        <Toggle
           className={category === "service" ? "button dark" : "button ghost"}
           onClick={() => setCategory("service")}
-          type="button"
+          pressed={category === "service"}
         >
           Servicios
-        </button>
-        <button
+        </Toggle>
+        <Toggle
           className={category === "benefit" ? "button dark" : "button ghost"}
           onClick={() => setCategory("benefit")}
-          type="button"
+          pressed={category === "benefit"}
         >
           Beneficios
-        </button>
+        </Toggle>
         <span>Catálogo sincronizado con Orux</span>
       </section>
       <section className="marketplace-grid">
@@ -594,12 +600,12 @@ export function MarketplacePage() {
               message="Pronto vas a encontrar productos y beneficios de la escena."
             />
             <div className="empty-state-actions">
-              <Link className="button dark" to="/servicios">
+              <ButtonLink className="dark" to="/servicios">
                 Ver servicios
-              </Link>
-              <Link className="button ghost" to="/red">
+              </ButtonLink>
+              <ButtonLink className="ghost" to="/red">
                 Explorar la red
-              </Link>
+              </ButtonLink>
             </div>
           </>
         ) : (

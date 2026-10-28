@@ -1,3 +1,5 @@
+import { Button } from "./ui/Button.jsx";
+
 export function LoadingState({ label = "Cargando…" }) {
   return (
     <div className="ui-state ui-state-loading" role="status" aria-live="polite">
@@ -14,9 +16,9 @@ export function ErrorState({ title = "Algo no salió como esperábamos.", messag
       <strong>{title}</strong>
       <p>{message || "Probá de nuevo en unos segundos o seguí explorando el resto del medio."}</p>
       {onRetry && (
-        <button className="button ghost" type="button" onClick={onRetry}>
+        <Button className="ghost" onClick={onRetry}>
           Intentar de nuevo ↗
-        </button>
+        </Button>
       )}
     </div>
   );
