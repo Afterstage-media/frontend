@@ -16,6 +16,23 @@
   max-width: 620px;
 }
 
+.event-context-banner {
+  align-items: center;
+  border-left: 4px solid var(--color-accent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  max-width: 760px;
+  padding-left: 12px;
+}
+
+.event-context-banner a {
+  color: var(--color-ink);
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-left: auto;
+}
 .network-intro,
 .insurance-intro,
 .marketplace-intro,
