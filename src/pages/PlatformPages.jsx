@@ -620,10 +620,8 @@ export function MarketplacePage() {
 export function TransportPage() {
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
-  const [eventQuery, setEventQuery] = useState("");
   const [eventArtistFilter, setEventArtistFilter] = useState("");
   const [eventDateFilter, setEventDateFilter] = useState("");
-  const [showAllEvents, setShowAllEvents] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(searchParams.get("eventId") || "");
   const [offers, setOffers] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -633,12 +631,21 @@ export function TransportPage() {
   useEffect(() => {
     setEventsLoading(true);
     api("/api/public/events?limit=80")
-      .then((items) => setEvents(items))
+      .then((items) => {
+        setEvents(items);
+        const linkedEvent = items.find((event) => event.id === searchParams.get("eventId"));
+        if (!linkedEvent) return;
+        setEventArtistFilter(normalizeSearchText(linkedEvent.artist?.trim() || linkedEvent.name?.trim() || "Evento"));
+        setEventDateFilter(getEventDates(linkedEvent)[0]?.toISOString().slice(0, 10) || "");
+      })
       .catch((requestError) => setError(requestError.message))
       .finally(() => setEventsLoading(false));
   }, []);
   useEffect(() => {
-    if (!selectedEvent) return;
+    if (!selectedEvent) {
+      setOffers([]);
+      return;
+    }
     api(`/api/public/events/${selectedEvent}/transport`)
       .then(setOffers)
       .catch(() => setOffers([]));
@@ -657,23 +664,16 @@ export function TransportPage() {
   const dateOptions = [
     ...new Map(
       events
+        .filter(
+          (event) =>
+            !eventArtistFilter ||
+            normalizeSearchText(event.artist?.trim() || event.name?.trim() || "Evento") === eventArtistFilter,
+        )
         .flatMap((event) => getEventDates(event))
         .map((date) => [date.toISOString().slice(0, 10), formatEventDateValue(date, { dateStyle: "medium" })]),
     ).entries(),
   ].sort(([left], [right]) => left.localeCompare(right));
-  const matchingEvents = events.filter((event) => {
-    const query = normalizeSearchText(eventQuery);
-    const artist = normalizeSearchText(event.artist?.trim() || event.name?.trim() || "Evento");
-    const searchableText = [event.artist, event.name, event.city, event.venue, event.startsAt]
-      .filter(Boolean)
-      .map(normalizeSearchText)
-      .join(" ");
-    const matchesArtist = !eventArtistFilter || artist === eventArtistFilter;
-    const matchesDate =
-      !eventDateFilter || getEventDates(event).some((date) => date.toISOString().slice(0, 10) === eventDateFilter);
-    return (!query || searchableText.includes(query)) && matchesArtist && matchesDate;
-  });
-  const visibleEvents = showAllEvents ? matchingEvents : matchingEvents.slice(0, 20);
+  const selectedEventData = events.find((event) => event.id === selectedEvent);
   const submit = async (event) => {
     event.preventDefault();
     setStatus("");
@@ -701,23 +701,17 @@ export function TransportPage() {
         <div className="transport-events">
           <p className="eyebrow">Fechas próximas</p>
           <h2>¿A qué show vas?</h2>
-          <label className="transport-search">
-            Buscar por artista, ciudad o sala
-            <input
-              aria-label="Buscar una fecha de traslado"
-              onChange={(event) => setEventQuery(event.target.value)}
-              placeholder="Ej.: Rosario o nombre del artista"
-              type="search"
-              value={eventQuery}
-            />
-          </label>
           <div className="transport-filters" role="group" aria-label="Filtros de traslados">
             <label className="transport-filter">
               <span>Artista</span>
               <select
                 aria-label="Filtrar traslados por artista"
                 value={eventArtistFilter}
-                onChange={(event) => setEventArtistFilter(event.target.value)}
+                onChange={(event) => {
+                  setEventArtistFilter(event.target.value);
+                  setEventDateFilter("");
+                  setSelectedEvent("");
+                }}
               >
                 <option value="">Todos los artistas</option>
                 {artistOptions.map((artist) => (
@@ -732,7 +726,18 @@ export function TransportPage() {
               <select
                 aria-label="Filtrar traslados por fecha"
                 value={eventDateFilter}
-                onChange={(event) => setEventDateFilter(event.target.value)}
+                onChange={(event) => {
+                  const nextDate = event.target.value;
+                  const nextEvent = events.find((candidate) => {
+                    const artist = normalizeSearchText(candidate.artist?.trim() || candidate.name?.trim() || "Evento");
+                    return (
+                      (!eventArtistFilter || artist === eventArtistFilter) &&
+                      getEventDates(candidate).some((date) => date.toISOString().slice(0, 10) === nextDate)
+                    );
+                  });
+                  setEventDateFilter(nextDate);
+                  setSelectedEvent(nextEvent?.id || "");
+                }}
               >
                 <option value="">Todas las fechas</option>
                 {dateOptions.map(([value, label]) => (
@@ -751,54 +756,19 @@ export function TransportPage() {
               message="Cuando aparezcan eventos, vas a poder elegirlos y pedir tu traslado acá."
             />
           ) : (
-            <>
-              <p className="muted transport-results-count">
-                {matchingEvents.length} {matchingEvents.length === 1 ? "fecha encontrada" : "fechas encontradas"}
-              </p>
-              <div className="transport-event-list">
-                {visibleEvents.map((event) => (
-                  <button
-                    className={`transport-event ${selectedEvent === event.id ? "is-selected" : ""}`}
-                    key={event.id}
-                    onClick={() => setSelectedEvent(event.id)}
-                    type="button"
-                  >
-                    <strong>{event.artist || event.name}</strong>
-                    <span>{event.city || event.venue || "Fecha"}</span>
-                    <small>{event.startsAt ? formatEventDateValue(event.startsAt) : "Consultar fecha"}</small>
-                  </button>
-                ))}
-              </div>
-              {matchingEvents.length > visibleEvents.length && (
-                <Button
-                  className="transport-show-more"
-                  onClick={() => setShowAllEvents(true)}
-                  variant="ghost"
-                  type="button"
-                >
-                  Mostrar las {matchingEvents.length - visibleEvents.length} fechas restantes ↓
-                </Button>
-              )}
-              {showAllEvents && matchingEvents.length > 20 && (
-                <Button
-                  className="transport-show-more"
-                  onClick={() => setShowAllEvents(false)}
-                  variant="ghost"
-                  type="button"
-                >
-                  Mostrar menos ↑
-                </Button>
-              )}
-              {!matchingEvents.length && <p className="muted">No encontramos fechas con esa búsqueda.</p>}
-            </>
+            <p className="muted transport-selection-status">
+              {!eventArtistFilter || !eventDateFilter
+                ? "Elegí un artista y una fecha para ver las opciones de traslado."
+                : selectedEventData
+                  ? `Fecha seleccionada: ${formatEventDateValue(eventDateFilter, { dateStyle: "medium" })}.`
+                  : "No encontramos una fecha para esa combinación."}
+            </p>
           )}
         </div>
         <div className="transport-request-panel">
           {selectedEvent ? (
             <>
-              <p className="eyebrow">
-                {events.find((event) => event.id === selectedEvent)?.artist || "Evento seleccionado"}
-              </p>
+              <p className="eyebrow">{selectedEventData?.artist || selectedEventData?.name || "Evento seleccionado"}</p>
               <h2>Pedí tu lugar.</h2>
               {offers.length ? (
                 <div className="transport-choice-list">
