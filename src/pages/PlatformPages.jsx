@@ -699,8 +699,12 @@ export function TransportPage() {
       </section>
       <section className="transport-layout">
         <div className="transport-events">
-          <p className="eyebrow">Fechas próximas</p>
+          <FormProgress current={selectedEvent ? 2 : 1} steps={["Elegí tu fecha", "Completá tus datos"]} />
+          <p className="eyebrow">Paso 1 · Fecha del show</p>
           <h2>¿A qué show vas?</h2>
+          <p className="transport-selection-help">
+            Elegí artista y fecha. Después te mostramos el pedido de traslado para ese show.
+          </p>
           <div className="transport-filters" role="group" aria-label="Filtros de traslados">
             <label className="transport-filter">
               <span>Artista</span>
@@ -760,7 +764,7 @@ export function TransportPage() {
               {!eventArtistFilter || !eventDateFilter
                 ? "Elegí un artista y una fecha para ver las opciones de traslado."
                 : selectedEventData
-                  ? `Fecha seleccionada: ${formatEventDateValue(eventDateFilter, { dateStyle: "medium" })}.`
+                  ? "Listo. Ahora completá tus datos para pedir tu lugar."
                   : "No encontramos una fecha para esa combinación."}
             </p>
           )}
@@ -768,7 +772,16 @@ export function TransportPage() {
         <div className="transport-request-panel">
           {selectedEvent ? (
             <>
-              <p className="eyebrow">{selectedEventData?.artist || selectedEventData?.name || "Evento seleccionado"}</p>
+              <FormProgress current={2} steps={["Elegí tu fecha", "Completá tus datos"]} />
+              <div className="transport-selected-event" aria-live="polite">
+                <span className="eyebrow">Show elegido</span>
+                <strong>{selectedEventData?.artist || selectedEventData?.name || "Evento seleccionado"}</strong>
+                <span>
+                  {formatEventDateValue(eventDateFilter, { dateStyle: "medium" })}
+                  {(selectedEventData?.city || selectedEventData?.venue) &&
+                    ` · ${selectedEventData.city || selectedEventData.venue}`}
+                </span>
+              </div>
               <h2>Pedí tu lugar.</h2>
               {offers.length ? (
                 <div className="transport-choice-list">
@@ -849,8 +862,8 @@ export function TransportPage() {
             </>
           ) : (
             <EmptyState
-              title="Elegí una fecha."
-              message="Vamos a mostrarte los traslados y cupos asociados a ese evento."
+              title="Elegí artista y fecha."
+              message="Cuando completes ambos selectores, vas a poder pedir tu traslado acá."
             />
           )}
         </div>
