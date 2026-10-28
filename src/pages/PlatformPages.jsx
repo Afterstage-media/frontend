@@ -11,7 +11,8 @@ import { FormSection } from "../components/ui/FormSection.jsx";
 import { SegmentedControl } from "../components/ui/SegmentedControl.jsx";
 import { TextField } from "../components/ui/TextField.jsx";
 import { Toggle } from "../components/ui/Toggle.jsx";
-import { formatEventDateValue } from "../utils/eventDates.js";
+import { formatEventDateValue, getEventDates } from "../utils/eventDates.js";
+import { normalizeSearchText } from "../utils/search.js";
 
 const insuranceProducts = [
   { value: "ap", label: "Accidentes personales", hint: "Personas durante el evento" },
@@ -620,6 +621,8 @@ export function TransportPage() {
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [eventQuery, setEventQuery] = useState("");
+  const [eventArtistFilter, setEventArtistFilter] = useState("");
+  const [eventDateFilter, setEventDateFilter] = useState("");
   const [showAllEvents, setShowAllEvents] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(searchParams.get("eventId") || "");
   const [offers, setOffers] = useState([]);
@@ -640,14 +643,35 @@ export function TransportPage() {
       .then(setOffers)
       .catch(() => setOffers([]));
   }, [selectedEvent]);
+  const artistOptions = [
+    ...new Map(
+      events.map((event) => {
+        const label = event.artist?.trim() || event.name?.trim() || "Evento";
+        return [normalizeSearchText(label), label];
+      }),
+    ).entries(),
+  ]
+    .filter(([value]) => value)
+    .map(([, label]) => label)
+    .sort((left, right) => left.localeCompare(right, "es"));
+  const dateOptions = [
+    ...new Map(
+      events
+        .flatMap((event) => getEventDates(event))
+        .map((date) => [date.toISOString().slice(0, 10), formatEventDateValue(date, { dateStyle: "medium" })]),
+    ).entries(),
+  ].sort(([left], [right]) => left.localeCompare(right));
   const matchingEvents = events.filter((event) => {
-    const query = eventQuery.trim().toLocaleLowerCase();
-    if (!query) return true;
-    return [event.artist, event.name, event.city, event.venue, event.startsAt]
+    const query = normalizeSearchText(eventQuery);
+    const artist = normalizeSearchText(event.artist?.trim() || event.name?.trim() || "Evento");
+    const searchableText = [event.artist, event.name, event.city, event.venue, event.startsAt]
       .filter(Boolean)
-      .join(" ")
-      .toLocaleLowerCase()
-      .includes(query);
+      .map(normalizeSearchText)
+      .join(" ");
+    const matchesArtist = !eventArtistFilter || artist === eventArtistFilter;
+    const matchesDate =
+      !eventDateFilter || getEventDates(event).some((date) => date.toISOString().slice(0, 10) === eventDateFilter);
+    return (!query || searchableText.includes(query)) && matchesArtist && matchesDate;
   });
   const visibleEvents = showAllEvents ? matchingEvents : matchingEvents.slice(0, 20);
   const submit = async (event) => {
@@ -687,6 +711,38 @@ export function TransportPage() {
               value={eventQuery}
             />
           </label>
+          <div className="transport-filters" role="group" aria-label="Filtros de traslados">
+            <label className="transport-filter">
+              <span>Artista</span>
+              <select
+                aria-label="Filtrar traslados por artista"
+                value={eventArtistFilter}
+                onChange={(event) => setEventArtistFilter(event.target.value)}
+              >
+                <option value="">Todos los artistas</option>
+                {artistOptions.map((artist) => (
+                  <option key={artist} value={normalizeSearchText(artist)}>
+                    {artist}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="transport-filter">
+              <span>Fecha</span>
+              <select
+                aria-label="Filtrar traslados por fecha"
+                value={eventDateFilter}
+                onChange={(event) => setEventDateFilter(event.target.value)}
+              >
+                <option value="">Todas las fechas</option>
+                {dateOptions.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           {eventsLoading ? (
             <LoadingState label="Buscando fechas…" />
           ) : events.length === 0 ? (

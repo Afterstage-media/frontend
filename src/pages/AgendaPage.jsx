@@ -42,14 +42,12 @@ const filterOptionsFromEvents = (items, key, singularKey, defaults) => [
 const eventMatchesAgendaFilters = (event, filters, now) => {
   const query = normalizeSearchText(filters.query);
   const artistName = normalizeSearchText(eventArtistName(event));
-  const matchesArtist = !filters.artist || artistName === filters.artist;
   const matchesGenre =
     !filters.genre ||
     eventValues(event, "genres", "genre").some((value) => normalizeSearchText(value) === filters.genre);
   const matchesTag =
     !filters.tag || eventValues(event, "tags", "tag").some((value) => normalizeSearchText(value) === filters.tag);
   return (
-    matchesArtist &&
     (!query || artistName.includes(query)) &&
     matchesGenre &&
     matchesTag &&
@@ -75,14 +73,12 @@ export function AgendaPage() {
   const [searchParams] = useSearchParams();
   const queryFromUrl = searchParams.get("q")?.trim() || "";
   const [events, setEvents] = useState([]);
-  const [artistOptions, setArtistOptions] = useState([]);
   const [genreOptions, setGenreOptions] = useState(defaultGenreOptions);
   const [tagOptions, setTagOptions] = useState(defaultTagOptions);
   const [mapPickerActive, setMapPickerActive] = useState(false);
   const [visibleEventIds, setVisibleEventIds] = useState(null);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
-    artist: "",
     query: queryFromUrl,
     genre: "",
     tag: "",
@@ -110,16 +106,6 @@ export function AgendaPage() {
     api(`/api/public/events?${params.toString()}`)
       .then((items) => {
         const now = new Date();
-        setArtistOptions(
-          [
-            ...new Map(
-              items.map((event) => [normalizeSearchText(eventArtistName(event)), eventArtistName(event)]),
-            ).entries(),
-          ]
-            .filter(([value]) => value)
-            .map(([, label]) => label)
-            .sort((a, b) => a.localeCompare(b, "es")),
-        );
         setGenreOptions(filterOptionsFromEvents(items, "genres", "genre", defaultGenreOptions));
         setTagOptions(filterOptionsFromEvents(items, "tags", "tag", defaultTagOptions));
         setEvents(groupAgendaEvents(items.filter((event) => eventMatchesAgendaFilters(event, nextFilters, now))));
@@ -174,7 +160,6 @@ export function AgendaPage() {
   };
   const clearFilters = () => {
     const nextFilters = {
-      artist: "",
       query: "",
       genre: "",
       tag: "",
@@ -243,25 +228,6 @@ export function AgendaPage() {
                 >
                   {mapPickerActive ? "Cancelar selección" : "Elegir ubicación"}
                 </Button>
-                <label>
-                  <span className="agenda-filter-label">Artista</span>
-                  <select
-                    aria-label="Seleccionar artista"
-                    value={filters.artist}
-                    onChange={(e) => {
-                      const nextFilters = { ...filters, artist: e.target.value };
-                      setFilters(nextFilters);
-                      load(nextFilters);
-                    }}
-                  >
-                    <option value="">Todos los artistas</option>
-                    {artistOptions.map((artist) => (
-                      <option key={artist} value={normalizeSearchText(artist)}>
-                        {artist}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label className="agenda-radius">
                   <span className="agenda-radius-label">
                     <span>Radio</span>
@@ -340,12 +306,7 @@ export function AgendaPage() {
                     <option value="week">Próximos 7 días</option>
                     <option value="month">Este mes</option>
                   </select>
-                  {(filters.artist ||
-                    filters.query ||
-                    filters.genre ||
-                    filters.tag ||
-                    filters.dateRange !== "all" ||
-                    filters.lat) && (
+                  {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
                     <Button className="filter-clear" type="button" onClick={clearFilters}>
                       Limpiar
                     </Button>
@@ -441,12 +402,7 @@ export function AgendaPage() {
               title="No hay eventos con estos filtros."
               message="Probá cambiar la búsqueda o limpiar los filtros para volver a mirar la agenda completa."
               action={
-                (filters.artist ||
-                  filters.query ||
-                  filters.genre ||
-                  filters.tag ||
-                  filters.dateRange !== "all" ||
-                  filters.lat) && (
+                (filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
                   <Button variant="ghost" type="button" onClick={clearFilters}>
                     Limpiar filtros
                   </Button>
