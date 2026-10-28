@@ -85,6 +85,8 @@ assert.match(platform, /Filtrar traslados por artista/);
 assert.match(platform, /Filtrar traslados por fecha/);
 assert.doesNotMatch(platform, /transport-event-list/);
 assert.match(platform, /Elegí un artista y una fecha/);
+assert.match(platform, /Show elegido/);
+assert.match(platform, /transport-selection-help/);
 assert.match(eventCard, /Varias fechas/);
 assert.match(eventPage, /isMultiDate/);
 assert.match(eventDates, /getEventDates/);

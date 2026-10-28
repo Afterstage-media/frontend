@@ -314,6 +314,23 @@
   margin-top: 22px;
 }
 
+.transport-events {
+  align-self: start;
+  border-top: var(--border-soft);
+  padding-top: 18px;
+}
+
+.transport-events .form-progress {
+  margin-bottom: 30px;
+}
+
+.transport-selection-help {
+  color: var(--color-muted);
+  line-height: 1.5;
+  margin: 10px 0 0;
+  max-width: 38rem;
+}
+
 .transport-filters {
   display: grid;
   gap: 12px;
@@ -366,6 +383,26 @@
   border: var(--border-soft);
   min-height: 360px;
   padding: 24px;
+}
+
+.transport-request-panel .form-progress {
+  margin-bottom: 26px;
+}
+
+.transport-selected-event {
+  border-left: 3px solid var(--color-accent);
+  display: grid;
+  gap: 5px;
+  margin: 0 0 24px;
+  padding: 10px 0 10px 14px;
+}
+
+.transport-selected-event strong {
+  font-size: 1.25rem;
+}
+
+.transport-selected-event > span:last-child {
+  color: var(--color-muted);
 }
 
 .transport-selection-status {
