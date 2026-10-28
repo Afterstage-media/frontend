@@ -68,10 +68,10 @@ const lanes = [
   },
 ];
 
-function ServiceOffering({ product, index }) {
+function ServiceOffering({ product }) {
   if (!product) return null;
   return (
-    <article className="service-offering" data-reveal style={{ "--reveal-delay": `${index * 70}ms` }}>
+    <article className="service-offering">
       <div>
         <span className="service-offering-price">
           {product.priceArs == null ? "Consultar" : `$${product.priceArs.toLocaleString("es-AR")}`}
@@ -251,7 +251,7 @@ export function ServicesPage() {
             {(showAll ? lanes : lanes.filter((lane) => lane.id === selectedLane)).map((lane) => {
               const laneProducts = lane.productIds.map((id) => byId.get(id)).filter(Boolean);
               return (
-                <section className={`services-lane ${lane.className}`} data-reveal id={lane.id} key={lane.id}>
+                <section className={`services-lane ${lane.className}`} id={lane.id} key={lane.id}>
                   <div
                     className="services-lane-image"
                     data-parallax="0.04"
@@ -270,8 +270,8 @@ export function ServicesPage() {
                       <span>{String(laneProducts.length).padStart(2, "0")} opciones</span>
                     </div>
                     <div className="service-offerings">
-                      {laneProducts.map((product, index) => (
-                        <ServiceOffering key={product.id} index={index} product={product} />
+                      {laneProducts.map((product) => (
+                        <ServiceOffering key={product.id} product={product} />
                       ))}
                     </div>
                   </div>
