@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>afterstage</title>
+  <rect width="64" height="64" rx="6" fill="#111114"/>
+  <rect x="7" y="7" width="50" height="50" rx="2" fill="#7b35ff" stroke="#f4f0e8" stroke-width="3"/>
+  <path d="M18 47 29.5 17h5L46 47h-7l-2.4-7.1H27.4L25 47zm11.6-13.2h5.1l-2.55-8z" fill="#f4f0e8"/>
+</svg>
