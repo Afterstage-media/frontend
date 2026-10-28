@@ -16,14 +16,6 @@
   max-width: 620px;
 }
 
-.network-intro h1,
-.insurance-intro h1,
-.marketplace-intro h1 {
-  font-size: clamp(3.1rem, 6vw, 6rem);
-  line-height: 0.84;
-  max-width: 760px;
-}
-
 .event-context-banner {
   align-items: center;
   border-left: 4px solid var(--color-accent);
@@ -41,7 +33,6 @@
   font-weight: 700;
   margin-left: auto;
 }
-
 .network-intro,
 .insurance-intro,
 .marketplace-intro,

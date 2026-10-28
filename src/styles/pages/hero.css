@@ -80,12 +80,19 @@
   z-index: 1;
 }
 .hero h1,
-.page-intro h1 {
+.hero h1 {
   font-size: clamp(4.3rem, 9.2vw, 9.8rem);
   letter-spacing: -0.055em;
   line-height: 0.82;
   margin: 28px 0 34px;
   max-width: 660px;
+}
+.page-intro h1 {
+  font-size: clamp(3.8rem, 7vw, 8rem);
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  margin: 28px 0 34px;
+  max-width: 760px;
 }
 .hero h1 span {
   color: var(--color-accent);
