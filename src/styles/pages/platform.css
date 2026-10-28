@@ -334,6 +334,33 @@
   width: 100%;
 }
 
+.transport-filters {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.transport-filter {
+  display: grid;
+  gap: 7px;
+}
+
+.transport-filter span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.transport-filter select {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  min-height: 48px;
+  min-width: 0;
+  padding: 12px 14px;
+  width: 100%;
+}
+
 .transport-results-count {
   font-size: 0.8rem;
   margin: 16px 0 0;
@@ -685,6 +712,10 @@
   }
 
   .platform-admin-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-filters {
     grid-template-columns: 1fr;
   }
 }
