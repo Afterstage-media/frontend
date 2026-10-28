@@ -8,6 +8,7 @@ import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { FormActions } from "../components/ui/FormActions.jsx";
 import { FormProgress } from "../components/ui/FormProgress.jsx";
 import { FormSection } from "../components/ui/FormSection.jsx";
+import { SegmentedControl } from "../components/ui/SegmentedControl.jsx";
 import { TextField } from "../components/ui/TextField.jsx";
 import { Toggle } from "../components/ui/Toggle.jsx";
 import { formatEventDateValue } from "../utils/eventDates.js";
@@ -144,9 +145,9 @@ export function InsurancePage() {
           </ol>
           <p className="muted">La solicitud no contrata una póliza automáticamente. Es el primer paso de contacto.</p>
           {eventId && (
-            <Link className="button ghost" to={`/agenda/evento/${eventId}`}>
+            <ButtonLink className="ghost" to={`/agenda/evento/${eventId}`}>
               Volver al evento
-            </Link>
+            </ButtonLink>
           )}
         </div>
         <form className="form insurance-form" onSubmit={submit}>
@@ -558,34 +559,17 @@ export function MarketplacePage() {
         )}
       </section>
       <section className="marketplace-toolbar" aria-label="Filtros del marketplace">
-        <Toggle
-          className={!category ? "button dark" : "button ghost"}
-          onClick={() => setCategory("")}
-          pressed={!category}
-        >
-          Todo
-        </Toggle>
-        <Toggle
-          className={category === "merch" ? "button dark" : "button ghost"}
-          onClick={() => setCategory("merch")}
-          pressed={category === "merch"}
-        >
-          Merch
-        </Toggle>
-        <Toggle
-          className={category === "service" ? "button dark" : "button ghost"}
-          onClick={() => setCategory("service")}
-          pressed={category === "service"}
-        >
-          Servicios
-        </Toggle>
-        <Toggle
-          className={category === "benefit" ? "button dark" : "button ghost"}
-          onClick={() => setCategory("benefit")}
-          pressed={category === "benefit"}
-        >
-          Beneficios
-        </Toggle>
+        <SegmentedControl
+          ariaLabel="Filtrar el marketplace"
+          onChange={setCategory}
+          options={[
+            { label: "Todo", value: "" },
+            { label: "Merch", value: "merch" },
+            { label: "Servicios", value: "service" },
+            { label: "Beneficios", value: "benefit" },
+          ]}
+          value={category}
+        />
         <span>Catálogo sincronizado con Orux</span>
       </section>
       <section className="marketplace-grid">
@@ -620,9 +604,9 @@ export function MarketplacePage() {
               <p>{item.description}</p>
               <strong>{item.priceLabel}</strong>
               {item.productUrl && (
-                <a className="button dark" href={item.productUrl} rel="noreferrer" target="_blank">
+                <ButtonLink className="dark" href={item.productUrl} rel="noreferrer" target="_blank">
                   Ver propuesta ↗
-                </a>
+                </ButtonLink>
               )}
             </article>
           ))
@@ -730,22 +714,24 @@ export function TransportPage() {
                 ))}
               </div>
               {matchingEvents.length > visibleEvents.length && (
-                <button
-                  className="button ghost transport-show-more"
+                <Button
+                  className="transport-show-more"
                   onClick={() => setShowAllEvents(true)}
+                  variant="ghost"
                   type="button"
                 >
                   Mostrar las {matchingEvents.length - visibleEvents.length} fechas restantes ↓
-                </button>
+                </Button>
               )}
               {showAllEvents && matchingEvents.length > 20 && (
-                <button
-                  className="button ghost transport-show-more"
+                <Button
+                  className="transport-show-more"
                   onClick={() => setShowAllEvents(false)}
+                  variant="ghost"
                   type="button"
                 >
                   Mostrar menos ↑
-                </button>
+                </Button>
               )}
               {!matchingEvents.length && <p className="muted">No encontramos fechas con esa búsqueda.</p>}
             </>
@@ -828,9 +814,9 @@ export function TransportPage() {
                     onChange={(event) => setForm({ ...form, notes: event.target.value })}
                   />
                 </label>
-                <button className="button dark" type="submit">
+                <Button variant="dark" type="submit">
                   Pedir traslado ↗
-                </button>
+                </Button>
                 {error && <ErrorMessage error={error} />}
                 {status && <p className="success">{status}</p>}
               </form>

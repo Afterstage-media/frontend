@@ -5,6 +5,7 @@ import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { EditorialIntro } from "../components/ui/PageTitle.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
 export function CommunityPage() {
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get("eventId") || "";
@@ -23,12 +24,10 @@ export function CommunityPage() {
         }
         action={
           <div className="actions">
-            <Link className="button" to={networkUrl}>
-              Explorar la red ↗
-            </Link>
-            <Link className="button ghost" to="/agenda">
+            <ButtonLink to={networkUrl}>Explorar la red ↗</ButtonLink>
+            <ButtonLink className="ghost" to="/agenda">
               Ver agenda
-            </Link>
+            </ButtonLink>
           </div>
         }
       />
@@ -99,7 +98,9 @@ export function PublishPage() {
             Contacto
             <input name="contact" required type="email" />
           </label>
-          <button className="button dark">Enviar propuesta ↗</button>
+          <Button variant="dark" type="submit">
+            Enviar propuesta ↗
+          </Button>
           <ErrorMessage error={error} />
           {status && <p className="success">{status}</p>}
         </form>

@@ -3,13 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout, Loading } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
+import { Notice } from "../components/ui/Notice.jsx";
 import { formatEventDates, isMultiDateEvent } from "../utils/eventDates.js";
 
 const emptyThread = { title: "", body: "", authorName: "", authorEmail: "" };
 const emptyTransport = { name: "", email: "", partySize: "1", origin: "", notes: "", offerId: "" };
 
 function HubNotice({ error, status }) {
-  return error ? <ErrorMessage error={error} /> : status ? <p className="success">{status}</p> : null;
+  return error ? <ErrorMessage error={error} /> : status ? <Notice>{status}</Notice> : null;
 }
 
 export function EventPage() {
@@ -104,9 +106,9 @@ export function EventPage() {
           <p className="eyebrow">Agenda</p>
           <h1>Evento no disponible.</h1>
           <ErrorMessage error={error} />
-          <Link className="button dark" to="/agenda">
+          <ButtonLink className="dark" to="/agenda">
             Volver a la agenda
-          </Link>
+          </ButtonLink>
         </section>
       </Layout>
     );
@@ -143,16 +145,16 @@ export function EventPage() {
         {event.notes && <p>{event.notes}</p>}
         <div className="actions">
           {mapUrl && (
-            <a className="button dark" href={mapUrl} target="_blank" rel="noreferrer">
+            <ButtonLink className="dark" href={mapUrl} target="_blank" rel="noreferrer">
               Ver ubicación ↗
-            </a>
+            </ButtonLink>
           )}
-          <Link className="button ghost" to={`/red?eventId=${event.id}`}>
+          <ButtonLink className="ghost" to={`/red?eventId=${event.id}`}>
             Ver red y coberturas
-          </Link>
-          <Link className="button ghost" to={`/seguros?eventId=${event.id}`}>
+          </ButtonLink>
+          <ButtonLink className="ghost" to={`/seguros?eventId=${event.id}`}>
             Consultar seguro
-          </Link>
+          </ButtonLink>
         </div>
       </article>
 
@@ -185,9 +187,9 @@ export function EventPage() {
                         ))}
                       </div>
                     )}
-                    <button className="button ghost" onClick={() => setReplyFor(item.id)} type="button">
+                    <Button variant="ghost" onClick={() => setReplyFor(item.id)} type="button">
                       Responder ↗
-                    </button>
+                    </Button>
                     {replyFor === item.id && (
                       <form className="compact-form forum-reply-form" onSubmit={submitReply}>
                         <label>
@@ -217,12 +219,12 @@ export function EventPage() {
                           />
                         </label>
                         <div className="actions">
-                          <button className="button dark" type="submit">
+                          <Button variant="dark" type="submit">
                             Publicar respuesta ↗
-                          </button>
-                          <button className="button ghost" onClick={() => setReplyFor("")} type="button">
+                          </Button>
+                          <Button variant="ghost" onClick={() => setReplyFor("")} type="button">
                             Cancelar
-                          </button>
+                          </Button>
                         </div>
                       </form>
                     )}
@@ -270,9 +272,7 @@ export function EventPage() {
                   onChange={(input) => setThread({ ...thread, body: input.target.value })}
                 />
               </label>
-              <button className="button" type="submit">
-                Publicar en el foro ↗
-              </button>
+              <Button type="submit">Publicar en el foro ↗</Button>
               <HubNotice error={formError} status={status} />
             </form>
           </section>
@@ -282,9 +282,9 @@ export function EventPage() {
                 <p className="eyebrow">Cobertura</p>
                 <h2>Personas que pueden contar la fecha.</h2>
               </div>
-              <Link className="button ghost" to={`/red?eventId=${event.id}`}>
+              <ButtonLink className="ghost" to={`/red?eventId=${event.id}`}>
                 Ver búsquedas ↗
-              </Link>
+              </ButtonLink>
             </div>
             {hub?.coverageRequests?.length ? (
               <div className="hub-item-list">
@@ -294,9 +294,9 @@ export function EventPage() {
                       <h3>{item.title}</h3>
                       <p>{item.description}</p>
                     </div>
-                    <Link className="button dark" to={`/red?eventId=${event.id}`}>
+                    <ButtonLink className="dark" to={`/red?eventId=${event.id}`}>
                       Postularme
-                    </Link>
+                    </ButtonLink>
                   </article>
                 ))}
               </div>
@@ -376,9 +376,9 @@ export function EventPage() {
                   onChange={(input) => setTransport({ ...transport, notes: input.target.value })}
                 />
               </label>
-              <button className="button dark" type="submit">
+              <Button variant="dark" type="submit">
                 Pedir lugar ↗
-              </button>
+              </Button>
             </form>
           </section>
           <section className="hub-panel">

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Button } from "../components/ui/Button.jsx";
+import { Notice } from "../components/ui/Notice.jsx";
 
 const scopeLabels = {
   "notes:read": "Leer notas",
@@ -126,17 +128,13 @@ function AccessLedger() {
               <p className="eyebrow">Conexiones autorizadas</p>
               <h2 id="ai-access-list-title">Aplicaciones con acceso</h2>
             </div>
-            <button className="button ghost" type="button" onClick={load} disabled={loading}>
+            <Button variant="ghost" type="button" onClick={load} disabled={loading}>
               {loading ? "Actualizando…" : "Actualizar"}
-            </button>
+            </Button>
           </div>
 
           <ErrorMessage error={error} />
-          {notice && (
-            <p aria-live="polite" className="success" role="status">
-              {notice}
-            </p>
-          )}
+          {notice && <Notice>{notice}</Notice>}
 
           {loading ? (
             <div className="ai-access-state" role="status">
@@ -184,14 +182,14 @@ function AccessLedger() {
                         </div>
                         <div className="ai-access-authorization-footer">
                           <p className="ai-access-expiry">Vigente hasta {formatDate(connection.expiresAt)}</p>
-                          <button
-                            className="button danger"
+                          <Button
+                            className="danger"
                             type="button"
                             disabled={revoking === connection.id}
                             onClick={() => revoke(connection)}
                           >
                             {revoking === connection.id ? "Revocando…" : "Revocar esta autorización"}
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}

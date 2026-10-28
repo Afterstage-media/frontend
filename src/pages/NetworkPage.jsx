@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { Layout } from "../components/Layout.jsx";
 import { ErrorMessage } from "../components/Layout.jsx";
 import { EmptyState, LoadingState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
+import { Dialog } from "../components/ui/Dialog.jsx";
+import { IconButton } from "../components/ui/IconButton.jsx";
+import { ItemList } from "../components/ui/ItemList.jsx";
+import { Notice } from "../components/ui/Notice.jsx";
 
 const emptyPhotographer = {
   name: "",
@@ -31,7 +36,7 @@ const emptyCoverage = {
 };
 
 function FormNotice({ message, error }) {
-  return <>{error ? <ErrorMessage error={error} /> : message ? <p className="success">{message}</p> : null}</>;
+  return error ? <Notice tone="error">{error}</Notice> : message ? <Notice tone="success">{message}</Notice> : null;
 }
 
 export function NetworkPage() {
@@ -199,8 +204,10 @@ export function NetworkPage() {
           ) : photographers.length === 0 ? (
             <EmptyState title="La red recién empieza." message="Podés ser la primera persona en sumar tu perfil." />
           ) : (
-            <div className="network-profile-grid">
-              {photographers.map((photographer) => (
+            <ItemList
+              className="network-profile-grid"
+              items={photographers}
+              renderItem={(photographer) => (
                 <article className="network-profile-card" key={photographer.id}>
                   <span className="network-card-index">
                     {String(photographer.sampleCount || 0).padStart(2, "0")} fotos
@@ -228,8 +235,8 @@ export function NetworkPage() {
                     {photographer.instagram && <span>{photographer.instagram}</span>}
                   </div>
                 </article>
-              ))}
-            </div>
+              )}
+            />
           )}
 
           <div className="section-head network-subsection-head">
@@ -238,40 +245,39 @@ export function NetworkPage() {
               <h2>Búsquedas de cobertura.</h2>
             </div>
             {eventId && (
-              <Link className="button ghost" to={`/agenda/evento/${eventId}`}>
+              <ButtonLink className="ghost" to={`/agenda/evento/${eventId}`}>
                 Volver al evento
-              </Link>
+              </ButtonLink>
             )}
           </div>
-          <div className="network-request-list">
-            {requests.length === 0 ? (
+          <ItemList
+            className="network-request-list"
+            empty={
               <EmptyState
                 title="No hay búsquedas abiertas."
                 message="Cuando aparezca una cobertura, va a quedar publicada acá."
               />
-            ) : (
-              requests.map((request) => (
-                <article className="network-request-card" key={request.id}>
-                  <div>
-                    <span className="eyebrow">
-                      {request.city || "Escena"} · {request.organization || "Afterstage"}
-                    </span>
-                    <h3>{request.title}</h3>
-                    <p>{request.description}</p>
-                    <small>
-                      {request.budget || "Presupuesto a coordinar"}
-                      {request.deadlineAt
-                        ? ` · Cierra ${new Date(request.deadlineAt).toLocaleDateString("es-AR")}`
-                        : ""}
-                    </small>
-                  </div>
-                  <button className="button dark" onClick={() => setApplicationFor(request)} type="button">
-                    Postularme ↗
-                  </button>
-                </article>
-              ))
+            }
+            items={requests}
+            renderItem={(request) => (
+              <article className="network-request-card" key={request.id}>
+                <div>
+                  <span className="eyebrow">
+                    {request.city || "Escena"} · {request.organization || "Afterstage"}
+                  </span>
+                  <h3>{request.title}</h3>
+                  <p>{request.description}</p>
+                  <small>
+                    {request.budget || "Presupuesto a coordinar"}
+                    {request.deadlineAt ? ` · Cierra ${new Date(request.deadlineAt).toLocaleDateString("es-AR")}` : ""}
+                  </small>
+                </div>
+                <Button onClick={() => setApplicationFor(request)} variant="dark" type="button">
+                  Postularme ↗
+                </Button>
+              </article>
             )}
-          </div>
+          />
         </div>
 
         <aside className="network-forms" aria-label="Acción seleccionada">
@@ -280,15 +286,15 @@ export function NetworkPage() {
               <p className="eyebrow">Encontrar colaboradores</p>
               <h2>Explorá la red.</h2>
               <p>Revisá perfiles publicados y postulá a las búsquedas abiertas cuando encuentres una oportunidad.</p>
-              <button
-                className="button dark"
+              <Button
                 onClick={() =>
                   document.querySelector(".network-subsection-head")?.scrollIntoView({ behavior: "smooth" })
                 }
+                variant="dark"
                 type="button"
               >
                 Ver búsquedas abiertas ↓
-              </button>
+              </Button>
             </div>
           )}
           {networkMode === "photographer" && (
@@ -393,9 +399,9 @@ export function NetworkPage() {
                   onChange={(event) => setPhotographerForm({ ...photographerForm, contactEmail: event.target.value })}
                 />
               </label>
-              <button className="button dark" type="submit">
+              <Button variant="dark" type="submit">
                 Enviar perfil ↗
-              </button>
+              </Button>
               <FormNotice error={photographerError} message={photographerNotice} />
             </form>
           )}
@@ -467,9 +473,7 @@ export function NetworkPage() {
                   onChange={(event) => setCoverageForm({ ...coverageForm, deadlineAt: event.target.value })}
                 />
               </label>
-              <button className="button" type="submit">
-                Publicar búsqueda ↗
-              </button>
+              <Button type="submit">Publicar búsqueda ↗</Button>
               <FormNotice error={coverageError} message={coverageNotice} />
             </form>
           )}
@@ -477,66 +481,70 @@ export function NetworkPage() {
       </section>
 
       {applicationFor && (
-        <div className="modal-backdrop" role="presentation">
-          <form className="form network-application-modal" onSubmit={submitApplication}>
-            <button aria-label="Cerrar" className="icon-button" onClick={() => setApplicationFor(null)} type="button">
-              ×
-            </button>
-            <p className="eyebrow">Postulación</p>
-            <h2>{applicationFor.title}</h2>
-            <label>
-              Perfil publicado (opcional)
-              <select
-                value={application.photographerId}
-                onChange={(event) => setApplication({ ...application, photographerId: event.target.value })}
-              >
-                <option value="">Voy a enviar los datos manualmente</option>
-                {photographers.map((photographer) => (
-                  <option key={photographer.id} value={photographer.id}>
-                    {photographer.name} · {photographer.city}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Nombre
-              <input
-                required
-                value={application.applicantName}
-                onChange={(event) => setApplication({ ...application, applicantName: event.target.value })}
-              />
-            </label>
-            <label>
-              Email
-              <input
-                required
-                type="email"
-                value={application.applicantEmail}
-                onChange={(event) => setApplication({ ...application, applicantEmail: event.target.value })}
-              />
-            </label>
-            <label>
-              Portfolio
-              <input
-                type="url"
-                value={application.portfolioUrl}
-                onChange={(event) => setApplication({ ...application, portfolioUrl: event.target.value })}
-              />
-            </label>
-            <label>
-              Mensaje
-              <textarea
-                rows="4"
-                value={application.message}
-                onChange={(event) => setApplication({ ...application, message: event.target.value })}
-              />
-            </label>
-            <button className="button dark" type="submit">
-              Enviar postulación ↗
-            </button>
-            <FormNotice error={coverageError} message={coverageNotice} />
-          </form>
-        </div>
+        <Dialog
+          labelledBy="network-application-title"
+          onClose={() => setApplicationFor(null)}
+          panelAs="form"
+          panelClassName="form network-application-modal"
+          onSubmit={submitApplication}
+        >
+          <IconButton label="Cerrar" onClick={() => setApplicationFor(null)}>
+            ×
+          </IconButton>
+          <p className="eyebrow">Postulación</p>
+          <h2 id="network-application-title">{applicationFor.title}</h2>
+          <label>
+            Perfil publicado (opcional)
+            <select
+              value={application.photographerId}
+              onChange={(event) => setApplication({ ...application, photographerId: event.target.value })}
+            >
+              <option value="">Voy a enviar los datos manualmente</option>
+              {photographers.map((photographer) => (
+                <option key={photographer.id} value={photographer.id}>
+                  {photographer.name} · {photographer.city}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nombre
+            <input
+              required
+              value={application.applicantName}
+              onChange={(event) => setApplication({ ...application, applicantName: event.target.value })}
+            />
+          </label>
+          <label>
+            Email
+            <input
+              required
+              type="email"
+              value={application.applicantEmail}
+              onChange={(event) => setApplication({ ...application, applicantEmail: event.target.value })}
+            />
+          </label>
+          <label>
+            Portfolio
+            <input
+              type="url"
+              value={application.portfolioUrl}
+              onChange={(event) => setApplication({ ...application, portfolioUrl: event.target.value })}
+            />
+          </label>
+          <label>
+            Mensaje
+            <textarea
+              rows="4"
+              value={application.message}
+              onChange={(event) => setApplication({ ...application, message: event.target.value })}
+            />
+          </label>
+          <Button variant="dark" type="submit">
+            Enviar postulación ↗
+          </Button>
+          <FormNotice error={coverageError} message={coverageNotice} />
+        </Dialog>
       )}
     </Layout>
   );

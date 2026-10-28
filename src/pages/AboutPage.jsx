@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
 import { Layout } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { ButtonLink } from "../components/ui/Button.jsx";
 
 const pillars = [
   {
@@ -59,12 +59,12 @@ export function AboutPage() {
             difusión, con roles, créditos y formas de trabajo claras desde el comienzo.
           </p>
           <div className="actions">
-            <Link className="button dark" to="/colaborador">
+            <ButtonLink className="dark" to="/colaborador">
               Sumate a la red ↗
-            </Link>
-            <Link className="button ghost" to="/monetizar">
+            </ButtonLink>
+            <ButtonLink className="ghost" to="/monetizar">
               Promocioná tu proyecto
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </section>

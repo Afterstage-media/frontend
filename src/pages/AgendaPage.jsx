@@ -6,6 +6,7 @@ import { EventMap } from "../components/EventMap.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { Button } from "../components/ui/Button.jsx";
 import { eventMatchesDateRange, getEventDates } from "../utils/eventDates.js";
 import { normalizeSearchText } from "../utils/search.js";
 
@@ -205,19 +206,20 @@ export function AgendaPage() {
                 />
               </label>
               <div className="actions">
-                <button className="button dark" type="button" onClick={() => load()}>
+                <Button variant="dark" type="button" onClick={() => load()}>
                   Buscar ↗
-                </button>
-                <button className="button ghost" type="button" onClick={useMyLocation}>
+                </Button>
+                <Button variant="ghost" type="button" onClick={useMyLocation}>
                   {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
-                </button>
-                <button
-                  className={`button ghost${mapPickerActive ? " is-active" : ""}`}
+                </Button>
+                <Button
+                  className={mapPickerActive ? "is-active" : ""}
                   type="button"
                   onClick={() => setMapPickerActive((current) => !current)}
+                  variant="ghost"
                 >
                   {mapPickerActive ? "Cancelar selección" : "Elegir ubicación"}
-                </button>
+                </Button>
                 <label className="agenda-radius">
                   <span className="agenda-radius-label">
                     <span>Radio</span>
@@ -366,14 +368,24 @@ export function AgendaPage() {
                 <EventCard event={event} index={index} key={eventMapKey(event)} />
               ))}
               {events.length > visibleEvents.length && (
-                <button className="button ghost events-show-more" onClick={() => setShowAllEvents(true)} type="button">
+                <Button
+                  className="events-show-more"
+                  onClick={() => setShowAllEvents(true)}
+                  variant="ghost"
+                  type="button"
+                >
                   Mostrar los {events.length - visibleEvents.length} eventos restantes ↓
-                </button>
+                </Button>
               )}
               {showAllEvents && events.length > eventLimit && (
-                <button className="button ghost events-show-more" onClick={() => setShowAllEvents(false)} type="button">
+                <Button
+                  className="events-show-more"
+                  onClick={() => setShowAllEvents(false)}
+                  variant="ghost"
+                  type="button"
+                >
                   Mostrar menos ↑
-                </button>
+                </Button>
               )}
             </>
           ) : (
@@ -382,9 +394,9 @@ export function AgendaPage() {
               message="Probá cambiar la búsqueda o limpiar los filtros para volver a mirar la agenda completa."
               action={
                 (filters.query || filters.dateRange !== "all" || filters.lat) && (
-                  <button className="button ghost" type="button" onClick={clearFilters}>
+                  <Button variant="ghost" type="button" onClick={clearFilters}>
                     Limpiar filtros
-                  </button>
+                  </Button>
                 )
               }
             />

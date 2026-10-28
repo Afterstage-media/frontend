@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
 import { formatEventDateValue } from "../utils/eventDates.js";
 import { api } from "../services/api.js";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
 
 const profiles = {
   photographer: "Fotógrafo/a",
@@ -74,9 +74,9 @@ function Board() {
                   : "Fecha a coordinar"}
                 {item.compensation && ` · ${item.compensation}`}
               </p>
-              <button className="button" onClick={() => setSelected(item)}>
+              <Button onClick={() => setSelected(item)} type="button">
                 Postularme
-              </button>
+              </Button>
             </article>
           ))}
         </div>
@@ -87,12 +87,12 @@ function Board() {
             message="Cuando aparezca una cobertura para sumar fotógrafos, noteros o videógrafos, la vas a encontrar acá."
           />
           <div className="empty-state-actions">
-            <Link className="button dark" to="/red">
+            <ButtonLink className="dark" to="/red">
               Ofrecer mi trabajo
-            </Link>
-            <Link className="button ghost" to="/agenda">
+            </ButtonLink>
+            <ButtonLink className="ghost" to="/agenda">
               Explorar la agenda
-            </Link>
+            </ButtonLink>
           </div>
         </>
       )}
@@ -129,10 +129,12 @@ function Board() {
             <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           </label>
           <div className="actions">
-            <button className="button dark">Enviar postulación</button>
-            <button type="button" className="button ghost" onClick={() => setSelected(null)}>
+            <Button variant="dark" type="submit">
+              Enviar postulación
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setSelected(null)}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -246,7 +248,9 @@ function AdminBoard() {
           Descripción
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </label>
-        <button className="button dark">Publicar búsqueda</button>
+        <Button variant="dark" type="submit">
+          Publicar búsqueda
+        </Button>
       </form>
       <ErrorMessage error={error} />
       <div className="admin-grid">
@@ -260,9 +264,9 @@ function AdminBoard() {
               {item.city}{" "}
               {item.startsAt && `· ${formatEventDateValue(item.startsAt, { dateStyle: "medium", timeStyle: "short" })}`}
             </p>
-            <button className="button" onClick={() => showApplications(item.id)}>
+            <Button onClick={() => showApplications(item.id)} type="button">
               Ver postulaciones
-            </button>
+            </Button>
             {(applications[item.id] || []).map((candidate) => (
               <div className="admin-record" key={candidate.id}>
                 <strong>{candidate.applicantName}</strong>
@@ -272,13 +276,14 @@ function AdminBoard() {
                     Portfolio ↗
                   </a>
                 )}
-                <button
-                  className="button dark"
+                <Button
                   disabled={candidate.status === "accepted"}
                   onClick={() => assign(candidate.id)}
+                  variant="dark"
+                  type="button"
                 >
                   Asignar
-                </button>
+                </Button>
               </div>
             ))}
           </article>

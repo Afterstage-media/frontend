@@ -3,7 +3,13 @@ import { Link } from "react-router-dom";
 import { api, encryptAuthSecret } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
-import { useModalFocus } from "../utils/useModalFocus.js";
+import { Button } from "../components/ui/Button.jsx";
+import { DataTable } from "../components/ui/DataTable.jsx";
+import { Drawer } from "../components/ui/Drawer.jsx";
+import { FilterBar } from "../components/ui/FilterBar.jsx";
+import { IconButton } from "../components/ui/IconButton.jsx";
+import { Notice } from "../components/ui/Notice.jsx";
+import { StatusBadge } from "../components/ui/StatusBadge.jsx";
 
 const roleOptions = [
   ["admin", "Administrador"],
@@ -62,7 +68,6 @@ function RolePills({ roles }) {
 }
 
 function UserForm({ user, onCancel, onSaved }) {
-  const dialogRef = useModalFocus(onCancel);
   const editing = Boolean(user);
   const [form, setForm] = useState(() =>
     user ? { ...emptyForm, ...user, password: "", passwordConfirmation: "" } : { ...emptyForm },
@@ -125,15 +130,15 @@ function UserForm({ user, onCancel, onSaved }) {
   };
 
   return (
-    <aside ref={dialogRef} className="user-drawer" aria-labelledby="user-form-title" aria-modal="true" role="dialog">
+    <Drawer labelledBy="user-form-title" onClose={onCancel} panelClassName="user-drawer">
       <div className="user-drawer-header">
         <div>
           <p className="eyebrow">{editing ? "Editar acceso" : "Nuevo acceso"}</p>
           <h2 id="user-form-title">{editing ? user.username || user.email : "Sumar una persona"}</h2>
         </div>
-        <button aria-label="Cerrar panel" className="icon-button" onClick={onCancel} type="button">
+        <IconButton label="Cerrar panel" onClick={onCancel}>
           ×
-        </button>
+        </IconButton>
       </div>
       <p className="user-drawer-copy">
         {editing
@@ -222,18 +227,18 @@ function UserForm({ user, onCancel, onSaved }) {
             />
           </label>
         </fieldset>
-        <ErrorMessage error={error} />
-        {status && <p className="success">{status}</p>}
+        {error && <Notice tone="error">{error}</Notice>}
+        {status && <Notice tone="success">{status}</Notice>}
         <div className="user-form-actions">
-          <button className="button dark" disabled={saving} type="submit">
+          <Button disabled={saving} variant="dark" type="submit">
             {saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear usuario"}
-          </button>
-          <button className="button ghost" onClick={onCancel} type="button">
+          </Button>
+          <Button onClick={onCancel} variant="ghost" type="button">
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
-    </aside>
+    </Drawer>
   );
 }
 
@@ -317,9 +322,9 @@ function UserManagement() {
               <p className="eyebrow">Directorio de acceso</p>
               <h2 id="users-list-title">Usuarios</h2>
             </div>
-            <button className="button dark" onClick={() => setCreating(true)} type="button">
+            <Button onClick={() => setCreating(true)} variant="dark" type="button">
               + Nuevo usuario
-            </button>
+            </Button>
           </div>
           <div className="users-metrics" aria-label="Resumen de usuarios">
             <div className="users-metric users-metric-accent">
@@ -335,7 +340,7 @@ function UserManagement() {
               <span>Administradores</span>
             </div>
           </div>
-          <div className="users-filters">
+          <FilterBar className="users-filters" label="Filtrar usuarios" role="search">
             <label className="users-search">
               <span className="sr-only">Buscar usuario</span>
               <span aria-hidden="true">⌕</span>
@@ -365,64 +370,73 @@ function UserManagement() {
                 <option value="all">Todos</option>
               </select>
             </label>
-          </div>
+          </FilterBar>
           {error ? (
             <div className="users-empty users-empty-error" role="alert">
               <strong>{error}</strong>
               <span>Revisá la conexión e intentá cargar el directorio nuevamente.</span>
-              <button className="button ghost" onClick={loadUsers} type="button">
+              <Button onClick={loadUsers} variant="ghost" type="button">
                 Reintentar
-              </button>
+              </Button>
             </div>
           ) : loading ? (
             <div className="users-empty">Cargando usuarios…</div>
           ) : visibleUsers.length ? (
-            <div className="users-table-wrap" aria-label="Tabla de usuarios">
-              <table className="users-table">
-                <thead>
-                  <tr>
-                    <th>Persona</th>
-                    <th>Roles</th>
-                    <th>Estado</th>
-                    <th>Última actualización</th>
-                    <th>
-                      <span className="sr-only">Acciones</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleUsers.map((user) => (
-                    <tr className={user.active === false ? "is-inactive" : ""} key={user.id}>
-                      <td data-label="Persona">
-                        <div className="user-identity">
-                          <span className="user-avatar">{initials(user)}</span>
-                          <span>
-                            <strong>{user.username || "Sin usuario"}</strong>
-                            <small>{user.email || "Email no informado"}</small>
-                          </span>
-                        </div>
-                      </td>
-                      <td data-label="Roles">
-                        <RolePills roles={user.roles} />
-                      </td>
-                      <td data-label="Estado">
-                        <span className={`user-status ${user.active === false ? "is-inactive" : ""}`}>
-                          <i /> {user.active === false ? "Desactivado" : "Activo"}
-                        </span>
-                      </td>
-                      <td className="user-date" data-label="Última actualización">
-                        {formatDate(user.updatedAt || user.createdAt)}
-                      </td>
-                      <td className="user-actions-cell" data-label="Acciones">
-                        <button className="user-edit-button" onClick={() => setSelectedUser(user)} type="button">
-                          Gestionar <span aria-hidden="true">↗</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              aria-label="Tabla de usuarios"
+              className="users-table-wrap"
+              columns={[
+                {
+                  key: "person",
+                  label: "Persona",
+                  header: "Persona",
+                  render: (user) => (
+                    <div className="user-identity">
+                      <span className="user-avatar">{initials(user)}</span>
+                      <span>
+                        <strong>{user.username || "Sin usuario"}</strong>
+                        <small>{user.email || "Email no informado"}</small>
+                      </span>
+                    </div>
+                  ),
+                },
+                { key: "roles", label: "Roles", header: "Roles", render: (user) => <RolePills roles={user.roles} /> },
+                {
+                  key: "status",
+                  label: "Estado",
+                  header: "Estado",
+                  render: (user) => (
+                    <StatusBadge
+                      className={`user-status ${user.active === false ? "is-inactive" : ""}`}
+                      tone={user.active === false ? "inactive" : "active"}
+                    >
+                      <i /> {user.active === false ? "Desactivado" : "Activo"}
+                    </StatusBadge>
+                  ),
+                },
+                {
+                  key: "updatedAt",
+                  label: "Última actualización",
+                  header: "Última actualización",
+                  render: (user) => <span className="user-date">{formatDate(user.updatedAt || user.createdAt)}</span>,
+                },
+                {
+                  key: "actions",
+                  label: "Acciones",
+                  header: <span className="sr-only">Acciones</span>,
+                  render: (user) => (
+                    <button className="user-edit-button" onClick={() => setSelectedUser(user)} type="button">
+                      Gestionar <span aria-hidden="true">↗</span>
+                    </button>
+                  ),
+                },
+              ]}
+              empty={null}
+              rowClassName={(user) => (user.active === false ? "is-inactive" : "")}
+              rowKey={(user) => user.id}
+              rows={visibleUsers}
+              tableClassName="users-table"
+            />
           ) : (
             <div className="users-empty">
               <strong>No encontramos usuarios con esos filtros.</strong>
@@ -435,20 +449,15 @@ function UserManagement() {
         </section>
       </div>
       {(creating || selectedUser) && (
-        <div
-          className="user-drawer-backdrop"
-          onMouseDown={(event) => event.target === event.currentTarget && (setCreating(false), setSelectedUser(null))}
-        >
-          <UserForm
-            key={selectedUser?.id || "new"}
-            user={selectedUser}
-            onCancel={() => {
-              setCreating(false);
-              setSelectedUser(null);
-            }}
-            onSaved={handleSaved}
-          />
-        </div>
+        <UserForm
+          key={selectedUser?.id || "new"}
+          user={selectedUser}
+          onCancel={() => {
+            setCreating(false);
+            setSelectedUser(null);
+          }}
+          onSaved={handleSaved}
+        />
       )}
     </Layout>
   );

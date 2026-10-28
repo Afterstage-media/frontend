@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { LoginForm } from "../components/AuthGate.jsx";
 import { Layout } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { api } from "../services/api.js";
 
 export function CollaboratorPage() {
@@ -36,11 +37,11 @@ export function CollaboratorPage() {
           <h1>Bienvenido a la comunidad.</h1>
           <p>Tu cuenta ya está activa y puede enviar propuestas autenticadas.</p>
           <div className="actions">
-            <Link className="button dark" to="/publicar">
+            <ButtonLink className="dark" to="/publicar">
               Enviar una propuesta ↗
-            </Link>
-            <button
-              className="button ghost"
+            </ButtonLink>
+            <Button
+              variant="ghost"
               onClick={() => {
                 localStorage.removeItem("afterstage-token");
                 window.dispatchEvent(new Event("afterstage-auth-changed"));
@@ -48,7 +49,7 @@ export function CollaboratorPage() {
               }}
             >
               Cerrar sesión
-            </button>
+            </Button>
           </div>
         </section>
       ) : (
