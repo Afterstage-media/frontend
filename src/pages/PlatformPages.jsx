@@ -4,6 +4,10 @@ import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, LoadingState } from "../components/UiState.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
+import { FormActions } from "../components/ui/FormActions.jsx";
+import { FormProgress } from "../components/ui/FormProgress.jsx";
+import { FormSection } from "../components/ui/FormSection.jsx";
+import { TextField } from "../components/ui/TextField.jsx";
 import { formatEventDateValue } from "../utils/eventDates.js";
 
 const insuranceProducts = [
@@ -144,38 +148,30 @@ export function InsurancePage() {
           )}
         </div>
         <form className="form insurance-form" onSubmit={submit}>
-          <div className="form-progress" aria-label={`Paso ${insuranceStep} de 2`}>
-            <span className={insuranceStep === 1 ? "is-active" : "is-complete"}>01 · Base del pedido</span>
-            <span className={insuranceStep === 2 ? "is-active" : ""}>02 · Detalles de cobertura</span>
-          </div>
+          <FormProgress current={insuranceStep} steps={["Base del pedido", "Detalles de cobertura"]} />
           {insuranceStep === 1 && (
             <>
               <div className="form-grid insurance-contact-grid">
-                <label>
-                  Nombre y apellido
-                  <input
-                    name="name"
-                    required
-                    value={form.name}
-                    onChange={(event) => setForm({ ...form, name: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Email
-                  <input
-                    name="email"
-                    required
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => setForm({ ...form, email: event.target.value })}
-                  />
-                </label>
+                <TextField
+                  label="Nombre y apellido"
+                  name="name"
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  required
+                  value={form.name}
+                />
+                <TextField
+                  label="Email"
+                  name="email"
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
+                  required
+                  type="email"
+                  value={form.email}
+                />
               </div>
-              <fieldset className="form-fieldset">
-                <legend>¿Qué querés cotizar?</legend>
-                <p className="muted">
-                  Podés seleccionar más de un producto. La compañía puede pedir información adicional.
-                </p>
+              <FormSection
+                description="Podés seleccionar más de un producto. La compañía puede pedir información adicional."
+                title="¿Qué querés cotizar?"
+              >
                 <div className="insurance-products">
                   {insuranceProducts.map((product) => {
                     const selected = form.coverageTypes.includes(product.value);
@@ -202,7 +198,7 @@ export function InsurancePage() {
                     );
                   })}
                 </div>
-              </fieldset>
+              </FormSection>
               <p className="form-step-note">
                 Con estos datos alcanza para empezar. En el próximo paso te pedimos el contexto del evento.
               </p>
@@ -214,36 +210,31 @@ export function InsurancePage() {
           )}
           {insuranceStep === 2 && (
             <>
-              <fieldset className="form-fieldset">
-                <legend>Datos de contacto</legend>
+              <FormSection title="Datos de contacto">
                 <div className="form-grid">
-                  <label>
-                    DNI
-                    <input
-                      name="dni"
-                      required
-                      value={form.dni}
-                      onChange={(event) => setForm({ ...form, dni: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Teléfono
-                    <input
-                      name="phone"
-                      value={form.phone}
-                      onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                    />
-                  </label>
-                </div>
-                <label>
-                  Organización
-                  <input
-                    name="organization"
-                    value={form.organization}
-                    onChange={(event) => setForm({ ...form, organization: event.target.value })}
+                  <TextField
+                    label="DNI"
+                    name="dni"
+                    onChange={(event) => setForm({ ...form, dni: event.target.value })}
+                    required
+                    value={form.dni}
                   />
-                </label>
-              </fieldset>
+                  <TextField
+                    label="Teléfono"
+                    name="phone"
+                    onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                    optional
+                    value={form.phone}
+                  />
+                </div>
+                <TextField
+                  label="Organización"
+                  name="organization"
+                  onChange={(event) => setForm({ ...form, organization: event.target.value })}
+                  optional
+                  value={form.organization}
+                />
+              </FormSection>
               <fieldset className="form-fieldset">
                 <legend>Datos del evento</legend>
                 <label>
@@ -513,14 +504,14 @@ export function InsurancePage() {
                   onChange={(event) => setForm({ ...form, notes: event.target.value })}
                 />
               </label>
-              <div className="form-step-actions">
+              <FormActions>
                 <button className="button ghost" onClick={() => setInsuranceStep(1)} type="button">
                   ← Volver
                 </button>
                 <button className="button dark" type="submit">
                   Pedir cotización ↗
                 </button>
-              </div>
+              </FormActions>
               {error && <ErrorMessage error={error} />}
               {status && <p className="success">{status}</p>}
             </>

@@ -41,6 +41,12 @@
   border-top: var(--border);
 }
 
+.section-divider {
+  border: 0;
+  border-top: var(--border);
+  margin: 0;
+}
+
 .content-section {
   margin: 0 auto;
   max-width: var(--content-width);

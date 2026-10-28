@@ -31,6 +31,12 @@ const platform = await read("src/pages/PlatformPages.jsx");
 const platformStyles = await read("src/styles/pages/platform.css");
 const layoutStyles = await read("src/styles/layout.css");
 const heroStyles = await read("src/styles/pages/hero.css");
+const pageTitle = await read("src/components/ui/PageTitle.jsx");
+const sectionHeading = await read("src/components/ui/SectionHeading.jsx");
+const formField = await read("src/components/ui/FormField.jsx");
+const textField = await read("src/components/ui/TextField.jsx");
+const formProgress = await read("src/components/ui/FormProgress.jsx");
+const formSection = await read("src/components/ui/FormSection.jsx");
 const authStyles = await read("src/styles/components/forms.css");
 const navigationStyles = await read("src/styles/navigation.css");
 const navigationRedesignStyles = await read("src/styles/navigation-redesign.css");
@@ -158,8 +164,20 @@ assert.match(servicesStyles, /scroll-margin-top/);
 assert.match(servicesStyles, /service-request-intro h1/);
 assert.match(platform, /Con estos datos alcanza para empezar/);
 assert.match(platformStyles, /insurance-form \{\n    order: -1/);
-assert.match(layoutStyles, /padding-left: max\(var\(--gutter\), calc\(\(100% - var\(--content-width\)\) \/ 2 \+ var\(--gutter\)\)\)/);
+assert.match(
+  layoutStyles,
+  /padding-left: max\(var\(--gutter\), calc\(\(100% - var\(--content-width\)\) \/ 2 \+ var\(--gutter\)\)\)/,
+);
 assert.match(heroStyles, /\.page-intro h1[\s\S]*max-width: 760px/);
+assert.match(pageTitle, /export function PageTitle/);
+assert.match(sectionHeading, /export function SectionHeading/);
+assert.match(formField, /form-field-label/);
+assert.match(textField, /<FormField/);
+assert.match(formProgress, /is-complete/);
+assert.match(formSection, /form-fieldset/);
+assert.match(auth, /<TextField/);
+assert.match(monetization, /<FormProgress/);
+assert.match(platform, /<FormSection/);
 assert.match(authStyles, /auth-recovery-link/);
 assert.match(navigationStyles, /position: sticky/);
 assert.match(navigationRedesignStyles, /\.workspace-sidebar-nav[\s\S]*scrollbar-width: thin/);
