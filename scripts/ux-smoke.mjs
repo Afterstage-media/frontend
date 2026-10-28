@@ -187,6 +187,7 @@ assert.match(services, /Propuestas disponibles/);
 assert.match(services, /data-parallax/);
 assert.match(services, /IntersectionObserver/);
 assert.match(services, /prefers-reduced-motion/);
+assert.match(services, /\}, \[loading, selectedLane, showAll\]\);/);
 assert.match(platform, /MarketplacePage/);
 assert.match(platform, /searchParams.get\("eventId"\)/);
 assert.match(publicPages, /networkUrl/);
