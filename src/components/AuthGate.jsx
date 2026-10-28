@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, encryptAuthSecret } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
+import { Button, ButtonLink } from "./ui/Button.jsx";
 import { TextField } from "./ui/TextField.jsx";
 
 const tokenKey = "afterstage-token";
@@ -122,12 +123,12 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           </p>
         )}
         <ErrorMessage error={error} />
-        <button className="button dark" disabled={loading} type="submit">
+        <Button className="dark" disabled={loading} type="submit">
           {loading ? "Enviando…" : "Enviar enlace"}
-        </button>
-        <button className="button ghost" type="button" onClick={() => setAuthMode("login")}>
+        </Button>
+        <Button className="ghost" onClick={() => setAuthMode("login")}>
           Volver a iniciar sesión
-        </button>
+        </Button>
       </form>
     );
 
@@ -163,12 +164,12 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           </p>
         )}
         <ErrorMessage error={error} />
-        <button className="button dark" disabled={loading} type="submit">
+        <Button className="dark" disabled={loading} type="submit">
           {loading ? "Guardando…" : "Guardar contraseña"}
-        </button>
-        <button className="button ghost" type="button" onClick={() => setAuthMode("login")}>
+        </Button>
+        <Button className="ghost" onClick={() => setAuthMode("login")}>
           Volver a iniciar sesión
-        </button>
+        </Button>
       </form>
     );
 
@@ -215,18 +216,18 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
           value={passwordConfirmation}
         />
       )}
-      <button className="button dark" disabled={loading} type="submit">
+      <Button className="dark" disabled={loading} type="submit">
         {loading ? "Procesando…" : registering ? "Crear cuenta" : "Ingresar"}
-      </button>
+      </Button>
       {collaborator && (
-        <button className="button ghost" type="button" onClick={() => setRegistering((value) => !value)}>
+        <Button className="ghost" onClick={() => setRegistering((value) => !value)}>
           {registering ? "Ya tengo una cuenta" : "Registrarme"}
-        </button>
+        </Button>
       )}
       {!collaborator && showCollaborator && (
-        <button className="button ghost" type="button" onClick={() => setCollaborator(true)}>
+        <Button className="ghost" onClick={() => setCollaborator(true)}>
           Colaborador
-        </button>
+        </Button>
       )}
       <ErrorMessage error={error} />
     </form>
@@ -288,9 +289,9 @@ export function AuthGate({ allowedRoles, children }) {
           <p className="eyebrow">Acceso restringido</p>
           <h1>No tenés permiso para esta sección.</h1>
           <p className="muted">Tu sesión sigue activa. Pedí el rol correspondiente o volvé al inicio.</p>
-          <Link className="button dark" to="/">
+          <ButtonLink className="dark" to="/">
             Volver al inicio
-          </Link>
+          </ButtonLink>
         </section>
       </Layout>
     );

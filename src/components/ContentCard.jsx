@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { Card } from "./ui/Card.jsx";
 export function ContentCard({ item, index = 0 }) {
   return (
-    <article className={`card editorial-card editorial-card-${(index % 3) + 1}`}>
+    <Card className={`editorial-card editorial-card-${(index % 3) + 1}`}>
       {item.assets?.[0]?.url && (
         <img
           className="card-image"
@@ -21,6 +22,6 @@ export function ContentCard({ item, index = 0 }) {
       <Link className="card-link" to={`/notas/${item.slug}`}>
         Leer la nota <span>↗</span>
       </Link>
-    </article>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ButtonLink } from "./ui/Button.jsx";
 
 const quickLinks = [
   {
@@ -117,12 +118,12 @@ export function HomeMission() {
           próxima forma de circular.
         </p>
         <div className="actions">
-          <Link className="button ghost" to="/colaborador">
+          <ButtonLink className="ghost" to="/colaborador">
             Sumate a la red
-          </Link>
-          <Link className="button dark" to="/servicios">
+          </ButtonLink>
+          <ButtonLink className="dark" to="/servicios">
             Ver servicios ↗
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </section>
