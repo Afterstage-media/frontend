@@ -60,26 +60,6 @@ const contactTypeLabels = {
   artist: "Artista o banda",
   other: "Otro",
 };
-const socialPresets = {
-  "weekly-band": {
-    type: "post",
-    title: "La banda de la semana",
-    summary: "Una presentación breve para descubrir y compartir una banda de la escena.",
-    instagramCopy: "Conocé a la banda de la semana: [VERIFICAR nombre, sonido y próximo show]. ¿Ya la escuchaste?",
-  },
-  discovery: {
-    type: "carousel",
-    title: "Descubrimiento de la semana",
-    summary: "Una recomendación rápida para sumar algo nuevo a la playlist.",
-    instagramCopy: "Un descubrimiento para poner en loop: [VERIFICAR artista y motivo de la recomendación].",
-  },
-  news: {
-    type: "post",
-    title: "Novedad de la escena",
-    summary: "Una novedad breve para mantener a la comunidad al día.",
-    instagramCopy: "Pasó esto en la escena: [VERIFICAR dato principal, fecha y fuente].",
-  },
-};
 const workflowStages = [
   { key: "draft", label: "Borrador", description: "Escribí y guardá la pieza." },
   { key: "review", label: "Revisión", description: "Dejala lista para validar." },
@@ -309,6 +289,7 @@ function SocialContentCard({ item, onSelect }) {
 
 function SocialDashboard() {
   const [items, setItems] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -321,6 +302,9 @@ function SocialDashboard() {
     api("/api/metrics/instagram")
       .then(setMetrics)
       .catch(() => undefined);
+    api("/api/social-templates?channel=instagram")
+      .then(setTemplates)
+      .catch((e) => setError(e.message));
   };
   useEffect(() => {
     load();
@@ -361,35 +345,24 @@ function SocialDashboard() {
             Pieza libre ↗
           </ButtonLink>
         </div>
-        <div className="social-template-grid">
-          <Link
-            className="social-template social-template-featured"
-            to="/admin/nueva?mode=instagram&preset=weekly-band"
-          >
-            <span className="social-template-number">01</span>
-            <strong>La banda de la semana</strong>
-            <small>Post de descubrimiento</small>
-            <span className="social-template-arrow">↗</span>
-          </Link>
-          <Link className="social-template" to="/admin/nueva?mode=instagram&preset=discovery">
-            <span className="social-template-number">02</span>
-            <strong>Descubrimiento</strong>
-            <small>Carrusel para guardar</small>
-            <span className="social-template-arrow">↗</span>
-          </Link>
-          <Link className="social-template" to="/admin/nueva?mode=instagram&preset=news">
-            <span className="social-template-number">03</span>
-            <strong>Novedad</strong>
-            <small>Una señal breve</small>
-            <span className="social-template-arrow">↗</span>
-          </Link>
-          <Link className="social-template" to="/admin/nueva?mode=instagram&type=reel">
-            <span className="social-template-number">04</span>
-            <strong>Reel</strong>
-            <small>Video vertical</small>
-            <span className="social-template-arrow">↗</span>
-          </Link>
-        </div>
+        {templates.length ? (
+          <div className="social-template-grid">
+            {templates.map((template, index) => (
+              <Link
+                className={`social-template${index === 0 ? " social-template-featured" : ""}`}
+                key={template.id}
+                to={`/admin/nueva?mode=instagram&type=${encodeURIComponent(template.outputType)}&templateId=${encodeURIComponent(template.id)}`}
+              >
+                <span className="social-template-number">{String(index + 1).padStart(2, "0")}</span>
+                <strong>{template.name}</strong>
+                <small>{template.description || `${template.outputType} · ${template.editorialSection}`}</small>
+                <span className="social-template-arrow">↗</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Todavía no hay plantillas publicadas para redes.</p>
+        )}
       </section>
 
       {metrics && (
@@ -459,8 +432,8 @@ function NewContentEditor() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const socialMode = searchParams.get("mode") === "instagram";
-  const preset = socialPresets[searchParams.get("preset")] || {};
   const requestedType = searchParams.get("type");
+  const requestedTemplateId = searchParams.get("templateId");
   const submit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -482,6 +455,7 @@ function NewContentEditor() {
             .map((x) => x.trim())
             .filter(Boolean),
           status: "draft",
+          ...(requestedTemplateId ? { socialTemplateId: requestedTemplateId } : {}),
           channels: socialMode
             ? ["instagram", ...(data.get("facebook") ? ["facebook"] : [])]
             : [
@@ -530,7 +504,7 @@ function NewContentEditor() {
             status={status}
             submitLabel="Crear borrador"
             socialMode={socialMode}
-            preset={{ ...preset, ...(requestedType ? { type: requestedType } : {}) }}
+            preset={{ ...(requestedType ? { type: requestedType } : {}) }}
           />
           <NewContentGuide socialMode={socialMode} requestedType={requestedType} />
         </div>
@@ -932,6 +906,114 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
   );
 }
 
+function SocialTemplatePicker({ item, requestedTemplateId, onBeforeGenerate, onComplete, onStatus, onError }) {
+  const [templates, setTemplates] = useState([]);
+  const [selectedId, setSelectedId] = useState(requestedTemplateId || item.socialTemplateId || "");
+  const [values, setValues] = useState(item.socialTemplateData || {});
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api(`/api/social-templates?type=${encodeURIComponent(item.type)}&channel=instagram`)
+      .then((result) => {
+        setTemplates(result);
+        setSelectedId((current) =>
+          result.some((template) => template.id === current) ? current : result[0]?.id || "",
+        );
+      })
+      .catch((error) => onError(error.message));
+  }, [item.type]);
+  const selected = templates.find((template) => template.id === selectedId);
+  useEffect(() => {
+    if (!selected) return;
+    setValues((current) => ({
+      ...Object.fromEntries(selected.fields.map(({ key }) => [key, ""])),
+      ...(item.socialTemplateData || {}),
+      ...current,
+    }));
+  }, [selectedId]);
+  const generate = async () => {
+    if (!selected) return;
+    setBusy(true);
+    onError("");
+    try {
+      await onBeforeGenerate();
+      await api(`/api/content/${item.id}/render-social`, {
+        method: "POST",
+        body: JSON.stringify({ templateId: selected.id, data: values }),
+      });
+      onStatus("Imágenes generadas en el servidor y adjuntas al borrador.");
+      await onComplete();
+    } catch (error) {
+      onError(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="editor-side-card social-render-card">
+      <div className="editor-side-heading">
+        <div>
+          <p className="eyebrow">Diseño social</p>
+          <h2>Plantilla e imágenes</h2>
+        </div>
+      </div>
+      {templates.length ? (
+        <>
+          <label className="field">
+            <span>Plantilla para {typeLabels[item.type] || item.type}</span>
+            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selected?.description && <p className="muted">{selected.description}</p>}
+          <div className="social-render-fields">
+            {selected?.fields.map((field) => (
+              <label className="field" key={field.key}>
+                <span>
+                  {field.label}
+                  {field.required ? " · Obligatorio" : ""}
+                </span>
+                <textarea
+                  maxLength={field.maxLength}
+                  rows="2"
+                  value={values[field.key] || ""}
+                  onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))}
+                />
+                <small>
+                  {(values[field.key] || "").length}/{field.maxLength}
+                </small>
+              </label>
+            ))}
+          </div>
+          <p className="muted">
+            {selected?.slides.length} {selected?.slides.length === 1 ? "imagen" : "imágenes"} · Se generan como PNG en
+            Afterstage. La publicación sigue en borrador.
+          </p>
+          <Button className="dark" disabled={busy} onClick={generate} type="button">
+            {busy ? "Generando imágenes…" : item.socialRenderedAt ? "Regenerar imágenes" : "Generar imágenes"}
+          </Button>
+          {item.assets?.some((asset) => asset.altText?.startsWith("[Plantilla:")) && (
+            <div className="social-render-preview" aria-label="Vista previa de imágenes generadas">
+              {item.assets
+                .filter((asset) => asset.altText?.startsWith("[Plantilla:"))
+                .map((asset) => (
+                  <a href={asset.url} key={asset.id} rel="noreferrer" target="_blank">
+                    <img alt={asset.altText.replace(/^\[Plantilla:[^\]]+\]\s*/, "")} src={asset.url} />
+                  </a>
+                ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="muted">No hay plantillas publicadas para este formato.</p>
+      )}
+    </section>
+  );
+}
+
 function ContentEditorPage() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
@@ -1152,6 +1234,16 @@ function ContentEditorPage() {
             socialMode={socialMode}
           />
           <aside className="editor-sidebar">
+            {socialMode && (
+              <SocialTemplatePicker
+                item={item}
+                requestedTemplateId={item.socialTemplateId}
+                onBeforeGenerate={saveCurrent}
+                onComplete={load}
+                onStatus={setStatus}
+                onError={setError}
+              />
+            )}
             <section className="editor-side-card editor-ai-card">
               <div className="editor-side-heading">
                 <div>
