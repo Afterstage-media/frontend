@@ -315,13 +315,18 @@ function SocialDashboard() {
   const [templateId, setTemplateId] = useState("");
   const [title, setTitle] = useState("");
   const [instagramCopy, setInstagramCopy] = useState("");
+  const [source, setSource] = useState("");
+  const [author, setAuthor] = useState("");
+  const [photographer, setPhotographer] = useState("");
   const [slides, setSlides] = useState([
-    { file: null, text: "" },
-    { file: null, text: "" },
+    { file: null, text: "", altText: "", credit: "" },
+    { file: null, text: "", altText: "", credit: "" },
   ]);
   const [publication, setPublication] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const navigate = useNavigate();
+  const selectedTemplate = templates.find((template) => template.id === templateId);
   const load = () => {
     setError("");
     api("/api/content")
@@ -346,10 +351,15 @@ function SocialDashboard() {
     setSaving(true);
     try {
       const images = await Promise.all(
-        slides.map((slide) => {
+        slides.map(async (slide) => {
           if (!slide.file) throw new Error("Elegí una imagen para cada lámina.");
           if (!slide.text.trim()) throw new Error("Completá el texto de cada lámina.");
-          return imageFilePayload(slide.file);
+          if (!slide.altText.trim()) throw new Error("Describí cada imagen para el texto alternativo.");
+          return {
+            ...(await imageFilePayload(slide.file)),
+            altText: slide.altText.trim(),
+            credit: slide.credit.trim(),
+          };
         }),
       );
       const result = await api("/api/social-carousel", {
@@ -358,6 +368,9 @@ function SocialDashboard() {
           templateId,
           title,
           instagramCopy,
+          source,
+          author,
+          photographer,
           slides: slides.map((slide, index) => ({ image: images[index], text: slide.text.trim() })),
         }),
       });
@@ -370,7 +383,6 @@ function SocialDashboard() {
       setSaving(false);
     }
   };
-  const [statusMessage, setStatusMessage] = useState("");
   const replaceSlide = async (slideNumber, file) => {
     setError("");
     setStatusMessage("");
@@ -452,6 +464,105 @@ function SocialDashboard() {
               required
             />
           </label>
+          <label>
+            Fuentes consultadas (enlaces o referencias)
+            <textarea
+              value={source}
+              onChange={(event) => setSource(event.target.value)}
+              maxLength={500}
+              rows={2}
+              required
+            />
+          </label>
+          <div className="social-carousel-credit-fields">
+            <label>
+              Autoría
+              <input value={author} onChange={(event) => setAuthor(event.target.value)} maxLength={180} />
+            </label>
+            <label>
+              Crédito fotográfico general
+              <input value={photographer} onChange={(event) => setPhotographer(event.target.value)} maxLength={180} />
+            </label>
+          </div>
+          {selectedTemplate?.editorialGuidance && (
+            <details className="social-template-guidance" open>
+              <summary>Guía editorial · {selectedTemplate.name}</summary>
+              <p>
+                <strong>Propósito:</strong> {selectedTemplate.editorialGuidance.purpose}
+              </p>
+              <p>
+                <strong>Enfoque:</strong> {selectedTemplate.editorialGuidance.angle}
+              </p>
+              <p>
+                <strong>Voz:</strong> {selectedTemplate.editorialGuidance.voice}
+              </p>
+              <div>
+                <strong>Verificá antes de redactar</strong>
+                <ul>
+                  {selectedTemplate.editorialGuidance.verify.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Secuencia sugerida</strong>
+                <ol>
+                  {selectedTemplate.editorialGuidance.slidePlan.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+              <p>
+                <strong>Caption:</strong> {selectedTemplate.editorialGuidance.caption}
+              </p>
+              <div>
+                <strong>Evitá</strong>
+                <ul>
+                  {selectedTemplate.editorialGuidance.avoid.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          )}
+          {selectedTemplate?.editorialStandards && (
+            <details className="social-template-guidance">
+              <summary>Estándares editoriales del medio</summary>
+              <p>{selectedTemplate.editorialStandards.purpose}</p>
+              <div>
+                <strong>Precisión y verificación</strong>
+                <ul>
+                  {selectedTemplate.editorialStandards.accuracy.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Redacción</strong>
+                <ul>
+                  {selectedTemplate.editorialStandards.writing.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Imágenes y accesibilidad</strong>
+                <ul>
+                  {selectedTemplate.editorialStandards.images.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Control final antes de guardar</strong>
+                <ul>
+                  {selectedTemplate.editorialStandards.finalCheck.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          )}
           <div className="social-slide-editor-list">
             {slides.map((slide, index) => (
               <fieldset className="social-slide-editor" key={index}>
@@ -475,6 +586,24 @@ function SocialDashboard() {
                     required
                   />
                 </label>
+                <label>
+                  Texto alternativo descriptivo
+                  <textarea
+                    value={slide.altText}
+                    onChange={(event) => changeSlide(index, { altText: event.target.value })}
+                    maxLength={500}
+                    rows={2}
+                    required
+                  />
+                </label>
+                <label>
+                  Crédito fotográfico de esta imagen
+                  <input
+                    value={slide.credit}
+                    onChange={(event) => changeSlide(index, { credit: event.target.value })}
+                    maxLength={500}
+                  />
+                </label>
                 {slides.length > 2 && (
                   <button
                     type="button"
@@ -491,7 +620,7 @@ function SocialDashboard() {
             <button
               type="button"
               className="button button-secondary"
-              onClick={() => setSlides((current) => [...current, { file: null, text: "" }])}
+              onClick={() => setSlides((current) => [...current, { file: null, text: "", altText: "", credit: "" }])}
             >
               Agregar lámina
             </button>
