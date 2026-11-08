@@ -808,6 +808,107 @@
   padding-bottom: 80px;
 }
 
+.social-carousel-form {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 860px;
+}
+
+.social-carousel-form > label,
+.social-slide-editor label {
+  display: grid;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.social-carousel-form input:not([type="file"]),
+.social-carousel-form select,
+.social-carousel-form textarea,
+.social-slide-editor textarea {
+  background: var(--color-paper);
+  border: var(--border);
+  color: var(--color-ink);
+  font: inherit;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.social-slide-editor-list {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.social-slide-editor {
+  border: var(--border-soft);
+  display: grid;
+  gap: 13px;
+  margin: 0;
+  min-width: 0;
+  padding: 16px;
+}
+
+.social-slide-editor legend {
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.social-carousel-form-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.social-carousel-status {
+  font-weight: 700;
+  margin: 18px auto 0;
+  max-width: 860px;
+}
+
+.social-carousel-preview {
+  border-top: var(--border-soft);
+  margin: 34px auto 0;
+  max-width: 1180px;
+  padding-top: 24px;
+}
+
+.social-carousel-preview-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.social-carousel-preview-grid article {
+  display: grid;
+  gap: 9px;
+}
+
+.social-carousel-preview-grid img {
+  aspect-ratio: 4 / 5;
+  background: var(--color-ink);
+  border: var(--border);
+  object-fit: contain;
+  width: 100%;
+}
+
+.social-replace-control {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.social-replace-control input {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 6px;
+  max-width: 100%;
+}
+
 .section-heading-row {
   align-items: end;
   display: flex;
@@ -1113,6 +1214,10 @@
 
   .social-template {
     min-height: 145px;
+  }
+
+  .social-slide-editor-list {
+    grid-template-columns: 1fr;
   }
 
   .social-record {

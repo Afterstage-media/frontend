@@ -69,6 +69,25 @@ const workflowStages = [
 const directR2Uploads = import.meta.env.VITE_R2_MEDIA_UPLOADS === "true";
 const directMediaTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const directMediaMaxBytes = 5 * 1024 * 1024;
+const carouselImageMaxBytes = 2.5 * 1024 * 1024;
+
+const imageFilePayload = async (file) => {
+  if (!directMediaTypes.has(file.type)) throw new Error("Usá una imagen JPG, PNG o WebP.");
+  if (file.size > carouselImageMaxBytes) throw new Error("Cada imagen puede pesar hasta 2,5 MiB.");
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("No pudimos leer la imagen."));
+    reader.readAsDataURL(file);
+  });
+  return {
+    base64: String(dataUrl).split(",", 2)[1],
+    mimeType: file.type,
+    filename: file.name,
+    altText: "",
+    credit: "",
+  };
+};
 
 const workflowStageFor = (status) => {
   if (["review", "approved"].includes(status)) return "review";
@@ -292,6 +311,16 @@ function SocialDashboard() {
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [templateId, setTemplateId] = useState("");
+  const [title, setTitle] = useState("");
+  const [instagramCopy, setInstagramCopy] = useState("");
+  const [slides, setSlides] = useState([
+    { file: null, text: "" },
+    { file: null, text: "" },
+  ]);
+  const [publication, setPublication] = useState(null);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const load = () => {
     setError("");
@@ -304,7 +333,61 @@ function SocialDashboard() {
   };
   useEffect(() => {
     load();
+    api("/api/social-templates?type=carousel&channel=instagram")
+      .then((available) => {
+        setTemplates(available);
+        if (available[0]) setTemplateId(available[0].id);
+      })
+      .catch((e) => setError(e.message));
   }, []);
+  const createCarousel = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      const images = await Promise.all(
+        slides.map((slide) => {
+          if (!slide.file) throw new Error("Elegí una imagen para cada lámina.");
+          if (!slide.text.trim()) throw new Error("Completá el texto de cada lámina.");
+          return imageFilePayload(slide.file);
+        }),
+      );
+      const result = await api("/api/social-carousel", {
+        method: "POST",
+        body: JSON.stringify({
+          templateId,
+          title,
+          instagramCopy,
+          slides: slides.map((slide, index) => ({ image: images[index], text: slide.text.trim() })),
+        }),
+      });
+      setPublication(result);
+      setStatusMessage("Borrador creado. Revisá las láminas y reemplazá las que quieras corregir.");
+      load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const [statusMessage, setStatusMessage] = useState("");
+  const replaceSlide = async (slideNumber, file) => {
+    setError("");
+    setStatusMessage("");
+    try {
+      const image = await imageFilePayload(file);
+      const result = await api(`/api/social-carousel/${publication.id}/slides/${slideNumber}`, {
+        method: "PUT",
+        body: JSON.stringify({ image }),
+      });
+      setPublication(result);
+      setStatusMessage(`La lámina ${slideNumber} se reemplazó en el mismo borrador.`);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+  const changeSlide = (index, patch) =>
+    setSlides((current) => current.map((slide, position) => (position === index ? { ...slide, ...patch } : slide)));
   const visible = items.filter((item) =>
     `${item.title} ${item.summary} ${item.instagramCopy} ${(item.tags || []).join(" ")}`
       .toLowerCase()
@@ -337,13 +420,124 @@ function SocialDashboard() {
         <div className="section-heading-row">
           <div>
             <p className="eyebrow">Preparar publicación</p>
-            <h2>Pedíselo al asistente.</h2>
+            <h2>Armá el carrusel acá o desde tu asistente.</h2>
             <p className="muted">
-              La IA elige una plantilla, envía las fotos y el texto de cada lámina al MCP, y revisa las imágenes que
-              devuelve Afterstage. Si hace falta, reemplaza una lámina. La publicación queda como borrador.
+              Elegí una plantilla, cargá las fotos y el texto de cada lámina. También podés enviar estos mismos datos
+              por MCP desde tu asistente. En ambos casos Afterstage devuelve las imágenes para revisar y corregir.
             </p>
           </div>
         </div>
+        <form className="social-carousel-form" onSubmit={createCarousel}>
+          <label>
+            Plantilla
+            <select value={templateId} onChange={(event) => setTemplateId(event.target.value)} required>
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name} · {template.description}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Título de la publicación
+            <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={180} required />
+          </label>
+          <label>
+            Texto del post
+            <textarea
+              value={instagramCopy}
+              onChange={(event) => setInstagramCopy(event.target.value)}
+              maxLength={2200}
+              rows={4}
+              required
+            />
+          </label>
+          <div className="social-slide-editor-list">
+            {slides.map((slide, index) => (
+              <fieldset className="social-slide-editor" key={index}>
+                <legend>Lámina {index + 1}</legend>
+                <label>
+                  Foto (JPG, PNG o WebP, hasta 2,5 MiB)
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    required
+                    onChange={(event) => changeSlide(index, { file: event.target.files?.[0] ?? null })}
+                  />
+                </label>
+                <label>
+                  Texto sobre la imagen
+                  <textarea
+                    value={slide.text}
+                    onChange={(event) => changeSlide(index, { text: event.target.value })}
+                    maxLength={180}
+                    rows={2}
+                    required
+                  />
+                </label>
+                {slides.length > 2 && (
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    onClick={() => setSlides((current) => current.filter((_, position) => position !== index))}
+                  >
+                    Quitar lámina
+                  </button>
+                )}
+              </fieldset>
+            ))}
+          </div>
+          {slides.length < 9 && (
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={() => setSlides((current) => [...current, { file: null, text: "" }])}
+            >
+              Agregar lámina
+            </button>
+          )}
+          <div className="social-carousel-form-actions">
+            <Button type="submit" disabled={saving || !templates.length}>
+              {saving ? "Armando carrusel…" : "Crear borrador"}
+            </Button>
+            <span className="muted">De 2 a 9 láminas · Queda como borrador, sin publicar.</span>
+          </div>
+        </form>
+        <ErrorMessage error={error} />
+        {statusMessage && (
+          <p className="social-carousel-status" role="status">
+            {statusMessage}
+          </p>
+        )}
+        {publication && (
+          <section className="social-carousel-preview" aria-label="Vista previa del borrador">
+            <div>
+              <p className="eyebrow">Borrador · {publication.id}</p>
+              <h3>{publication.title}</h3>
+              <p>{publication.instagramCopy}</p>
+            </div>
+            <div className="social-carousel-preview-grid">
+              {publication.images.map((image) => (
+                <article key={image.slide}>
+                  <img src={image.url} alt={image.altText || `Lámina ${image.slide}`} />
+                  <strong>Lámina {image.slide}</strong>
+                  <label className="social-replace-control">
+                    Reemplazar imagen
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) replaceSlide(image.slide, file);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
 
       {metrics && (
