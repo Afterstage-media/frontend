@@ -113,10 +113,7 @@ function MailboxContent({ actor }) {
   const routeForThread = (item) => routeByAddress.get(item.mailbox) || item;
   const threadKind = (item) => routeForThread(item)?.mailboxType || routeForThread(item)?.kind || "personal";
   const threadDisplayLabel = (item) => mailboxDisplayLabel(routeForThread(item));
-  const filteredThreads = useMemo(
-    () => threads.filter((item) => filter === "all" || threadKind(item) === filter),
-    [filter, routes, threads],
-  );
+  const filteredThreads = useMemo(() => threads.filter(isThreadVisible), [filter, routes, threads]);
   const unread = useMemo(() => threads.reduce((total, item) => total + (item.unreadCount || 0), 0), [threads]);
   const distributionRoutes = routes.filter((route) => route.kind === "distribution");
   const distributionCount = threads.filter((item) => threadKind(item) === "distribution").length;
@@ -129,6 +126,17 @@ function MailboxContent({ actor }) {
         .filter(Boolean),
     ),
   ];
+  const distributionFilters = distributionMailboxLabels.map((label) => ({
+    value: `distribution:${label}`,
+    label,
+    count: threads.filter((item) => threadKind(item) === "distribution" && threadDisplayLabel(item) === label).length,
+  }));
+  const isThreadVisible = (item) =>
+    filter === "all" ||
+    (filter === "personal" && threadKind(item) === "personal") ||
+    (filter.startsWith("distribution:") &&
+      threadKind(item) === "distribution" &&
+      threadDisplayLabel(item) === filter.slice("distribution:".length));
 
   const startRouteEdit = (route) => {
     setEditingRoute(route.address);
@@ -252,10 +260,7 @@ function MailboxContent({ actor }) {
               {[
                 ["all", `Todas · ${threads.length}`],
                 ["personal", `Personales · ${personalCount}`],
-                [
-                  "distribution",
-                  `${distributionMailboxLabels.join(", ") || "Correos grupales"} · ${distributionCount}`,
-                ],
+                ...distributionFilters.map(({ value, label, count }) => [value, `${label} · ${count}`]),
               ].map(([value, label]) => (
                 <button
                   aria-pressed={filter === value}
