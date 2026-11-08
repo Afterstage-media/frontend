@@ -289,7 +289,6 @@ function SocialContentCard({ item, onSelect }) {
 
 function SocialDashboard() {
   const [items, setItems] = useState([]);
-  const [templates, setTemplates] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -302,9 +301,6 @@ function SocialDashboard() {
     api("/api/metrics/instagram")
       .then(setMetrics)
       .catch(() => undefined);
-    api("/api/social-templates?channel=instagram")
-      .then(setTemplates)
-      .catch((e) => setError(e.message));
   };
   useEffect(() => {
     load();
@@ -322,8 +318,10 @@ function SocialDashboard() {
             ← Volver a redacción
           </Link>
           <p className="eyebrow">Redes / Instagram</p>
-          <h1>Lo que pasa entre una nota y la próxima.</h1>
-          <p>Creá piezas rápidas para sostener la conversación: reels, descubrimientos, novedades y series propias.</p>
+          <h1>Una crónica, un carrusel.</h1>
+          <p>
+            La IA redacta las láminas y el epígrafe. Afterstage compone las imágenes y guarda un borrador para revisar.
+          </p>
         </div>
         <div className="social-admin-signal" aria-hidden="true">
           <span>IG</span>
@@ -335,34 +333,17 @@ function SocialDashboard() {
         </div>
       </section>
 
-      <section className="social-create-section">
+      <section className="social-create-section social-create-simple">
         <div className="section-heading-row">
           <div>
-            <p className="eyebrow">Empezar por una idea</p>
-            <h2>¿Qué querés mover hoy?</h2>
+            <p className="eyebrow">Preparar publicación</p>
+            <h2>Pedíselo al asistente.</h2>
+            <p className="muted">
+              La IA elige una plantilla, envía las fotos y el texto de cada lámina al MCP, y revisa las imágenes que
+              devuelve Afterstage. Si hace falta, reemplaza una lámina. La publicación queda como borrador.
+            </p>
           </div>
-          <ButtonLink className="dark" to="/admin/nueva?mode=instagram">
-            Pieza libre ↗
-          </ButtonLink>
         </div>
-        {templates.length ? (
-          <div className="social-template-grid">
-            {templates.map((template, index) => (
-              <Link
-                className={`social-template${index === 0 ? " social-template-featured" : ""}`}
-                key={template.id}
-                to={`/admin/nueva?mode=instagram&type=${encodeURIComponent(template.outputType)}&templateId=${encodeURIComponent(template.id)}`}
-              >
-                <span className="social-template-number">{String(index + 1).padStart(2, "0")}</span>
-                <strong>{template.name}</strong>
-                <small>{template.description || `${template.outputType} · ${template.editorialSection}`}</small>
-                <span className="social-template-arrow">↗</span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="muted">Todavía no hay plantillas publicadas para redes.</p>
-        )}
       </section>
 
       {metrics && (
@@ -906,114 +887,6 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
   );
 }
 
-function SocialTemplatePicker({ item, requestedTemplateId, onBeforeGenerate, onComplete, onStatus, onError }) {
-  const [templates, setTemplates] = useState([]);
-  const [selectedId, setSelectedId] = useState(requestedTemplateId || item.socialTemplateId || "");
-  const [values, setValues] = useState(item.socialTemplateData || {});
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    api(`/api/social-templates?type=${encodeURIComponent(item.type)}&channel=instagram`)
-      .then((result) => {
-        setTemplates(result);
-        setSelectedId((current) =>
-          result.some((template) => template.id === current) ? current : result[0]?.id || "",
-        );
-      })
-      .catch((error) => onError(error.message));
-  }, [item.type]);
-  const selected = templates.find((template) => template.id === selectedId);
-  useEffect(() => {
-    if (!selected) return;
-    setValues((current) => ({
-      ...Object.fromEntries(selected.fields.map(({ key }) => [key, ""])),
-      ...(item.socialTemplateData || {}),
-      ...current,
-    }));
-  }, [selectedId]);
-  const generate = async () => {
-    if (!selected) return;
-    setBusy(true);
-    onError("");
-    try {
-      await onBeforeGenerate();
-      await api(`/api/content/${item.id}/render-social`, {
-        method: "POST",
-        body: JSON.stringify({ templateId: selected.id, data: values }),
-      });
-      onStatus("Imágenes generadas en el servidor y adjuntas al borrador.");
-      await onComplete();
-    } catch (error) {
-      onError(error.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <section className="editor-side-card social-render-card">
-      <div className="editor-side-heading">
-        <div>
-          <p className="eyebrow">Diseño social</p>
-          <h2>Plantilla e imágenes</h2>
-        </div>
-      </div>
-      {templates.length ? (
-        <>
-          <label className="field">
-            <span>Plantilla para {typeLabels[item.type] || item.type}</span>
-            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selected?.description && <p className="muted">{selected.description}</p>}
-          <div className="social-render-fields">
-            {selected?.fields.map((field) => (
-              <label className="field" key={field.key}>
-                <span>
-                  {field.label}
-                  {field.required ? " · Obligatorio" : ""}
-                </span>
-                <textarea
-                  maxLength={field.maxLength}
-                  rows="2"
-                  value={values[field.key] || ""}
-                  onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))}
-                />
-                <small>
-                  {(values[field.key] || "").length}/{field.maxLength}
-                </small>
-              </label>
-            ))}
-          </div>
-          <p className="muted">
-            {selected?.slides.length} {selected?.slides.length === 1 ? "imagen" : "imágenes"} · Se generan como PNG en
-            Afterstage. La publicación sigue en borrador.
-          </p>
-          <Button className="dark" disabled={busy} onClick={generate} type="button">
-            {busy ? "Generando imágenes…" : item.socialRenderedAt ? "Regenerar imágenes" : "Generar imágenes"}
-          </Button>
-          {item.assets?.some((asset) => asset.altText?.startsWith("[Plantilla:")) && (
-            <div className="social-render-preview" aria-label="Vista previa de imágenes generadas">
-              {item.assets
-                .filter((asset) => asset.altText?.startsWith("[Plantilla:"))
-                .map((asset) => (
-                  <a href={asset.url} key={asset.id} rel="noreferrer" target="_blank">
-                    <img alt={asset.altText.replace(/^\[Plantilla:[^\]]+\]\s*/, "")} src={asset.url} />
-                  </a>
-                ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <p className="muted">No hay plantillas publicadas para este formato.</p>
-      )}
-    </section>
-  );
-}
-
 function ContentEditorPage() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
@@ -1234,16 +1107,6 @@ function ContentEditorPage() {
             socialMode={socialMode}
           />
           <aside className="editor-sidebar">
-            {socialMode && (
-              <SocialTemplatePicker
-                item={item}
-                requestedTemplateId={item.socialTemplateId}
-                onBeforeGenerate={saveCurrent}
-                onComplete={load}
-                onStatus={setStatus}
-                onError={setError}
-              />
-            )}
             <section className="editor-side-card editor-ai-card">
               <div className="editor-side-heading">
                 <div>
