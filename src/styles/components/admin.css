@@ -917,6 +917,45 @@
   gap: 14px;
 }
 
+.social-carousel-credit-fields {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.social-carousel-credit-fields label {
+  display: grid;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.social-carousel-credit-fields input,
+.social-slide-editor input:not([type="file"]) {
+  background: var(--color-paper);
+  border: var(--border);
+  color: var(--color-ink);
+  font: inherit;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.social-template-guidance {
+  background: color-mix(in srgb, var(--color-paper) 80%, var(--color-accent));
+  border: var(--border-soft);
+  line-height: 1.5;
+  padding: 16px 20px;
+}
+
+.social-template-guidance summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.social-template-guidance li + li {
+  margin-top: 5px;
+}
+
 .social-carousel-status {
   font-weight: 700;
   margin: 18px auto 0;
@@ -1272,6 +1311,10 @@
   }
 
   .social-slide-editor-list {
+    grid-template-columns: 1fr;
+  }
+
+  .social-carousel-credit-fields {
     grid-template-columns: 1fr;
   }
 
