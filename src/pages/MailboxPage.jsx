@@ -58,6 +58,15 @@ function MailboxContent({ actor }) {
 
   const canManageRoutes = actor.roles.some((role) => role === "admin" || role === "editor");
 
+  useEffect(() => {
+    if (!routesOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setRoutesOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [routesOpen]);
+
   const loadMailbox = async () => {
     const [threadResult, routeResult] = await Promise.all([api("/api/mail/threads"), api("/api/mail/routes")]);
     const nextThreads = threadResult.threads || [];
@@ -135,8 +144,8 @@ function MailboxContent({ actor }) {
   const saveRoute = async (event) => {
     event.preventDefault();
     const destinations = splitDestinations(routeForm.destinations);
-    if (!routeForm.label.trim() || (!editingRoute && !routeForm.address.trim()) || !destinations.length) {
-      setError("Completá el nombre, la dirección y al menos un destinatario.");
+    if (!routeForm.label.trim() || (!editingRoute && !routeForm.address.trim())) {
+      setError("Completá el nombre y la dirección de Afterstage.");
       return;
     }
     setSavingRoute(true);
@@ -265,11 +274,11 @@ function MailboxContent({ actor }) {
             {canManageRoutes && (
               <Button
                 className="mailbox-routes-toggle"
-                onClick={() => setRoutesOpen((open) => !open)}
+                onClick={() => setRoutesOpen(true)}
                 variant="ghost"
                 type="button"
               >
-                {routesOpen ? "Cerrar gestión" : "Gestionar difusiones"}
+                Gestionar difusiones
               </Button>
             )}
           </div>
@@ -277,90 +286,123 @@ function MailboxContent({ actor }) {
         <ErrorMessage error={error} />
         {status && <p className="success">{status}</p>}
         {routesOpen && canManageRoutes && (
-          <section className="mailbox-routes-panel" aria-label="Gestionar difusiones">
-            <header>
-              <div>
-                <p className="eyebrow">Configuración de correo</p>
-                <h2>Direcciones de difusión.</h2>
-                <p>Administrá quién recibe cada alias grupal de Afterstage.</p>
-              </div>
-              <Button onClick={resetRouteForm} variant="dark" type="button">
-                Nueva difusión
-              </Button>
-            </header>
-            <div className="mailbox-routes-grid">
-              <div className="mailbox-route-list">
-                {!distributionRoutes.length && <p className="muted">Todavía no hay difusiones configuradas.</p>}
-                {distributionRoutes.map((route) => (
-                  <article className="mailbox-route-card" key={route.id}>
-                    <div>
-                      <div className="mailbox-route-card-title">
-                        <strong>{route.label}</strong>
-                        <span className="mailbox-kind mailbox-kind-distribution">{mailboxDisplayLabel(route)}</span>
-                      </div>
-                      <p>{route.address}</p>
-                      <ul>
-                        {route.destinations.map((destination) => (
-                          <li key={destination}>{destination}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mailbox-route-actions">
-                      <Button onClick={() => startRouteEdit(route)} variant="ghost" type="button">
-                        Editar
-                      </Button>
-                      <Button className="danger" onClick={() => deleteRoute(route)} variant="ghost" type="button">
-                        Eliminar
-                      </Button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <form className="mailbox-route-form" onSubmit={saveRoute}>
-                <p className="eyebrow">{editingRoute ? "Editar difusión" : "Nueva difusión"}</p>
-                <label>
-                  Dirección de Afterstage
-                  <input
-                    disabled={Boolean(editingRoute)}
-                    onChange={(event) => setRouteForm((current) => ({ ...current, address: event.target.value }))}
-                    placeholder="equipo@afterstage.ar"
-                    required={!editingRoute}
-                    type="email"
-                    value={routeForm.address}
-                  />
-                </label>
-                <label>
-                  Nombre visible
-                  <input
-                    onChange={(event) => setRouteForm((current) => ({ ...current, label: event.target.value }))}
-                    placeholder="Equipo de prensa"
-                    required
-                    value={routeForm.label}
-                  />
-                </label>
-                <label>
-                  Destinatarios
-                  <textarea
-                    onChange={(event) => setRouteForm((current) => ({ ...current, destinations: event.target.value }))}
-                    placeholder="Una dirección por línea"
-                    required
-                    rows="5"
-                    value={routeForm.destinations}
-                  />
-                </label>
-                <div className="mailbox-route-form-actions">
-                  {editingRoute && (
-                    <Button onClick={resetRouteForm} variant="ghost" type="button">
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button disabled={savingRoute} variant="dark" type="submit">
-                    {savingRoute ? "Guardando…" : editingRoute ? "Guardar cambios" : "Crear difusión"}
+          <div
+            className="mailbox-modal-backdrop"
+            onClick={(event) => event.target === event.currentTarget && setRoutesOpen(false)}
+          >
+            <section
+              className="mailbox-routes-panel"
+              aria-label="Gestionar difusiones"
+              aria-modal="true"
+              role="dialog"
+              aria-labelledby="mailbox-routes-title"
+            >
+              <header>
+                <div>
+                  <p className="eyebrow">Configuración de correo</p>
+                  <h2 id="mailbox-routes-title">Direcciones de correo.</h2>
+                  <p>Administrá qué direcciones quedan archivadas en Afterstage y cuáles se reenvían.</p>
+                </div>
+                <div className="mailbox-routes-header-actions">
+                  <Button
+                    onClick={() => {
+                      resetRouteForm();
+                      setError("");
+                    }}
+                    variant="dark"
+                    type="button"
+                  >
+                    Nueva difusión
+                  </Button>
+                  <Button aria-label="Cerrar" onClick={() => setRoutesOpen(false)} variant="ghost" type="button">
+                    Cerrar
                   </Button>
                 </div>
-              </form>
-            </div>
-          </section>
+              </header>
+              <div className="mailbox-routes-grid">
+                <div className="mailbox-route-list">
+                  {!distributionRoutes.length && <p className="muted">Todavía no hay difusiones configuradas.</p>}
+                  {distributionRoutes.map((route) => (
+                    <article className="mailbox-route-card" key={route.id}>
+                      <div>
+                        <div className="mailbox-route-card-title">
+                          <strong>{route.label}</strong>
+                          <span className="mailbox-kind mailbox-kind-distribution">{mailboxDisplayLabel(route)}</span>
+                        </div>
+                        <p>{route.address}</p>
+                        {route.destinations.length ? (
+                          <ul>
+                            {route.destinations.map((destination) => (
+                              <li key={destination}>{destination}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mailbox-route-archive-only">
+                            Solo archivo interno en Afterstage · sin reenvíos
+                          </p>
+                        )}
+                      </div>
+                      <div className="mailbox-route-actions">
+                        <Button onClick={() => startRouteEdit(route)} variant="ghost" type="button">
+                          Editar
+                        </Button>
+                        <Button className="danger" onClick={() => deleteRoute(route)} variant="ghost" type="button">
+                          Eliminar
+                        </Button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <form className="mailbox-route-form" onSubmit={saveRoute}>
+                  <p className="eyebrow">{editingRoute ? "Editar difusión" : "Nueva difusión"}</p>
+                  <label>
+                    Dirección de Afterstage
+                    <input
+                      disabled={Boolean(editingRoute)}
+                      onChange={(event) => setRouteForm((current) => ({ ...current, address: event.target.value }))}
+                      placeholder="equipo@afterstage.ar"
+                      required={!editingRoute}
+                      type="email"
+                      value={routeForm.address}
+                    />
+                  </label>
+                  <label>
+                    Nombre visible
+                    <input
+                      onChange={(event) => setRouteForm((current) => ({ ...current, label: event.target.value }))}
+                      placeholder="Equipo de prensa"
+                      required
+                      value={routeForm.label}
+                    />
+                  </label>
+                  <label>
+                    Destinatarios de reenvío <span className="mailbox-route-optional">Opcional</span>
+                    <textarea
+                      onChange={(event) =>
+                        setRouteForm((current) => ({ ...current, destinations: event.target.value }))
+                      }
+                      placeholder="Dejá vacío para guardar solo en la bandeja de Afterstage"
+                      rows="5"
+                      value={routeForm.destinations}
+                    />
+                    <span className="mailbox-route-help">
+                      Sin destinatarios, los mensajes quedan guardados en Afterstage y no se reenvían.
+                    </span>
+                  </label>
+                  <div className="mailbox-route-form-actions">
+                    {editingRoute && (
+                      <Button onClick={resetRouteForm} variant="ghost" type="button">
+                        Cancelar
+                      </Button>
+                    )}
+                    <Button disabled={savingRoute} variant="dark" type="submit">
+                      {savingRoute ? "Guardando…" : editingRoute ? "Guardar cambios" : "Crear difusión"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </div>
         )}
         {loading ? (
           <p className="muted">Cargando bandeja…</p>

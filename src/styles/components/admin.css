@@ -150,10 +150,27 @@
 }
 
 .mailbox-routes-panel {
-  background: color-mix(in srgb, var(--color-surface) 48%, transparent);
+  background: var(--color-paper);
   border: var(--border-soft);
-  margin-bottom: 18px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 22px 80px rgb(0 0 0 / 28%);
+  margin: 0;
+  max-height: calc(100vh - 48px);
+  max-width: 1120px;
+  overflow-y: auto;
   padding: 20px;
+  width: min(1120px, calc(100vw - 48px));
+}
+
+.mailbox-modal-backdrop {
+  align-items: center;
+  background: rgb(15 13 19 / 62%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 1000;
 }
 
 .mailbox-routes-panel > header {
@@ -163,6 +180,14 @@
   gap: 20px;
   justify-content: space-between;
   padding-bottom: 20px;
+}
+
+.mailbox-routes-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .mailbox-routes-panel h2 {
@@ -228,6 +253,20 @@
 .mailbox-route-card li::before {
   content: "→ ";
   color: var(--color-ink);
+}
+
+.mailbox-route-archive-only,
+.mailbox-route-help {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  margin: 10px 0 0;
+}
+
+.mailbox-route-optional {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .mailbox-route-actions,
@@ -621,6 +660,22 @@
 
   .mailbox-routes-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mailbox-modal-backdrop {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .mailbox-routes-panel {
+    max-height: calc(100vh - 24px);
+    padding: 16px;
+    width: 100%;
+  }
+
+  .mailbox-routes-header-actions {
+    align-items: stretch;
+    width: 100%;
   }
 
   .mailbox-routes-toggle {
