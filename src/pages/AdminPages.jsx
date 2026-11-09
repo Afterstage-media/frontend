@@ -80,30 +80,37 @@ export function TokenGate({ onReady }) {
   return <LoginForm onReady={onReady} />;
 }
 
-function ContentCard({ item, onSelect }) {
+function ContentCard({ item }) {
+  const hasWebsite = item.channels?.includes("website");
+  const hasInstagram = item.channels?.includes("instagram");
+  const editorPath = `/admin/contenido/${item.id}`;
   return (
-    <article
-      className="admin-record"
-      onClick={() => onSelect(item)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect(item);
-        }
-      }}
-      role="button"
-      tabIndex="0"
-    >
+    <article className="admin-record">
       <div>
         <small>
           {labels[item.status] || item.status} · {typeLabels[item.type] || item.type}
+          {hasWebsite && hasInstagram ? " · Nota + Instagram" : ""}
         </small>
         <h3>{item.title}</h3>
         <p>{item.summary}</p>
       </div>
       <div className="admin-record-meta">
         <span>{item.channels?.join(" · ")}</span>
-        <strong className="admin-record-cta">Abrir editor ↗</strong>
+        {hasWebsite && (
+          <Link className="admin-record-cta" to={editorPath}>
+            Abrir nota ↗
+          </Link>
+        )}
+        {hasInstagram && (
+          <Link className="admin-record-cta" to={`${editorPath}?mode=instagram`}>
+            Abrir publicación de Instagram ↗
+          </Link>
+        )}
+        {!hasWebsite && !hasInstagram && (
+          <Link className="admin-record-cta" to={editorPath}>
+            Abrir editor ↗
+          </Link>
+        )}
       </div>
     </article>
   );
@@ -116,7 +123,6 @@ function AdminDashboard({ actor }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
-  const navigate = useNavigate();
   const load = () =>
     api("/api/content")
       .then(setItems)
@@ -235,9 +241,7 @@ function AdminDashboard({ actor }) {
         <ErrorMessage error={error} />
         <div className="admin-list">
           {visible.length ? (
-            visible.map((item) => (
-              <ContentCard item={item} key={item.id} onSelect={(item) => navigate(`/admin/contenido/${item.id}`)} />
-            ))
+            visible.map((item) => <ContentCard item={item} key={item.id} />)
           ) : (
             <p className="muted">No hay contenidos que coincidan.</p>
           )}
@@ -483,102 +487,132 @@ function ContentForm({
           <span className="editor-card-index">01</span>
         </div>
         <div className="editor-form-grid">
-          <label className="field field-half">
-            <span>Formato</span>
-            <select name="type" defaultValue={initialType}>
-              <option value="article">Nota</option>
-              <option value="post">Post</option>
-              <option value="carousel">Carrusel</option>
-              <option value="reel">Reel</option>
-              <option value="story">Story</option>
-            </select>
-          </label>
-          <label className="field field-half">
-            <span>Etiquetas</span>
-            <input name="tags" defaultValue={(item?.tags || []).join(", ")} placeholder="música, under, recital" />
-          </label>
-          <label className="field field-wide field-title">
-            <span>
-              Título <small>Obligatorio</small>
-            </span>
-            <input
-              name="title"
-              required
-              defaultValue={initialTitle}
-              placeholder={socialMode ? "Ej: La banda de la semana · junio" : "Un título claro, directo y con ritmo"}
-            />
-          </label>
-          <label className="field field-wide">
-            <span>
-              Bajada <small>Resumen visible en la portada</small>
-            </span>
-            <textarea
-              name="summary"
-              rows="3"
-              defaultValue={initialSummary}
-              placeholder={
-                socialMode
-                  ? "Qué tiene que llevarse la persona de esta publicación."
-                  : "Una frase que ubique la historia y dé ganas de seguir leyendo."
-              }
-            />
-          </label>
-          <label className="field field-wide field-body">
-            <span>
-              Cuerpo <small>Podés escribir en texto plano</small>
-            </span>
-            <textarea
-              name="body"
-              required={!socialMode}
-              rows="16"
-              defaultValue={item?.body || ""}
-              placeholder={
-                socialMode ? "Guion, estructura, datos o notas para producir la pieza…" : "Desarrollá la historia acá…"
-              }
-            />
-          </label>
-          <label className="field field-wide social-copy-field">
-            <span>
-              Copy de Instagram <small>{socialMode ? "Texto que acompaña la publicación" : "Opcional"}</small>
-            </span>
-            <textarea
-              name="instagramCopy"
-              rows="6"
-              maxLength="2200"
-              defaultValue={initialInstagramCopy}
-              placeholder={
-                socialMode
-                  ? "Escribí el texto, el gancho y el llamado a la acción…"
-                  : "Un copy específico para Instagram…"
-              }
-            />
-          </label>
+          {socialMode ? (
+            <>
+              <div className="field field-wide">
+                <span>Publicación vinculada</span>
+                <strong>{item?.title}</strong>
+                {item?.channels?.includes("website") && <small>También publicada como nota en el sitio.</small>}
+              </div>
+              <label className="field field-wide social-copy-field">
+                <span>
+                  Copy de Instagram <small>Texto que acompaña la publicación</small>
+                </span>
+                <textarea
+                  name="instagramCopy"
+                  rows="10"
+                  maxLength="2200"
+                  defaultValue={initialInstagramCopy}
+                  placeholder="Escribí el texto, el gancho y el llamado a la acción…"
+                />
+              </label>
+            </>
+          ) : (
+            <>
+              <label className="field field-half">
+                <span>Formato</span>
+                <select name="type" defaultValue={initialType}>
+                  <option value="article">Nota</option>
+                  <option value="post">Post</option>
+                  <option value="carousel">Carrusel</option>
+                  <option value="reel">Reel</option>
+                  <option value="story">Story</option>
+                </select>
+              </label>
+              <label className="field field-half">
+                <span>Etiquetas</span>
+                <input name="tags" defaultValue={(item?.tags || []).join(", ")} placeholder="música, under, recital" />
+              </label>
+              <label className="field field-wide field-title">
+                <span>
+                  Título <small>Obligatorio</small>
+                </span>
+                <input
+                  name="title"
+                  required
+                  defaultValue={initialTitle}
+                  placeholder={
+                    socialMode ? "Ej: La banda de la semana · junio" : "Un título claro, directo y con ritmo"
+                  }
+                />
+              </label>
+              <label className="field field-wide">
+                <span>
+                  Bajada <small>Resumen visible en la portada</small>
+                </span>
+                <textarea
+                  name="summary"
+                  rows="3"
+                  defaultValue={initialSummary}
+                  placeholder={
+                    socialMode
+                      ? "Qué tiene que llevarse la persona de esta publicación."
+                      : "Una frase que ubique la historia y dé ganas de seguir leyendo."
+                  }
+                />
+              </label>
+              <label className="field field-wide field-body">
+                <span>
+                  Cuerpo <small>Podés escribir en texto plano</small>
+                </span>
+                <textarea
+                  name="body"
+                  required={!socialMode}
+                  rows="16"
+                  defaultValue={item?.body || ""}
+                  placeholder={
+                    socialMode
+                      ? "Guion, estructura, datos o notas para producir la pieza…"
+                      : "Desarrollá la historia acá…"
+                  }
+                />
+              </label>
+              <label className="field field-wide social-copy-field">
+                <span>
+                  Copy de Instagram <small>{socialMode ? "Texto que acompaña la publicación" : "Opcional"}</small>
+                </span>
+                <textarea
+                  name="instagramCopy"
+                  rows="6"
+                  maxLength="2200"
+                  defaultValue={initialInstagramCopy}
+                  placeholder={
+                    socialMode
+                      ? "Escribí el texto, el gancho y el llamado a la acción…"
+                      : "Un copy específico para Instagram…"
+                  }
+                />
+              </label>
+            </>
+          )}
         </div>
       </section>
 
-      <section className="editor-card">
-        <div className="editor-card-heading">
-          <div>
-            <p className="eyebrow">Distribución</p>
-            <h2>Créditos</h2>
+      {!socialMode && (
+        <section className="editor-card">
+          <div className="editor-card-heading">
+            <div>
+              <p className="eyebrow">Distribución</p>
+              <h2>Créditos</h2>
+            </div>
+            <span className="editor-card-index">02</span>
           </div>
-          <span className="editor-card-index">02</span>
-        </div>
-        <div className="editor-form-grid">
-          <label className="field field-third">
-            <span>Autor</span>
-            <input name="author" defaultValue={item?.author || ""} placeholder="Nombre y apellido" />
-          </label>
-          <label className="field field-third">
-            <span>Fotógrafo</span>
-            <input name="photographer" defaultValue={item?.photographer || ""} placeholder="Nombre y apellido" />
-          </label>
-          <label className="field field-third">
-            <span>Fuente</span>
-            <input name="source" defaultValue={item?.source || ""} placeholder="Link o referencia" />
-          </label>
-        </div>
-      </section>
+          <div className="editor-form-grid">
+            <label className="field field-third">
+              <span>Autor</span>
+              <input name="author" defaultValue={item?.author || ""} placeholder="Nombre y apellido" />
+            </label>
+            <label className="field field-third">
+              <span>Fotógrafo</span>
+              <input name="photographer" defaultValue={item?.photographer || ""} placeholder="Nombre y apellido" />
+            </label>
+            <label className="field field-third">
+              <span>Fuente</span>
+              <input name="source" defaultValue={item?.source || ""} placeholder="Link o referencia" />
+            </label>
+          </div>
+        </section>
+      )}
 
       <section className="editor-card editor-card-last">
         <div className="editor-card-heading">
@@ -589,10 +623,12 @@ function ContentForm({
           <span className="editor-card-index">03</span>
         </div>
         <div className="editor-form-grid editor-form-grid-meta">
-          <label className="field field-half">
-            <span>Programar publicación</span>
-            <input name="scheduledAt" type="datetime-local" defaultValue={scheduled} />
-          </label>
+          {!socialMode && (
+            <label className="field field-half">
+              <span>Programar publicación</span>
+              <input name="scheduledAt" type="datetime-local" defaultValue={scheduled} />
+            </label>
+          )}
           <fieldset className="channels-fieldset field-half">
             <legend>Canales de distribución</legend>
             {socialMode ? (
@@ -742,6 +778,7 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
 
 function ContentEditorPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -775,10 +812,26 @@ function ContentEditorPage() {
         </section>
       </Layout>
     );
-  const socialMode = item.channels?.includes("instagram") && !item.channels?.includes("website");
+  const socialMode =
+    searchParams.get("mode") === "instagram" ||
+    (item.channels?.includes("instagram") && !item.channels?.includes("website"));
   const saveCurrent = async () => {
     if (!formRef.current) return;
     const data = new FormData(formRef.current);
+    if (socialMode) {
+      await api(`/api/content/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          instagramCopy: data.get("instagramCopy"),
+          channels: [
+            ...(item.channels?.includes("website") ? ["website"] : []),
+            "instagram",
+            ...(data.get("facebook") ? ["facebook"] : []),
+          ],
+        }),
+      });
+      return;
+    }
     await api(`/api/content/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -934,15 +987,23 @@ function ContentEditorPage() {
       <section className="editor-page">
         <div className="editor-page-header">
           <div>
-            <button className="editor-back" onClick={() => navigate("/admin")} type="button">
-              ← Volver a redacción
+            <button
+              className="editor-back"
+              onClick={() => navigate(socialMode ? "/admin/redes" : "/admin")}
+              type="button"
+            >
+              {socialMode ? "← Volver a redes" : "← Volver a redacción"}
             </button>
             <div className="editor-kicker">
               <span>Editor</span>
               <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
             </div>
-            <h1>Editar publicación</h1>
-            <p className="editor-header-copy">Revisá el contenido, prepará los canales y dejalo listo para publicar.</p>
+            <h1>{socialMode ? "Editar publicación de Instagram" : "Editar nota"}</h1>
+            <p className="editor-header-copy">
+              {socialMode
+                ? "Editá el copy de Instagram sin cambiar el formato ni el contenido de la nota vinculada."
+                : "Revisá la nota, prepará sus canales y dejala lista para publicar."}
+            </p>
           </div>
           <div className="editor-header-meta">
             <span className="editor-meta-label">Último cambio</span>
@@ -960,37 +1021,39 @@ function ContentEditorPage() {
             socialMode={socialMode}
           />
           <aside className="editor-sidebar">
-            <section className="editor-side-card editor-ai-card">
-              <div className="editor-side-heading">
-                <div>
-                  <p className="eyebrow">Asistencia</p>
-                  <h2>Trabajá con IA</h2>
+            {!socialMode && (
+              <section className="editor-side-card editor-ai-card">
+                <div className="editor-side-heading">
+                  <div>
+                    <p className="eyebrow">Asistencia</p>
+                    <h2>Trabajá con IA</h2>
+                  </div>
+                  <span className="ai-mark">✦</span>
                 </div>
-                <span className="ai-mark">✦</span>
-              </div>
-              <p className="editor-side-copy">Dale una indicación breve y aplicá el resultado sobre este borrador.</p>
-              <label className="sr-only" htmlFor="ai-instructions">
-                Indicaciones para la IA
-              </label>
-              <textarea
-                id="ai-instructions"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Ej.: hacé la bajada más directa y cercana"
-                rows="5"
-              />
-              <div className="editor-ai-actions">
-                <Button onClick={() => generate("full_article")} type="button">
-                  Generar nota
-                </Button>
-                <Button onClick={() => generate("social_copy")} type="button">
-                  Generar copys
-                </Button>
-                <Button onClick={() => generate("improve")} variant="ghost" type="button">
-                  Mejorar texto
-                </Button>
-              </div>
-            </section>
+                <p className="editor-side-copy">Dale una indicación breve y aplicá el resultado sobre este borrador.</p>
+                <label className="sr-only" htmlFor="ai-instructions">
+                  Indicaciones para la IA
+                </label>
+                <textarea
+                  id="ai-instructions"
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="Ej.: hacé la bajada más directa y cercana"
+                  rows="5"
+                />
+                <div className="editor-ai-actions">
+                  <Button onClick={() => generate("full_article")} type="button">
+                    Generar nota
+                  </Button>
+                  <Button onClick={() => generate("social_copy")} type="button">
+                    Generar copys
+                  </Button>
+                  <Button onClick={() => generate("improve")} variant="ghost" type="button">
+                    Mejorar texto
+                  </Button>
+                </div>
+              </section>
+            )}
 
             <section className="editor-side-card">
               <div className="editor-side-heading">
@@ -999,40 +1062,65 @@ function ContentEditorPage() {
                   <h2>Medios</h2>
                 </div>
               </div>
-              <ExistingMedia assets={item?.assets} onRemove={removeAsset} removingAssetKey={removingAssetKey} />
-              <label className="upload upload-dropzone">
-                <span className="upload-icon">＋</span>
-                <strong>
-                  {files.length
-                    ? files.length +
-                      " archivo" +
-                      (files.length > 1 ? "s" : "") +
-                      " seleccionado" +
-                      (files.length > 1 ? "s" : "")
-                    : directR2Uploads
-                      ? "Agregar fotos"
-                      : "Agregar imágenes o videos"}
-                </strong>
-                <small>{directR2Uploads ? "JPG, PNG o WEBP · máximo 5 MiB por foto" : "JPG, PNG, WEBP o MP4"}</small>
-                <input
-                  type="file"
-                  accept={directR2Uploads ? "image/jpeg,image/png,image/webp" : "image/*,video/*"}
-                  multiple
-                  onChange={(e) => setFiles(e.target.files)}
-                />
-              </label>
-              <Button className="button-wide" onClick={upload} disabled={!files.length} variant="ghost" type="button">
-                Subir medios
-              </Button>
+              <ExistingMedia
+                assets={item?.assets}
+                onRemove={socialMode ? undefined : removeAsset}
+                removingAssetKey={removingAssetKey}
+              />
+              {!socialMode && (
+                <label className="upload upload-dropzone">
+                  <span className="upload-icon">＋</span>
+                  <strong>
+                    {files.length
+                      ? files.length +
+                        " archivo" +
+                        (files.length > 1 ? "s" : "") +
+                        " seleccionado" +
+                        (files.length > 1 ? "s" : "")
+                      : directR2Uploads
+                        ? "Agregar fotos"
+                        : "Agregar imágenes o videos"}
+                  </strong>
+                  <small>{directR2Uploads ? "JPG, PNG o WEBP · máximo 5 MiB por foto" : "JPG, PNG, WEBP o MP4"}</small>
+                  <input
+                    type="file"
+                    accept={directR2Uploads ? "image/jpeg,image/png,image/webp" : "image/*,video/*"}
+                    multiple
+                    onChange={(e) => setFiles(e.target.files)}
+                  />
+                </label>
+              )}
+              {!socialMode && (
+                <Button className="button-wide" onClick={upload} disabled={!files.length} variant="ghost" type="button">
+                  Subir medios
+                </Button>
+              )}
             </section>
 
-            <EditorialWorkflow
-              item={item}
-              onTransition={transition}
-              onPublish={publish}
-              onRepublishInstagram={repostInstagram}
-              onPreview={() => publish(true)}
-            />
+            {socialMode ? (
+              <section className="editor-side-card">
+                <div className="editor-side-heading">
+                  <div>
+                    <p className="eyebrow">Instagram</p>
+                    <h2>Estado de la publicación</h2>
+                  </div>
+                  <StatusBadge tone={item.status}>{labels[item.status] || item.status}</StatusBadge>
+                </div>
+                <p className="editor-side-copy">
+                  {item.channels?.includes("website")
+                    ? "Esta publicación comparte una nota del sitio. Los cambios de este editor se limitan al copy y los canales sociales."
+                    : "Los cambios de este editor se limitan al copy y los canales sociales."}
+                </p>
+              </section>
+            ) : (
+              <EditorialWorkflow
+                item={item}
+                onTransition={transition}
+                onPublish={publish}
+                onRepublishInstagram={repostInstagram}
+                onPreview={() => publish(true)}
+              />
+            )}
           </aside>
         </div>
       </section>
