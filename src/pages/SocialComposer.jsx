@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -34,7 +34,6 @@ function SocialComposer() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-  const fileInput = useRef(null);
   const selectedTemplate = templates.find((item) => item.id === templateId);
   const selectedSlide = slides[activeSlide] || slides[0];
   const objectUrls = useMemo(
@@ -325,8 +324,12 @@ function SocialComposer() {
                         role="tab"
                         type="button"
                       >
+                        {objectUrls[index] ? (
+                          <img alt="" className="composer-slide-tab-image" src={objectUrls[index]} />
+                        ) : (
+                          <i />
+                        )}
                         <span>{String(index + 1).padStart(2, "0")}</span>
-                        {slide.file ? <i className="has-image" /> : <i />}
                       </button>
                     ))}
                     {slides.length < 9 && (
@@ -343,6 +346,18 @@ function SocialComposer() {
                       </button>
                     )}
                   </div>
+                  <label className="composer-batch-upload">
+                    ＋ Cargar varias fotos en orden
+                    <input
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={(event) => {
+                        selectFiles(event.target.files);
+                        event.target.value = "";
+                      }}
+                      type="file"
+                    />
+                  </label>
                   <div className="composer-slide-order">
                     <button disabled={activeSlide === 0} onClick={() => moveSlide(-1)} type="button">
                       ← Mover antes
@@ -356,53 +371,82 @@ function SocialComposer() {
                       <b>LÁMINA {String(activeSlide + 1).padStart(2, "0")}</b>
                       <span>{slides.length}/9</span>
                     </div>
-                    <label className="composer-field">
-                      <span>
-                        Texto sobre la imagen<small>{selectedSlide.text.length}/180</small>
-                      </span>
-                      <textarea
-                        maxLength={180}
-                        onChange={(event) => setSlide(activeSlide, { text: event.target.value })}
-                        placeholder="Escribí el texto que va dentro de esta lámina"
-                        required
-                        rows={3}
-                        value={selectedSlide.text}
-                      />
-                    </label>
-                    <label className="composer-field">
-                      <span>
-                        Descripción de imagen<small>Texto alternativo accesible</small>
-                      </span>
-                      <textarea
-                        maxLength={500}
-                        onChange={(event) => setSlide(activeSlide, { altText: event.target.value })}
-                        placeholder="Describí lo que se ve en la foto"
-                        required
-                        rows={2}
-                        value={selectedSlide.altText}
-                      />
-                    </label>
-                    <label className="composer-field">
-                      <span>Crédito de esta foto</span>
-                      <input
-                        maxLength={500}
-                        onChange={(event) => setSlide(activeSlide, { credit: event.target.value })}
-                        placeholder="Nombre de quien tomó la foto"
-                        value={selectedSlide.credit}
-                      />
-                    </label>
-                    {slides.length > 2 && (
-                      <button
-                        className="composer-remove-slide"
-                        onClick={() => {
-                          setSlides((current) => current.filter((_, index) => index !== activeSlide));
-                          setActiveSlide(Math.max(0, activeSlide - 1));
-                        }}
-                        type="button"
-                      >
-                        Quitar esta lámina
-                      </button>
-                    )}
+                    <div className="composer-slide-assembly">
+                      <div className="composer-slide-photo-column">
+                        <p className="composer-slide-photo-label">FOTO DE ESTA LÁMINA</p>
+                        <div className="composer-slide-photo-preview">
+                          {objectUrls[activeSlide] ? (
+                            <img
+                              src={objectUrls[activeSlide]}
+                              alt={`Vista de la foto de la lámina ${activeSlide + 1}`}
+                            />
+                          ) : (
+                            <span>4:5</span>
+                          )}
+                        </div>
+                        <label className="composer-slide-photo-upload">
+                          <b>{selectedSlide.file ? "Cambiar imagen" : "＋ Cargar imagen"}</b>
+                          <small>JPG, PNG o WebP · hasta 2,5 MiB</small>
+                          <input
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) => {
+                              setSlide(activeSlide, { file: event.target.files?.[0] || null });
+                              event.target.value = "";
+                            }}
+                            type="file"
+                          />
+                        </label>
+                      </div>
+                      <div className="composer-slide-copy-fields">
+                        <label className="composer-field">
+                          <span>
+                            Texto sobre la imagen<small>{selectedSlide.text.length}/180</small>
+                          </span>
+                          <textarea
+                            maxLength={180}
+                            onChange={(event) => setSlide(activeSlide, { text: event.target.value })}
+                            placeholder="Escribí el texto que va dentro de esta lámina"
+                            required
+                            rows={3}
+                            value={selectedSlide.text}
+                          />
+                        </label>
+                        <label className="composer-field">
+                          <span>
+                            Descripción de imagen<small>Texto alternativo accesible</small>
+                          </span>
+                          <textarea
+                            maxLength={500}
+                            onChange={(event) => setSlide(activeSlide, { altText: event.target.value })}
+                            placeholder="Describí lo que se ve en la foto"
+                            required
+                            rows={2}
+                            value={selectedSlide.altText}
+                          />
+                        </label>
+                        <label className="composer-field">
+                          <span>Crédito de esta foto</span>
+                          <input
+                            maxLength={500}
+                            onChange={(event) => setSlide(activeSlide, { credit: event.target.value })}
+                            placeholder="Nombre de quien tomó la foto"
+                            value={selectedSlide.credit}
+                          />
+                        </label>
+                        {slides.length > 2 && (
+                          <button
+                            className="composer-remove-slide"
+                            onClick={() => {
+                              setSlides((current) => current.filter((_, index) => index !== activeSlide));
+                              setActiveSlide(Math.max(0, activeSlide - 1));
+                            }}
+                            type="button"
+                          >
+                            Quitar esta lámina
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </section>
 
@@ -465,7 +509,10 @@ function SocialComposer() {
                 <div className="composer-preview-heading">
                   <div>
                     <p className="eyebrow">VISTA PREVIA</p>
-                    <h2>La lámina</h2>
+                    <h2>Así queda</h2>
+                    <small className="composer-preview-linked">
+                      Vinculada a la lámina {String(activeSlide + 1).padStart(2, "0")}
+                    </small>
                   </div>
                   <span>
                     {String(activeSlide + 1).padStart(2, "0")} <i>/</i> {String(slides.length).padStart(2, "0")}
@@ -496,29 +543,6 @@ function SocialComposer() {
                     </div>
                   </div>
                 </div>
-                <label className="composer-upload-zone">
-                  <span className="composer-upload-plus">＋</span>
-                  <strong>{selectedSlide.file ? selectedSlide.file.name : "Elegí la foto de esta lámina"}</strong>
-                  <small>JPG, PNG o WebP · hasta 2,5 MiB</small>
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(event) => setSlide(activeSlide, { file: event.target.files?.[0] || null })}
-                    ref={fileInput}
-                    type="file"
-                  />
-                </label>
-                <label className="composer-batch-upload">
-                  ＋ Cargar varias fotos en orden
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    onChange={(event) => {
-                      selectFiles(event.target.files);
-                      event.target.value = "";
-                    }}
-                    type="file"
-                  />
-                </label>
                 <div className="composer-preview-controls">
                   <button
                     aria-label="Lámina anterior"
