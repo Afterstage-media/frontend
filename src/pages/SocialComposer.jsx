@@ -53,7 +53,7 @@ function fileData(file) {
   });
 }
 
-function SocialComposer({ publication: existingItem = null, initialTemplateId = "" }) {
+function SocialComposer({ publication: existingItem = null, initialTemplateId = "", initialNotice = "" }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const requestedTemplateId = searchParams.get("templateId");
@@ -93,8 +93,9 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [view, setView] = useState(searchParams.get("view") === "review" && existingPublication ? "review" : "edit");
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
   const [error, setError] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState(initialNotice);
   const selectedTemplate = templates.find((item) => item.id === templateId);
   const selectedSlide = slides[activeSlide] || slides[0];
   const objectUrls = useMemo(
@@ -256,6 +257,27 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
     }
   };
 
+  const discardDraft = async () => {
+    if (!existingItem?.id || !["idea", "draft"].includes(existingItem.status)) return;
+    const confirmed = window.confirm(
+      "¿Descartar este borrador? Se quitará de Afterstage junto con sus imágenes y no se puede deshacer.",
+    );
+    if (!confirmed) return;
+    setError("");
+    setDiscarding(true);
+    try {
+      await api(`/api/content/${existingItem.id}/discard`, { method: "POST" });
+      navigate("/admin/redes", {
+        replace: true,
+        state: { notice: "El borrador se descartó." },
+      });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
   return (
     <Layout>
       <main className="social-composer-page">
@@ -263,9 +285,21 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
           <Link className="social-composer-back" to="/admin">
             ← Espacio editorial
           </Link>
-          <span className="social-composer-draft">
-            <i /> Borrador · no se publica automáticamente
-          </span>
+          <div className="social-composer-topbar-actions">
+            <span className="social-composer-draft">
+              <i /> Borrador · no se publica automáticamente
+            </span>
+            {isEditing && ["idea", "draft"].includes(existingItem.status) && (
+              <button
+                className="composer-discard-button"
+                disabled={saving || discarding}
+                onClick={discardDraft}
+                type="button"
+              >
+                {discarding ? "Descartando…" : "Descartar borrador"}
+              </button>
+            )}
+          </div>
         </header>
 
         <section className="social-composer-intro">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
@@ -298,7 +298,8 @@ function AdminDashboard({ actor }) {
 }
 
 function SocialDashboard() {
-  return <SocialComposer />;
+  const location = useLocation();
+  return <SocialComposer initialNotice={location.state?.notice || ""} />;
 }
 
 export function SocialPage() {
