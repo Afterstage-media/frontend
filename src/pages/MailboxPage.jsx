@@ -15,6 +15,10 @@ const formatDate = (value) => {
 };
 
 const messagePreview = (message) => (message.text || message.subject || "").replace(/\s+/g, " ").trim();
+const emailHtmlDocument = (html) => {
+  const policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: cid:; style-src 'unsafe-inline'; font-src data:; script-src 'none'; form-action 'none'; base-uri 'none'">`;
+  return String(html || "").replace(/<head([^>]*)>/i, `<head$1>${policy}`);
+};
 const splitDestinations = (value) =>
   String(value || "")
     .split(/[\n,;]+/)
@@ -470,7 +474,19 @@ function MailboxContent({ actor }) {
                           <time dateTime={message.receivedAt}>{formatDate(message.receivedAt)}</time>
                         </header>
                         <p className="mailbox-message-to">Para: {message.to?.join(", ")}</p>
-                        <div className="mailbox-message-body">{messagePreview(message)}</div>
+                        {message.text?.trim() ? (
+                          <div className="mailbox-message-body">{message.text}</div>
+                        ) : message.html ? (
+                          <iframe
+                            className="mailbox-message-html"
+                            title={`Contenido de correo: ${message.subject || "sin asunto"}`}
+                            sandbox="allow-popups allow-popups-to-escape-sandbox"
+                            referrerPolicy="no-referrer"
+                            srcDoc={emailHtmlDocument(message.html)}
+                          />
+                        ) : (
+                          <div className="mailbox-message-body">{messagePreview(message) || "Sin contenido"}</div>
+                        )}
                       </article>
                     ))}
                   </div>
