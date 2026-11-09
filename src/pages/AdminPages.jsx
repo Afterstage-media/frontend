@@ -84,32 +84,56 @@ function ContentCard({ item }) {
   const hasWebsite = item.channels?.includes("website");
   const hasInstagram = item.channels?.includes("instagram");
   const editorPath = `/admin/contenido/${item.id}`;
+  const isSocialOnly = hasInstagram && !hasWebsite;
   return (
-    <article className="admin-record">
-      <div>
-        <small>
-          {labels[item.status] || item.status} · {typeLabels[item.type] || item.type}
-          {hasWebsite && hasInstagram ? " · Nota + Instagram" : ""}
-        </small>
+    <article className={`admin-record content-entry${isSocialOnly ? " content-entry-social" : ""}`}>
+      <div className="content-entry-copy">
+        <div className="content-entry-kicker">
+          <span className={`status-badge status-${item.status}`}>{labels[item.status] || item.status}</span>
+          <span>
+            {isSocialOnly
+              ? "Publicación para redes"
+              : hasWebsite && hasInstagram
+                ? "Nota + publicación"
+                : typeLabels[item.type] || item.type}
+          </span>
+        </div>
         <h3>{item.title}</h3>
-        <p>{item.summary}</p>
+        {item.summary && <p>{item.summary}</p>}
       </div>
-      <div className="admin-record-meta">
-        <span>{item.channels?.join(" · ")}</span>
+      <div className="content-entry-outputs" aria-label="Salidas de esta pieza">
         {hasWebsite && (
-          <Link className="admin-record-cta" to={editorPath}>
-            Abrir nota ↗
-          </Link>
+          <div className="content-output content-output-website">
+            <div>
+              <span>SITIO</span>
+              <strong>Nota editorial</strong>
+            </div>
+            <Link className="admin-record-cta" to={editorPath}>
+              Abrir nota <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         )}
         {hasInstagram && (
-          <Link className="admin-record-cta" to={`${editorPath}?mode=instagram`}>
-            Abrir publicación de Instagram ↗
-          </Link>
+          <div className="content-output content-output-instagram">
+            <div>
+              <span>INSTAGRAM</span>
+              <strong>{item.type === "article" ? "Publicación" : typeLabels[item.type] || "Publicación"}</strong>
+            </div>
+            <Link className="admin-record-cta" to={`${editorPath}?mode=instagram`}>
+              Editar publicación <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         )}
         {!hasWebsite && !hasInstagram && (
-          <Link className="admin-record-cta" to={editorPath}>
-            Abrir editor ↗
-          </Link>
+          <div className="content-output">
+            <div>
+              <span>CONTENIDO</span>
+              <strong>{typeLabels[item.type] || item.type}</strong>
+            </div>
+            <Link className="admin-record-cta" to={editorPath}>
+              Abrir editor <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         )}
       </div>
     </article>
@@ -121,6 +145,7 @@ function AdminDashboard({ actor }) {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
   const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
   const load = () =>
@@ -146,6 +171,7 @@ function AdminDashboard({ actor }) {
     );
   const visible = items.filter(
     (item) =>
+      (channelFilter === "all" || item.channels?.includes(channelFilter)) &&
       (!statusFilter || item.status === statusFilter) &&
       (!query ||
         `${item.title} ${item.summary} ${(item.tags || []).join(" ")}`.toLowerCase().includes(query.toLowerCase())),
@@ -220,7 +246,27 @@ function AdminDashboard({ actor }) {
             <p className="eyebrow">Biblioteca de contenidos</p>
             <h2>Lo que está en movimiento.</h2>
           </div>
-          <span>{visible.length} piezas</span>
+          <span>
+            {visible.length} {channelFilter === "instagram" ? "publicaciones" : "piezas"}
+          </span>
+        </div>
+        <div className="admin-library-filters" aria-label="Filtrar por destino">
+          {[
+            ["all", "Todo", items.length],
+            ["website", "Sitio", items.filter((item) => item.channels?.includes("website")).length],
+            ["instagram", "Instagram", items.filter((item) => item.channels?.includes("instagram")).length],
+          ].map(([value, label, count]) => (
+            <button
+              aria-pressed={channelFilter === value}
+              className={channelFilter === value ? "is-active" : ""}
+              key={value}
+              onClick={() => setChannelFilter(value)}
+              type="button"
+            >
+              {label}
+              <span>{count}</span>
+            </button>
+          ))}
         </div>
         <div className="admin-library-tools">
           <input
