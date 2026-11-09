@@ -569,6 +569,15 @@
   word-break: break-word;
 }
 
+.mailbox-message-html {
+  background: #fff;
+  border: 0;
+  display: block;
+  height: min(62vh, 720px);
+  min-height: 260px;
+  width: 100%;
+}
+
 .mailbox-reply {
   background: var(--color-paper);
   border-top: var(--border-soft);
