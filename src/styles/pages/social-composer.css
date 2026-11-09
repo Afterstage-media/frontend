@@ -48,6 +48,31 @@
   font-size: 0.75rem;
   gap: 8px;
 }
+.social-composer-topbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+.composer-discard-button {
+  background: transparent;
+  border: 1px solid rgb(255 128 128 / 38%);
+  color: #f0a0a0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 8px 11px;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+.composer-discard-button:hover:not(:disabled) {
+  background: rgb(170 45 45 / 14%);
+  border-color: #e58181;
+}
+.composer-discard-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
 
 .social-composer-draft i,
 .composer-preview-dot {
@@ -1256,6 +1281,13 @@
   }
   .social-composer-draft {
     font-size: 0.66rem;
+  }
+  .social-composer-topbar-actions {
+    gap: 8px;
+  }
+  .composer-discard-button {
+    font-size: 0.64rem;
+    padding: 7px 8px;
   }
   .social-composer-intro {
     align-items: start;
