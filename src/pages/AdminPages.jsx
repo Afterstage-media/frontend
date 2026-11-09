@@ -83,7 +83,7 @@ export function TokenGate({ onReady }) {
 function ContentCard({ item }) {
   const hasWebsite = item.channels?.includes("website");
   const hasInstagram = item.channels?.includes("instagram");
-  const editorPath = `/admin/contenido/${item.id}`;
+  const editorPath = `/admin/contenido/${item.id}${item.type === "carousel" && hasInstagram ? "?mode=instagram" : ""}`;
   const isSocialOnly = hasInstagram && !hasWebsite;
   return (
     <article className={`admin-record content-entry${isSocialOnly ? " content-entry-social" : ""}`}>
@@ -317,7 +317,7 @@ function NewContentEditor() {
   const socialMode = searchParams.get("mode") === "instagram";
   const requestedType = searchParams.get("type");
   const requestedTemplateId = searchParams.get("templateId");
-  if (socialMode) return <SocialComposer />;
+  if (socialMode) return <SocialComposer initialTemplateId={requestedTemplateId || ""} />;
   const submit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -861,6 +861,7 @@ function ContentEditorPage() {
   const socialMode =
     searchParams.get("mode") === "instagram" ||
     (item.channels?.includes("instagram") && !item.channels?.includes("website"));
+  if (socialMode) return <SocialComposer publication={item} />;
   const saveCurrent = async () => {
     if (!formRef.current) return;
     const data = new FormData(formRef.current);
