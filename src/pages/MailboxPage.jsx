@@ -17,7 +17,26 @@ const formatDate = (value) => {
 const messagePreview = (message) => (message.text || message.subject || "").replace(/\s+/g, " ").trim();
 const emailHtmlDocument = (html) => {
   const policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: cid:; style-src 'unsafe-inline'; font-src data:; script-src 'none'; form-action 'none'; base-uri 'none'">`;
-  return String(html || "").replace(/<head([^>]*)>/i, `<head$1>${policy}`);
+  const source = String(html || "");
+  return /<head(?:\s[^>]*)?>/i.test(source)
+    ? source.replace(/<head([^>]*)>/i, `<head$1>${policy}`)
+    : `<!doctype html><html><head>${policy}</head><body>${source}</body></html>`;
+};
+const emailImages = (html) => {
+  if (!html || typeof DOMParser === "undefined") return [];
+  const document = new DOMParser().parseFromString(String(html), "text/html");
+  const seen = new Set();
+  return [...document.images]
+    .map((image) => ({
+      src: image.getAttribute("src")?.trim() || "",
+      alt: image.getAttribute("alt")?.trim() || "Imagen del correo",
+    }))
+    .filter(({ src }) => {
+      const allowed = /^data:image\/(?:png|jpe?g|gif|webp|avif);/i.test(src) || /^https:\/\//i.test(src);
+      if (!allowed || seen.has(src)) return false;
+      seen.add(src);
+      return true;
+    });
 };
 const splitDestinations = (value) =>
   String(value || "")
@@ -59,6 +78,7 @@ function MailboxContent({ actor }) {
   const [routesOpen, setRoutesOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState("");
   const [routeForm, setRouteForm] = useState(emptyRouteForm);
+  const [imageViewer, setImageViewer] = useState(null);
 
   const canManageRoutes = actor.roles.some((role) => role === "admin" || role === "editor");
 
@@ -70,6 +90,22 @@ function MailboxContent({ actor }) {
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [routesOpen]);
+
+  useEffect(() => {
+    if (!imageViewer) return undefined;
+    const closeOnKey = (event) => {
+      if (event.key === "Escape") setImageViewer(null);
+      if (event.key === "ArrowRight")
+        setImageViewer((current) => current && { ...current, index: (current.index + 1) % current.images.length });
+      if (event.key === "ArrowLeft")
+        setImageViewer(
+          (current) =>
+            current && { ...current, index: (current.index + current.images.length - 1) % current.images.length },
+        );
+    };
+    document.addEventListener("keydown", closeOnKey);
+    return () => document.removeEventListener("keydown", closeOnKey);
+  }, [imageViewer]);
 
   const loadMailbox = async () => {
     const [threadResult, routeResult] = await Promise.all([api("/api/mail/threads"), api("/api/mail/routes")]);
@@ -474,16 +510,39 @@ function MailboxContent({ actor }) {
                           <time dateTime={message.receivedAt}>{formatDate(message.receivedAt)}</time>
                         </header>
                         <p className="mailbox-message-to">Para: {message.to?.join(", ")}</p>
-                        {message.text?.trim() ? (
+                        {message.html ? (
+                          <>
+                            <iframe
+                              className="mailbox-message-html"
+                              title={`Contenido de correo: ${message.subject || "sin asunto"}`}
+                              sandbox="allow-popups allow-popups-to-escape-sandbox"
+                              referrerPolicy="no-referrer"
+                              srcDoc={emailHtmlDocument(message.html)}
+                            />
+                            {emailImages(message.html).length > 0 && (
+                              <div className="mailbox-email-images" aria-label="Imágenes del correo">
+                                <div>
+                                  <strong>Imágenes del correo</strong>
+                                  <span>Se cargan solo cuando abrís el visor.</span>
+                                </div>
+                                <div className="mailbox-email-image-list">
+                                  {emailImages(message.html).map((image, index, images) => (
+                                    <button
+                                      key={`${image.src}-${index}`}
+                                      onClick={() => setImageViewer({ images, index })}
+                                      type="button"
+                                    >
+                                      <span aria-hidden="true">▧</span>
+                                      {image.alt}
+                                      <span className="mailbox-image-open">Abrir ↗</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : message.text?.trim() ? (
                           <div className="mailbox-message-body">{message.text}</div>
-                        ) : message.html ? (
-                          <iframe
-                            className="mailbox-message-html"
-                            title={`Contenido de correo: ${message.subject || "sin asunto"}`}
-                            sandbox="allow-popups allow-popups-to-escape-sandbox"
-                            referrerPolicy="no-referrer"
-                            srcDoc={emailHtmlDocument(message.html)}
-                          />
                         ) : (
                           <div className="mailbox-message-body">{messagePreview(message) || "Sin contenido"}</div>
                         )}
@@ -519,6 +578,62 @@ function MailboxContent({ actor }) {
                   </form>
                 </>
               )}
+            </section>
+          </div>
+        )}
+        {imageViewer && (
+          <div
+            className="mailbox-image-viewer"
+            onClick={(event) => event.target === event.currentTarget && setImageViewer(null)}
+            role="presentation"
+          >
+            <section
+              aria-label="Visor de imágenes del correo"
+              aria-modal="true"
+              className="mailbox-image-viewer-panel"
+              role="dialog"
+            >
+              <header>
+                <div>
+                  <span>VISOR DEL CORREO</span>
+                  <strong>{imageViewer.images[imageViewer.index].alt}</strong>
+                </div>
+                <button aria-label="Cerrar visor" onClick={() => setImageViewer(null)} type="button">
+                  ×
+                </button>
+              </header>
+              <div className="mailbox-image-stage">
+                {imageViewer.images.length > 1 && (
+                  <button
+                    aria-label="Imagen anterior"
+                    onClick={() =>
+                      setImageViewer((current) => ({
+                        ...current,
+                        index: (current.index + current.images.length - 1) % current.images.length,
+                      }))
+                    }
+                    type="button"
+                  >
+                    ←
+                  </button>
+                )}
+                <img alt={imageViewer.images[imageViewer.index].alt} src={imageViewer.images[imageViewer.index].src} />
+                {imageViewer.images.length > 1 && (
+                  <button
+                    aria-label="Imagen siguiente"
+                    onClick={() =>
+                      setImageViewer((current) => ({ ...current, index: (current.index + 1) % current.images.length }))
+                    }
+                    type="button"
+                  >
+                    →
+                  </button>
+                )}
+              </div>
+              <footer>
+                {imageViewer.index + 1} / {imageViewer.images.length}
+                <span>← → para recorrer · Esc para cerrar</span>
+              </footer>
             </section>
           </div>
         )}
