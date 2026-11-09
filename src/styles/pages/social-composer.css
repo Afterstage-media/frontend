@@ -99,6 +99,171 @@
   max-width: 550px;
 }
 
+.composer-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin: -12px auto 28px;
+  max-width: 1430px;
+}
+.composer-mode-switch button,
+.instagram-review-heading > button {
+  background: transparent;
+  border: 1px solid var(--sc-rule);
+  color: var(--sc-muted);
+  cursor: pointer;
+  padding: 10px 16px;
+}
+.composer-mode-switch button.is-active,
+.instagram-review-heading > button:hover {
+  background: rgb(123 53 255 / 14%);
+  border-color: var(--sc-purple);
+  color: var(--sc-text);
+}
+.instagram-review {
+  margin: 0 auto;
+  max-width: 620px;
+  padding: 16px 0 38px;
+}
+.instagram-review-heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.instagram-review-heading .eyebrow {
+  color: #ba9dff;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  margin: 0 0 8px;
+}
+.instagram-review-heading h2 {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  margin: 0;
+}
+.instagram-post {
+  background: #fff;
+  border: 1px solid #ddd;
+  color: #171717;
+  margin: 0 auto;
+  max-width: 470px;
+  overflow: hidden;
+}
+.instagram-post-account {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 12px;
+}
+.instagram-post-account > div {
+  display: grid;
+  flex: 1;
+  font-size: 0.8rem;
+  gap: 2px;
+}
+.instagram-post-account small {
+  color: #666;
+  font-size: 0.68rem;
+}
+.instagram-post-account > span:last-child {
+  letter-spacing: 2px;
+}
+.instagram-avatar {
+  align-items: center;
+  background: linear-gradient(135deg, #a35dff, #222);
+  border: 2px solid #f2a6c4;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  font-weight: 800;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+.instagram-post-image-wrap {
+  aspect-ratio: 4 / 5;
+  background: #17171b;
+  position: relative;
+}
+.instagram-post-image-wrap img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+.instagram-post-count {
+  background: #171717b8;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.7rem;
+  padding: 5px 9px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+.instagram-post-controls {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 12px 0;
+}
+.instagram-post-controls > button {
+  background: none;
+  border: 0;
+  color: #444;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+.instagram-post-controls > button:disabled {
+  opacity: 0.25;
+}
+.instagram-post-controls > div {
+  display: flex;
+  gap: 5px;
+}
+.instagram-post-controls > div button {
+  background: #bbb;
+  border: 0;
+  border-radius: 50%;
+  height: 6px;
+  padding: 0;
+  width: 6px;
+}
+.instagram-post-controls > div button.is-active {
+  background: #3797f0;
+}
+.instagram-post-actions {
+  display: flex;
+  font-size: 1.45rem;
+  justify-content: space-between;
+  padding: 4px 13px;
+}
+.instagram-post-caption {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+  max-height: 112px;
+  overflow: auto;
+  padding: 0 13px 10px;
+  white-space: pre-wrap;
+}
+.instagram-post-caption b {
+  margin-right: 5px;
+}
+.instagram-post-date {
+  color: #888;
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  padding: 0 13px 12px;
+}
+.instagram-review-note {
+  color: var(--sc-muted);
+  font-size: 0.76rem;
+  margin: 13px 0 26px;
+  text-align: center;
+}
+
 .social-composer-format-note {
   align-items: center;
   border-left: 1px solid var(--sc-rule);
