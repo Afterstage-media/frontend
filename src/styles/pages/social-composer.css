@@ -708,6 +708,21 @@
 .composer-title-field input {
   font-size: 0.96rem;
 }
+.composer-legacy-note {
+  background: rgb(123 53 255 / 9%);
+  border-left: 2px solid var(--sc-purple);
+  color: var(--sc-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  margin: 18px 0 22px;
+  padding: 12px 14px;
+}
+.composer-field input:disabled,
+.composer-field textarea:disabled {
+  color: #8f8b94;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
 .composer-copy-field {
   margin-top: 26px;
   padding-top: 22px;
@@ -877,6 +892,14 @@
   isolation: isolate;
   overflow: hidden;
   position: relative;
+  width: 100%;
+}
+.composer-rendered-artwork {
+  aspect-ratio: 4 / 5;
+  background: #19191e;
+  display: block;
+  height: auto;
+  object-fit: contain;
   width: 100%;
 }
 .composer-artboard.is-tall {

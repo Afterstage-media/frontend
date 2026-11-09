@@ -83,7 +83,7 @@ export function TokenGate({ onReady }) {
 function ContentCard({ item }) {
   const hasWebsite = item.channels?.includes("website");
   const hasInstagram = item.channels?.includes("instagram");
-  const editorPath = `/admin/contenido/${item.id}${item.type === "carousel" && hasInstagram ? "?mode=instagram" : ""}`;
+  const editorPath = `/admin/contenido/${item.id}`;
   const isSocialOnly = hasInstagram && !hasWebsite;
   return (
     <article className={`admin-record content-entry${isSocialOnly ? " content-entry-social" : ""}`}>

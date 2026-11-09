@@ -195,8 +195,11 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
     try {
       for (const [index, slide] of slides.entries()) {
         if (!slide.file && !slide.sourceUrl) throw new Error(`Elegí una imagen para la lámina ${index + 1}.`);
-        if (!slide.text.trim()) throw new Error(`Completá el texto de la lámina ${index + 1}.`);
-        if (!slide.altText.trim()) throw new Error(`Describí la imagen de la lámina ${index + 1} para accesibilidad.`);
+        if (!isLegacy || visualHasChanges) {
+          if (!slide.text.trim()) throw new Error(`Completá el texto de la lámina ${index + 1}.`);
+          if (!slide.altText.trim())
+            throw new Error(`Describí la imagen de la lámina ${index + 1} para accesibilidad.`);
+        }
       }
       if (!source.trim()) throw new Error("Agregá la fuente que usaste para verificar la información.");
       if (isLegacy && visualHasChanges && slides.some((slide) => !slide.file)) {
@@ -450,6 +453,12 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                         <p>Una idea por lámina. Ordená las imágenes al seleccionarlas.</p>
                       </div>
                     </div>
+                    {isLegacy && (
+                      <p className="composer-legacy-note" role="status">
+                        Este borrador es anterior al guardado de fotos originales. La vista muestra las láminas finales;
+                        para rehacer el diseño, cargá la foto original en cada lámina.
+                      </p>
+                    )}
                     <label className="composer-field composer-title-field">
                       <span>Título interno</span>
                       <input
@@ -536,7 +545,10 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                             <input
                               accept="image/jpeg,image/png,image/webp"
                               onChange={(event) => {
-                                setSlide(activeSlide, { file: event.target.files?.[0] || null });
+                                setSlide(activeSlide, {
+                                  file: event.target.files?.[0] || null,
+                                  isRenderedArtwork: false,
+                                });
                                 event.target.value = "";
                               }}
                               type="file"
@@ -549,10 +561,15 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                               Texto sobre la imagen<small>{selectedSlide.text.length}/180</small>
                             </span>
                             <textarea
+                              disabled={isLegacy && !selectedSlide.file}
                               maxLength={180}
                               onChange={(event) => setSlide(activeSlide, { text: event.target.value })}
-                              placeholder="Escribí el texto que va dentro de esta lámina"
-                              required
+                              placeholder={
+                                isLegacy && !selectedSlide.file
+                                  ? "Cargá la foto original para editar el diseño"
+                                  : "Escribí el texto que va dentro de esta lámina"
+                              }
+                              required={!isLegacy || Boolean(selectedSlide.file)}
                               rows={3}
                               value={selectedSlide.text}
                             />
@@ -562,10 +579,15 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                               Descripción de imagen<small>Texto alternativo accesible</small>
                             </span>
                             <textarea
+                              disabled={isLegacy && !selectedSlide.file}
                               maxLength={500}
                               onChange={(event) => setSlide(activeSlide, { altText: event.target.value })}
-                              placeholder="Describí lo que se ve en la foto"
-                              required
+                              placeholder={
+                                isLegacy && !selectedSlide.file
+                                  ? "Cargá la foto original para editar esta descripción"
+                                  : "Describí lo que se ve en la foto"
+                              }
+                              required={!isLegacy || Boolean(selectedSlide.file)}
                               rows={2}
                               value={selectedSlide.altText}
                             />
@@ -573,6 +595,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                           <label className="composer-field">
                             <span>Crédito de esta foto</span>
                             <input
+                              disabled={isLegacy && !selectedSlide.file}
                               maxLength={500}
                               onChange={(event) => setSlide(activeSlide, { credit: event.target.value })}
                               placeholder="Nombre de quien tomó la foto"
@@ -664,31 +687,39 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                       {String(activeSlide + 1).padStart(2, "0")} <i>/</i> {String(slides.length).padStart(2, "0")}
                     </span>
                   </div>
-                  <div className="composer-artboard">
-                    {objectUrls[activeSlide] && (
-                      <img alt="" className="composer-artboard-photo" src={objectUrls[activeSlide]} />
-                    )}
-                    <div className="composer-artboard-shade" />
-                    <div className="composer-artboard-content">
-                      <div className="composer-artboard-brand">
-                        <b>AFTERSTAGE</b>
-                        <i />
-                      </div>
-                      <div className="composer-artboard-main">
-                        <span>
-                          {selectedTemplate?.slides?.[activeSlide % (selectedTemplate.slides.length || 1)]?.eyebrow ||
-                            `LÁMINA ${activeSlide + 1}`}
-                        </span>
-                        <h3>{selectedSlide.text || "Tu texto aparece acá"}</h3>
-                      </div>
-                      <div className="composer-artboard-footer">
-                        <b>AFTERSTAGE.AR</b>
-                        <span>
-                          {String(activeSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
-                        </span>
+                  {publication?.images?.[activeSlide] && (!visualHasChanges || (isLegacy && !selectedSlide.file)) ? (
+                    <img
+                      className="composer-rendered-artwork"
+                      src={publication.images[activeSlide].url}
+                      alt={publication.images[activeSlide].altText || `Lámina ${activeSlide + 1}`}
+                    />
+                  ) : (
+                    <div className="composer-artboard">
+                      {objectUrls[activeSlide] && (
+                        <img alt="" className="composer-artboard-photo" src={objectUrls[activeSlide]} />
+                      )}
+                      <div className="composer-artboard-shade" />
+                      <div className="composer-artboard-content">
+                        <div className="composer-artboard-brand">
+                          <b>AFTERSTAGE</b>
+                          <i />
+                        </div>
+                        <div className="composer-artboard-main">
+                          <span>
+                            {selectedTemplate?.slides?.[activeSlide % (selectedTemplate.slides.length || 1)]?.eyebrow ||
+                              `LÁMINA ${activeSlide + 1}`}
+                          </span>
+                          <h3>{selectedSlide.text || "Tu texto aparece acá"}</h3>
+                        </div>
+                        <div className="composer-artboard-footer">
+                          <b>AFTERSTAGE.AR</b>
+                          <span>
+                            {String(activeSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   <div className="composer-preview-controls">
                     <button
                       aria-label="Lámina anterior"
