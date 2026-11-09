@@ -97,6 +97,8 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState(initialNotice);
   const selectedTemplate = templates.find((item) => item.id === templateId);
+  const visualTemplates = [...new Map(templates.map((item) => [item.visualStyle?.id || item.id, item])).values()];
+  const selectedVisualStyleId = selectedTemplate?.visualStyle?.id;
   const selectedSlide = slides[activeSlide] || slides[0];
   const objectUrls = useMemo(
     () => slides.map((slide) => (slide.file ? URL.createObjectURL(slide.file) : slide.sourceUrl || "")),
@@ -432,50 +434,57 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                     <div className="composer-section-title">
                       <span>01</span>
                       <div>
-                        <h2>Elegí una plantilla</h2>
-                        <p>Las plantillas están en Afterstage y llevan la identidad visual del medio.</p>
+                        <h2>Elegí un estilo visual</h2>
+                        <p>La plantilla define la composición de las imágenes, no el tema de la publicación.</p>
                       </div>
                     </div>
                     {loadingTemplates ? (
-                      <p className="composer-loading">Cargando plantillas…</p>
+                      <p className="composer-loading">Cargando estilos…</p>
                     ) : (
                       <div className="composer-template-list">
-                        {templates.map((template, index) => (
-                          <button
-                            aria-pressed={templateId === template.id}
-                            className={`composer-template-option ${templateId === template.id ? "is-selected" : ""}`}
-                            key={template.id}
-                            onClick={() => setTemplateId(template.id)}
-                            type="button"
-                          >
-                            <span className="composer-template-index">{String(index + 1).padStart(2, "0")}</span>
-                            <span className="composer-template-copy">
-                              <strong>{template.name}</strong>
-                              <small>{template.description}</small>
-                            </span>
-                            <span className="composer-template-count">4:5</span>
-                            <span className="composer-template-check" aria-hidden="true">
-                              {templateId === template.id ? "✓" : ""}
-                            </span>
-                          </button>
-                        ))}
-                        {!templates.length && !error && (
-                          <p className="composer-loading">No hay plantillas disponibles para carrusel.</p>
+                        {visualTemplates.map((template) => {
+                          const visualStyle = template.visualStyle;
+                          const active = selectedVisualStyleId === visualStyle?.id;
+                          return (
+                            <button
+                              aria-pressed={active}
+                              className={`composer-template-option ${active ? "is-selected" : ""}`}
+                              key={visualStyle?.id || template.id}
+                              onClick={() => setTemplateId(template.id)}
+                              type="button"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className={`composer-style-preview is-${visualStyle?.layout || "photo-overlay"}`}
+                                style={{
+                                  "--style-background": visualStyle?.palette?.background || "#111114",
+                                  "--style-foreground": visualStyle?.palette?.foreground || "#f4f0e8",
+                                  "--style-accent": visualStyle?.palette?.accent || "#7b35ff",
+                                }}
+                              >
+                                <b>AFTERSTAGE</b>
+                                <strong>
+                                  UNA HISTORIA
+                                  <br />
+                                  EN IMÁGENES
+                                </strong>
+                                <i />
+                              </span>
+                              <span className="composer-template-copy">
+                                <strong>{visualStyle?.name || "Afterstage editorial"}</strong>
+                                <small>{visualStyle?.description || "Fotografía, tipografía y color del medio."}</small>
+                              </span>
+                              <span className="composer-template-count">4:5</span>
+                              <span className="composer-template-check" aria-hidden="true">
+                                {active ? "✓" : ""}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {!visualTemplates.length && !error && (
+                          <p className="composer-loading">No hay estilos visuales disponibles para carrusel.</p>
                         )}
                       </div>
-                    )}
-                    {selectedTemplate?.editorialGuidance && (
-                      <details className="composer-guidance">
-                        <summary>Guía editorial para esta plantilla</summary>
-                        <p>
-                          <b>Enfoque:</b> {selectedTemplate.editorialGuidance.angle}
-                        </p>
-                        <ul>
-                          {selectedTemplate.editorialGuidance.verify.map((rule) => (
-                            <li key={rule}>{rule}</li>
-                          ))}
-                        </ul>
-                      </details>
                     )}
                   </section>
 
@@ -728,7 +737,14 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                       alt={publication.images[activeSlide].altText || `Lámina ${activeSlide + 1}`}
                     />
                   ) : (
-                    <div className="composer-artboard">
+                    <div
+                      className={`composer-artboard is-style-${selectedTemplate?.visualStyle?.layout || "photo-overlay"}`}
+                      style={{
+                        "--artboard-background": selectedTemplate?.visualStyle?.palette?.background || "#111114",
+                        "--artboard-foreground": selectedTemplate?.visualStyle?.palette?.foreground || "#f4f0e8",
+                        "--artboard-accent": selectedTemplate?.visualStyle?.palette?.accent || "#7b35ff",
+                      }}
+                    >
                       {objectUrls[activeSlide] && (
                         <img alt="" className="composer-artboard-photo" src={objectUrls[activeSlide]} />
                       )}
@@ -740,8 +756,9 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                         </div>
                         <div className="composer-artboard-main">
                           <span>
-                            {selectedTemplate?.slides?.[activeSlide % (selectedTemplate.slides.length || 1)]?.eyebrow ||
-                              `LÁMINA ${activeSlide + 1}`}
+                            {activeSlide === 0
+                              ? selectedTemplate?.visualStyle?.coverEyebrow || "AFTERSTAGE EDITORIAL"
+                              : `LÁMINA ${activeSlide + 1}`}
                           </span>
                           <h3>{selectedSlide.text || "Tu texto aparece acá"}</h3>
                         </div>
