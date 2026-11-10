@@ -58,10 +58,16 @@ function InstagramSettings() {
         </Link>
         <p className="eyebrow">Integraciones</p>
         <h1>Instagram conectado.</h1>
-        <p>Autorizá la cuenta desde Instagram. Afterstage recibe el código en el backend y guarda el acceso cifrado.</p>
+        <p>Conectá una cuenta profesional. Los tokens se canjean en el servidor y se guardan cifrados.</p>
         <div className="actions">
           <Button onClick={() => (window.location.href = "/api/integrations/instagram/connect")}>
-            Conectar una cuenta ↗
+            Conectar con Instagram ↗
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => (window.location.href = "/api/integrations/instagram/connect-facebook")}
+          >
+            Conectar con Facebook para colaboraciones ↗
           </Button>
         </div>
       </section>
@@ -75,6 +81,13 @@ function InstagramSettings() {
               <div>
                 <small>Cuenta profesional de Instagram</small>
                 <h3>@{connection.username}</h3>
+                <p>
+                  Conexión:{" "}
+                  {connection.apiHost === "facebook"
+                    ? "Facebook Login (colaboraciones y permisos completos)"
+                    : "Instagram Login"}
+                  .
+                </p>
                 <p>Conectada el {formatExpiry(connection.connectedAt)}.</p>
                 <p>Token válido hasta: {formatExpiry(connection.expiresAt)}.</p>
               </div>
