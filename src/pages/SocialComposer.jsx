@@ -58,6 +58,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const navigate = useNavigate();
   const requestedTemplateId = searchParams.get("templateId");
   const requestedType = searchParams.get("type");
+  const seriesId = searchParams.get("seriesId");
   const isEditing = Boolean(existingItem?.id);
   const isLegacy = isEditing && !existingItem?.socialSlides?.length;
   const existingPublication = existingItem ? publicationFromItem(existingItem) : null;
@@ -253,6 +254,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
         author: author.trim(),
         photographer: photographer.trim(),
         tags: existingItem?.tags || [],
+        ...(!isEditing && seriesId ? { seriesId } : {}),
       };
       let result;
       if (isLegacy && !visualHasChanges) {
