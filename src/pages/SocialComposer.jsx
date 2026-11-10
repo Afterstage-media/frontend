@@ -57,6 +57,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const requestedTemplateId = searchParams.get("templateId");
+  const requestedType = searchParams.get("type");
   const isEditing = Boolean(existingItem?.id);
   const isLegacy = isEditing && !existingItem?.socialSlides?.length;
   const existingPublication = existingItem ? publicationFromItem(existingItem) : null;
@@ -79,6 +80,13 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
         credit: asset.credit || "",
       }));
   const [templates, setTemplates] = useState([]);
+  const [publicationType, setPublicationType] = useState(
+    ["post", "story", "carousel"].includes(existingItem?.type)
+      ? existingItem.type
+      : ["post", "story", "carousel"].includes(requestedType)
+        ? requestedType
+        : "carousel",
+  );
   const [templateId, setTemplateId] = useState(existingItem?.socialTemplateId || initialTemplateId || "");
   const [title, setTitle] = useState(existingItem?.title || "");
   const [instagramCopy, setInstagramCopy] = useState(existingItem?.instagramCopy || "");
@@ -86,7 +94,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [author, setAuthor] = useState(existingItem?.author || "");
   const [photographer, setPhotographer] = useState(existingItem?.photographer || "");
   const [slides, setSlides] = useState(
-    existingSlides.length ? existingSlides : [emptySlide(), emptySlide(), emptySlide()],
+    existingSlides.length ? existingSlides : Array.from({ length: publicationType === "carousel" ? 3 : 1 }, emptySlide),
   );
   const [activeSlide, setActiveSlide] = useState(0);
   const [publication, setPublication] = useState(existingPublication);
@@ -96,8 +104,11 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [discarding, setDiscarding] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState(initialNotice);
-  const selectedTemplate = templates.find((item) => item.id === templateId);
-  const visualTemplates = [...new Map(templates.map((item) => [item.visualStyle?.id || item.id, item])).values()];
+  const availableTemplates = templates.filter((item) => item.outputType === publicationType);
+  const selectedTemplate = availableTemplates.find((item) => item.id === templateId);
+  const visualTemplates = [
+    ...new Map(availableTemplates.map((item) => [item.visualStyle?.id || item.id, item])).values(),
+  ];
   const selectedVisualStyleId = selectedTemplate?.visualStyle?.id;
   const selectedSlide = slides[activeSlide] || slides[0];
   const objectUrls = useMemo(
@@ -108,20 +119,36 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   useEffect(() => () => objectUrls.forEach((url) => url && URL.revokeObjectURL(url)), [objectUrls]);
   useEffect(() => {
     let active = true;
-    api("/api/social-templates?type=carousel&channel=instagram")
+    api("/api/social-templates?channel=instagram")
       .then((available) => {
         if (!active) return;
         setTemplates(available);
-        const requested = available.find((item) => item.id === (requestedTemplateId || initialTemplateId));
-        const existing = available.find((item) => item.id === existingItem?.socialTemplateId);
-        setTemplateId((current) => current || existing?.id || requested?.id || available[0]?.id || "");
+        const forType = available.filter((item) => item.outputType === publicationType);
+        const requested = forType.find((item) => item.id === (requestedTemplateId || initialTemplateId));
+        const existing = forType.find((item) => item.id === existingItem?.socialTemplateId);
+        setTemplateId(
+          (current) =>
+            existing?.id || requested?.id || forType.find((item) => item.id === current)?.id || forType[0]?.id || "",
+        );
       })
       .catch((requestError) => setError(requestError.message))
       .finally(() => active && setLoadingTemplates(false));
     return () => {
       active = false;
     };
-  }, [requestedTemplateId, initialTemplateId, existingItem?.socialTemplateId]);
+  }, [requestedTemplateId, initialTemplateId, existingItem?.socialTemplateId, publicationType]);
+
+  const chooseFormat = (type) => {
+    setPublicationType(type);
+    setError("");
+    const nextTemplate = templates.find((template) => template.outputType === type);
+    if (nextTemplate) setTemplateId(nextTemplate.id);
+    const count = type === "carousel" ? 3 : 1;
+    setSlides((current) =>
+      current.length === count ? current : Array.from({ length: count }, (_, index) => current[index] || emptySlide()),
+    );
+    setActiveSlide(0);
+  };
 
   const setSlide = (index, patch) =>
     setSlides((current) => current.map((slide, position) => (position === index ? { ...slide, ...patch } : slide)));
@@ -129,9 +156,10 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
     const incoming = [...fileList];
     const emptyIndexes = slides.map((slide, index) => (!slide.file ? index : -1)).filter((index) => index >= 0);
     const extraSlides = Math.max(0, incoming.length - emptyIndexes.length);
-    const capacity = 9 - slides.length;
+    const maxSlides = publicationType === "carousel" ? 9 : 1;
+    const capacity = maxSlides - slides.length;
     if (extraSlides > capacity) {
-      setError(`Podés sumar hasta ${emptyIndexes.length + capacity} imágenes en esta carga. El máximo es 9.`);
+      setError(`Podés sumar hasta ${Math.max(0, emptyIndexes.length + capacity)} imágenes en esta carga.`);
       return;
     }
     setError("");
@@ -196,6 +224,12 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
     setStatusMessage("");
     setSaving(true);
     try {
+      if (!selectedTemplate) throw new Error("Elegí una plantilla publicada para este formato.");
+      if (publicationType === "carousel" && (slides.length < 2 || slides.length > 9))
+        throw new Error("Un carrusel necesita entre 2 y 9 láminas.");
+      if (publicationType === "post" && slides.length !== 1) throw new Error("Un post necesita una sola imagen.");
+      if (publicationType === "story" && slides.length !== 1)
+        throw new Error("Una historia de Instagram debe tener una sola lámina.");
       for (const [index, slide] of slides.entries()) {
         if (!slide.file && !slide.sourceUrl) throw new Error(`Elegí una imagen para la lámina ${index + 1}.`);
         if (!isLegacy || visualHasChanges) {
@@ -240,10 +274,18 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
             text: slide.text.trim(),
           })),
         );
-        result = await api(isEditing ? `/api/social-carousel/${existingItem.id}` : "/api/social-carousel", {
-          method: isEditing ? "PUT" : "POST",
-          body: JSON.stringify({ ...common, slides: payloadSlides }),
-        });
+        const payload = JSON.stringify({ ...common, slides: payloadSlides });
+        if (publicationType === "carousel") {
+          result = await api(isEditing ? `/api/social-carousel/${existingItem.id}` : "/api/social-carousel", {
+            method: isEditing ? "PUT" : "POST",
+            body: payload,
+          });
+        } else {
+          result = await api(isEditing ? `/api/social-publication/${existingItem.id}` : "/api/social-publication", {
+            method: isEditing ? "PUT" : "POST",
+            body: JSON.stringify({ ...common, type: publicationType, slides: payloadSlides }),
+          });
+        }
       }
       setPublication(result);
       setActiveSlide(0);
@@ -311,11 +353,11 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
             <p>Elegí una plantilla, cargá tus imágenes y revisá el resultado como se verá en Instagram.</p>
           </div>
           <div className="social-composer-format-note">
-            <span>4:5</span>
+            <span>{publicationType === "story" ? "9:16" : "4:5"}</span>
             <small>
-              1080 × 1350
+              {publicationType === "story" ? "1080 × 1920" : "1080 × 1350"}
               <br />
-              feed de Instagram
+              {publicationType === "story" ? "historias de Instagram" : "feed de Instagram"}
             </small>
           </div>
         </section>
@@ -342,7 +384,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                   Seguir editando
                 </button>
               </div>
-              <article className="instagram-post">
+              <article className={`instagram-post ${publicationType === "story" ? "is-story" : ""}`}>
                 <header className="instagram-post-account">
                   <span className="instagram-avatar">A</span>
                   <div>
@@ -435,8 +477,27 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                       <span>01</span>
                       <div>
                         <h2>Elegí un estilo visual</h2>
-                        <p>La plantilla define la composición de las imágenes, no el tema de la publicación.</p>
+                        <p>La plantilla define la composición y el formato de cada pieza.</p>
                       </div>
+                    </div>
+                    <div className="composer-format-picker" aria-label="Formato de Instagram">
+                      {[
+                        ["carousel", "Carrusel", "4:5"],
+                        ["post", "Post", "4:5"],
+                        ["story", "Historia", "9:16"],
+                      ].map(([type, label, ratio]) => (
+                        <button
+                          aria-pressed={publicationType === type}
+                          className={publicationType === type ? "is-active" : ""}
+                          disabled={isEditing}
+                          key={type}
+                          onClick={() => chooseFormat(type)}
+                          type="button"
+                        >
+                          <b>{label}</b>
+                          <small>{ratio}</small>
+                        </button>
+                      ))}
                     </div>
                     {loadingTemplates ? (
                       <p className="composer-loading">Cargando estilos…</p>
@@ -455,10 +516,10 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                             >
                               <span
                                 aria-hidden="true"
-                                className={`composer-style-preview is-${visualStyle?.layout || "photo-overlay"}`}
+                                className={`composer-style-preview is-${visualStyle?.layout || "photo-overlay"} is-${publicationType}`}
                                 style={{
-                                  "--style-background": visualStyle?.palette?.background || "#111114",
-                                  "--style-foreground": visualStyle?.palette?.foreground || "#f4f0e8",
+                                  "--style-background": visualStyle?.palette?.background || "#f1f0ec",
+                                  "--style-foreground": visualStyle?.palette?.foreground || "#19191d",
                                   "--style-accent": visualStyle?.palette?.accent || "#7b35ff",
                                 }}
                               >
@@ -474,7 +535,9 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                                 <strong>{visualStyle?.name || "Afterstage editorial"}</strong>
                                 <small>{visualStyle?.description || "Fotografía, tipografía y color del medio."}</small>
                               </span>
-                              <span className="composer-template-count">4:5</span>
+                              <span className="composer-template-count">
+                                {publicationType === "story" ? "9:16" : "4:5"}
+                              </span>
                               <span className="composer-template-check" aria-hidden="true">
                                 {active ? "✓" : ""}
                               </span>
@@ -482,7 +545,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                           );
                         })}
                         {!visualTemplates.length && !error && (
-                          <p className="composer-loading">No hay estilos visuales disponibles para carrusel.</p>
+                          <p className="composer-loading">No hay estilos visuales publicados para este formato.</p>
                         )}
                       </div>
                     )}
@@ -493,7 +556,13 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                       <span>02</span>
                       <div>
                         <h2>Completá la publicación</h2>
-                        <p>Una idea por lámina. Ordená las imágenes al seleccionarlas.</p>
+                        <p>
+                          {publicationType === "story"
+                            ? "Una historia vertical: una idea clara, el tratamiento editorial de Afterstage y proporción 9:16."
+                            : publicationType === "post"
+                              ? "Una imagen 4:5 para el feed, con el texto integrado al diseño."
+                              : "Una idea por lámina. Ordená las imágenes al seleccionarlas."}
+                        </p>
                       </div>
                     </div>
                     {isLegacy && (
@@ -512,7 +581,11 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                         value={title}
                       />
                     </label>
-                    <div className="composer-slide-tabs" role="tablist" aria-label="Láminas del carrusel">
+                    <div
+                      className="composer-slide-tabs"
+                      role="tablist"
+                      aria-label={publicationType === "story" ? "Historias" : "Láminas de la publicación"}
+                    >
                       {slides.map((slide, index) => (
                         <button
                           aria-selected={activeSlide === index}
@@ -530,7 +603,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                           <span>{String(index + 1).padStart(2, "0")}</span>
                         </button>
                       ))}
-                      {slides.length < 9 && (
+                      {slides.length < (publicationType === "carousel" ? 9 : 1) && (
                         <button
                           aria-label="Agregar lámina"
                           className="composer-add-slide"
@@ -566,8 +639,13 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                     </div>
                     <div className="composer-slide-fields">
                       <div className="composer-slide-heading">
-                        <b>LÁMINA {String(activeSlide + 1).padStart(2, "0")}</b>
-                        <span>{slides.length}/9</span>
+                        <b>
+                          {publicationType === "story" ? "HISTORIA" : publicationType === "post" ? "POST" : "LÁMINA"}{" "}
+                          {String(activeSlide + 1).padStart(2, "0")}
+                        </b>
+                        <span>
+                          {slides.length}/{publicationType === "carousel" ? 9 : 1}
+                        </span>
                       </div>
                       <div className="composer-slide-assembly">
                         <div className="composer-slide-photo-column">
@@ -579,7 +657,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                                 alt={`Vista de la foto de la lámina ${activeSlide + 1}`}
                               />
                             ) : (
-                              <span>4:5</span>
+                              <span>{publicationType === "story" ? "9:16" : "4:5"}</span>
                             )}
                           </div>
                           <label className="composer-slide-photo-upload">
@@ -732,16 +810,16 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                   </div>
                   {publication?.images?.[activeSlide] && (!visualHasChanges || (isLegacy && !selectedSlide.file)) ? (
                     <img
-                      className="composer-rendered-artwork"
+                      className={`composer-rendered-artwork ${publicationType === "story" ? "is-tall" : ""}`}
                       src={publication.images[activeSlide].url}
                       alt={publication.images[activeSlide].altText || `Lámina ${activeSlide + 1}`}
                     />
                   ) : (
                     <div
-                      className={`composer-artboard is-style-${selectedTemplate?.visualStyle?.layout || "photo-overlay"}`}
+                      className={`composer-artboard ${publicationType === "story" ? "is-tall" : ""} is-style-${selectedTemplate?.visualStyle?.layout || "photo-overlay"}`}
                       style={{
-                        "--artboard-background": selectedTemplate?.visualStyle?.palette?.background || "#111114",
-                        "--artboard-foreground": selectedTemplate?.visualStyle?.palette?.foreground || "#f4f0e8",
+                        "--artboard-background": selectedTemplate?.visualStyle?.palette?.background || "#f1f0ec",
+                        "--artboard-foreground": selectedTemplate?.visualStyle?.palette?.foreground || "#19191d",
                         "--artboard-accent": selectedTemplate?.visualStyle?.palette?.accent || "#7b35ff",
                       }}
                     >
@@ -804,7 +882,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
                   <div className="composer-preview-caption">
                     <span className="composer-preview-dot" />
                     <p>
-                      4:5 · 1080 × 1350
+                      {publicationType === "story" ? "9:16 · 1080 × 1920" : "4:5 · 1080 × 1350"}
                       <br />
                       <small>Violeta, carbón y tipografías de Afterstage</small>
                     </p>
