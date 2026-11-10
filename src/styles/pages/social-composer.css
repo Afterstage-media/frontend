@@ -216,6 +216,31 @@
   object-fit: cover;
   width: 100%;
 }
+.instagram-post.is-story {
+  background: #111114;
+  border-radius: 16px;
+  margin: 0 auto;
+  max-width: 360px;
+  overflow: hidden;
+  padding: 8px;
+}
+.instagram-post.is-story .instagram-post-account {
+  background: #111114;
+  color: #f4f0e8;
+}
+.instagram-post.is-story .instagram-post-account small {
+  color: #c3beca;
+}
+.instagram-post.is-story .instagram-post-image-wrap {
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.instagram-post.is-story .instagram-post-actions,
+.instagram-post.is-story .instagram-post-caption,
+.instagram-post.is-story .instagram-post-date {
+  display: none;
+}
 .instagram-post-count {
   background: #171717b8;
   border-radius: 20px;
@@ -419,6 +444,39 @@
   display: grid;
   gap: 7px;
 }
+.composer-format-picker {
+  border-bottom: 1px solid var(--sc-rule);
+  display: flex;
+  gap: 8px;
+  margin: 2px 0 15px;
+  padding-bottom: 14px;
+}
+.composer-format-picker button {
+  align-items: baseline;
+  background: transparent;
+  border: 1px solid var(--sc-rule);
+  color: var(--sc-muted);
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+}
+.composer-format-picker button.is-active {
+  background: rgb(123 53 255 / 12%);
+  border-color: var(--sc-purple);
+  color: var(--sc-text);
+}
+.composer-format-picker button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.composer-format-picker b {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+}
+.composer-format-picker small {
+  font-size: 0.65rem;
+}
 
 .composer-template-option {
   align-items: center;
@@ -468,8 +526,8 @@
 .composer-style-preview {
   align-self: stretch;
   aspect-ratio: 4 / 5;
-  background: var(--style-background, #111114);
-  color: var(--style-foreground, #f4f0e8);
+  background: var(--style-background, #f1f0ec);
+  color: var(--style-foreground, #19191d);
   display: flex;
   flex-direction: column;
   height: 92px;
@@ -479,13 +537,35 @@
   position: relative;
   text-align: left;
 }
+.composer-style-preview.is-story {
+  aspect-ratio: 9 / 16;
+  height: 92px;
+  width: 52px;
+}
+.composer-style-preview.is-post,
+.composer-style-preview.is-carousel {
+  aspect-ratio: 4 / 5;
+  height: 92px;
+  width: 74px;
+}
 .composer-style-preview::before {
   background:
-    linear-gradient(180deg, rgb(12 12 15 / 4%) 25%, var(--style-background, #111114) 100%),
-    radial-gradient(ellipse at 65% 20%, rgb(123 53 255 / 65%), transparent 55%);
+    radial-gradient(circle at 80% 25%, rgb(123 53 255 / 18%) 0 1px, transparent 1.5px) 0 0 / 7px 7px,
+    linear-gradient(180deg, transparent 25%, var(--style-background, #f1f0ec) 100%);
   content: "";
   inset: 0;
   position: absolute;
+}
+.composer-style-preview.is-photo-overlay {
+  background:
+    radial-gradient(ellipse at 66% 16%, rgb(123 53 255 / 58%), transparent 37%),
+    linear-gradient(145deg, #34313d, #111114 72%);
+}
+.composer-style-preview.is-photo-overlay::before {
+  background: linear-gradient(180deg, rgb(17 17 20 / 6%) 15%, rgb(17 17 20 / 92%) 100%);
+}
+.composer-style-preview.is-photo-overlay strong {
+  color: #f4f0e8;
 }
 .composer-style-preview > * {
   position: relative;
@@ -504,6 +584,15 @@
   background: var(--style-accent, #7b35ff);
   height: 3px;
   width: 18px;
+}
+.composer-style-preview.is-type-poster b {
+  border-top: 2px solid var(--style-accent, #7b35ff);
+  padding-top: 4px;
+}
+.composer-style-preview.is-type-poster strong {
+  font-size: 0.68rem;
+  line-height: 0.88;
+  max-width: 75%;
 }
 .composer-style-preview.is-split-panel {
   background: linear-gradient(to bottom, #34323c 0 59%, var(--style-background, #111114) 59% 100%);
@@ -971,6 +1060,13 @@
   position: relative;
   width: 100%;
 }
+.composer-rendered-artwork.is-tall {
+  aspect-ratio: 9 / 16;
+  max-height: min(67vh, 700px);
+  margin: 0 auto;
+  object-fit: contain;
+  width: min(100%, 350px);
+}
 .composer-rendered-artwork {
   aspect-ratio: 4 / 5;
   background: #19191e;
@@ -1008,6 +1104,43 @@
 }
 .composer-artboard:not(:has(.composer-artboard-photo)) {
   background: #222126;
+}
+.composer-artboard.is-style-type-poster {
+  background:
+    radial-gradient(circle at 88% 17%, rgb(123 53 255 / 18%) 0 1px, transparent 1.8px) 0 0 / 9px 9px,
+    var(--artboard-background, #f1f0ec);
+  color: var(--artboard-foreground, #19191d);
+}
+.composer-artboard.is-style-type-poster:not(:has(.composer-artboard-photo))::after {
+  background: linear-gradient(0deg, #19191d 0 29%, transparent 29%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+.composer-artboard.is-style-type-poster .composer-artboard-content {
+  z-index: 1;
+}
+.composer-artboard.is-style-type-poster .composer-artboard-main {
+  margin: 12% 0 auto;
+  max-width: 88%;
+}
+.composer-artboard.is-style-type-poster .composer-artboard-main h3 {
+  color: var(--artboard-foreground, #19191d);
+  font-size: clamp(1.9rem, 5vw, 4.1rem);
+  line-height: 0.93;
+  text-transform: none;
+}
+.composer-artboard.is-style-type-poster .composer-artboard-main > span {
+  color: var(--artboard-accent, #7b35ff);
+}
+.composer-artboard.is-style-type-poster .composer-artboard-brand b,
+.composer-artboard.is-style-type-poster .composer-artboard-footer b,
+.composer-artboard.is-style-type-poster .composer-artboard-footer span {
+  color: var(--artboard-foreground, #19191d);
+}
+.composer-artboard.is-style-type-poster .composer-artboard-footer {
+  border-color: rgb(25 25 29 / 32%);
 }
 .composer-artboard:not(:has(.composer-artboard-photo))::before {
   background: radial-gradient(ellipse at 80% 15%, rgb(123 53 255 / 24%), transparent 55%);
@@ -1104,12 +1237,12 @@
   margin: auto 0 13%;
 }
 .composer-artboard.is-style-type-poster .composer-artboard-photo {
-  height: 42%;
+  height: 35%;
   inset: auto 0 0;
   z-index: 0;
 }
 .composer-artboard.is-style-type-poster .composer-artboard-shade {
-  background: linear-gradient(180deg, transparent 55%, rgb(17 17 20 / 24%));
+  display: none;
 }
 .composer-artboard.is-style-type-poster .composer-artboard-main {
   margin: 12% 0 auto;
