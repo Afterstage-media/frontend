@@ -1,4 +1,5 @@
 import { useModalFocus } from "../../utils/useModalFocus.js";
+import { createPortal } from "react-dom";
 
 export function Dialog({
   children,
@@ -13,7 +14,7 @@ export function Dialog({
 }) {
   const handleClose = onClose || (() => {});
   const dialogRef = useModalFocus(handleClose);
-  return (
+  const dialog = (
     <div
       className={[backdropClassName, className].filter(Boolean).join(" ")}
       onMouseDown={(event) => event.target === event.currentTarget && handleClose()}
@@ -32,4 +33,5 @@ export function Dialog({
       </Panel>
     </div>
   );
+  return typeof document === "undefined" ? dialog : createPortal(dialog, document.body);
 }

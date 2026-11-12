@@ -274,7 +274,7 @@
   justify-content: center;
   padding: 20px;
   position: fixed;
-  z-index: 20;
+  z-index: 1000;
 }
 
 .network-application-modal {
@@ -306,7 +306,7 @@
 }
 
 .platform-dialog-close {
-  align-self: flex-end;
+  justify-self: end;
 }
 
 .insurance-layout {
