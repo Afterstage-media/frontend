@@ -1,3 +1,16 @@
+@media (max-width: 900px) {
+  .site-shell > footer:not(.admin-footer) {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .site-shell > footer:not(.admin-footer) .footer-links {
+    align-items: start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
 @media (max-width: 750px) {
   .header {
     align-items: center;
