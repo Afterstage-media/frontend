@@ -5,20 +5,20 @@ import { Layout } from "../components/Layout.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { api } from "../services/api.js";
+import { setSessionHint } from "../services/session.js";
 
 export function CollaboratorPage() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!localStorage.getItem("afterstage-token")) {
-      setLoading(false);
-      return undefined;
-    }
-    api("/api/auth/me")
-      .then(({ user: actor }) => setUser(actor))
+    api("/api/auth/session")
+      .then(({ user: actor }) => {
+        setSessionHint(Boolean(actor));
+        setUser(actor);
+      })
       .catch(() => {
-        localStorage.removeItem("afterstage-token");
+        setSessionHint(false);
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -42,8 +42,9 @@ export function CollaboratorPage() {
             </ButtonLink>
             <Button
               variant="ghost"
-              onClick={() => {
-                localStorage.removeItem("afterstage-token");
+              onClick={async () => {
+                await api("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+                setSessionHint(false);
                 window.dispatchEvent(new Event("afterstage-auth-changed"));
                 setUser(null);
               }}
