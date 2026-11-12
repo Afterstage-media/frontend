@@ -7,6 +7,7 @@ import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 import { SocialComposer } from "./SocialComposer.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { StatusBadge } from "../components/ui/StatusBadge.jsx";
+import { pressMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
 const labels = {
@@ -1254,6 +1255,8 @@ function PressDashboard() {
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(() => hasSessionHint());
   const [activeSection, setActiveSection] = useState("overview");
+  const [sendingAccreditationId, setSendingAccreditationId] = useState(null);
+  const sendingAccreditationRef = useRef(false);
   const [event, setEvent] = useState({
     name: "",
     artist: "",
@@ -1316,14 +1319,38 @@ function PressDashboard() {
     }
   };
   const send = async (id) => {
+    if (sendingAccreditationRef.current) return;
+    const item = snapshot?.accreditations.find((accreditationItem) => accreditationItem.id === id);
+    const contact = snapshot?.contacts.find((contactItem) => contactItem.id === item?.contactId);
+    const event = snapshot?.events.find((eventItem) => eventItem.id === item?.eventId);
+    if (
+      !window.confirm(
+        pressMessagesEs.sendAccreditationConfirm({
+          recipient: contact?.email || "el contacto seleccionado",
+          subject: item?.subject || "la solicitud",
+          event: event?.name || "el evento",
+        }),
+      )
+    )
+      return;
+    sendingAccreditationRef.current = true;
+    setSendingAccreditationId(id);
+    const storageKey = `afterstage:accreditation-send:${id}`;
+    const idempotencyKey = sessionStorage.getItem(storageKey) || globalThis.crypto.randomUUID();
+    sessionStorage.setItem(storageKey, idempotencyKey);
     try {
       await api(`/api/press/accreditations/${id}/send`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ dryRun: false }),
       });
+      sessionStorage.removeItem(storageKey);
       load();
     } catch (e) {
-      setError(e.message);
+      setError(e.status === 409 ? pressMessagesEs.accreditationSendPending : e.message);
+    } finally {
+      sendingAccreditationRef.current = false;
+      setSendingAccreditationId(null);
     }
   };
   if (!authorized)
@@ -1836,8 +1863,13 @@ function PressDashboard() {
                         <span>
                           {item.subject} · {item.status}
                         </span>
-                        <Button onClick={() => send(item.id)} variant="ghost" type="button">
-                          Enviar correo
+                        <Button
+                          onClick={() => send(item.id)}
+                          variant="ghost"
+                          type="button"
+                          disabled={sendingAccreditationId !== null}
+                        >
+                          {sendingAccreditationId === item.id ? pressMessagesEs.accreditationSending : "Enviar correo"}
                         </Button>
                       </article>
                     ))
