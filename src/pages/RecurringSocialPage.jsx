@@ -202,7 +202,13 @@ function RecurringSocialDashboard() {
   }, []);
 
   const ready = useMemo(() => series.filter((item) => item.active), [series]);
-  const ideas = useMemo(() => series.filter((item) => !item.active), [series]);
+  const ideas = useMemo(
+    () =>
+      series
+        .filter((item) => !item.active)
+        .sort((a, b) => Number(b.template?.outputType === "story") - Number(a.template?.outputType === "story")),
+    [series],
+  );
 
   const save = async (form) => {
     setSaving(true);
@@ -259,9 +265,9 @@ function RecurringSocialDashboard() {
       <main className="recurring-social-page">
         <header className="recurring-page-header">
           <div>
-            <span className="eyebrow">REDES · PLANIFICACIÓN EDITORIAL</span>
-            <h1>Series para publicar</h1>
-            <p>Formatos que vuelven con la frecuencia que elijas. Cada entrega queda como borrador para revisar.</p>
+            <span className="eyebrow">REDES · CONTENIDO RECURRENTE</span>
+            <h1>Historias y series</h1>
+            <p>Elegí qué formatos querés repetir y cada cuánto. Cada entrega queda como borrador para revisar antes de publicar.</p>
           </div>
           <Button onClick={() => setEditing(emptyForm())} type="button">
             + Nueva serie
@@ -295,7 +301,7 @@ function RecurringSocialDashboard() {
           </div>
           <div>
             <strong>{dueCount}</strong>
-            <span>para preparar ahora</span>
+            <span>listas para preparar</span>
           </div>
           <p>
             <span className="recurring-dot" /> Sin publicación automática
@@ -306,6 +312,35 @@ function RecurringSocialDashboard() {
           <p className="muted">Cargando series…</p>
         ) : (
           <>
+            <section className="recurring-section recurring-ideas-section">
+              <div className="recurring-section-heading">
+                <div>
+                  <span className="eyebrow">ELEGÍ QUÉ QUERÉS REPETIR</span>
+                  <h2>Series listas para activar</h2>
+                </div>
+              </div>
+              {ideas.length ? (
+                <div className="recurring-ideas-grid">
+                  {ideas.map((item) => (
+                    <article className="recurring-idea-card" key={item.id}>
+                      <span>
+                        {item.template?.name || "Formato editorial"} · {typeLabels[item.template?.outputType] || "Serie"}
+                      </span>
+                      <h3>{item.name}</h3>
+                      <p>{item.description || item.editorialBrief}</p>
+                      <button className="recurring-text-button" onClick={() => edit(item)} type="button">
+                        Activar y elegir frecuencia →
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="recurring-empty">
+                  No hay formatos nuevos para activar. Podés crear una serie con “Nueva serie”.
+                </p>
+              )}
+            </section>
+
             <section className="recurring-section">
               <div className="recurring-section-heading">
                 <div>
@@ -358,31 +393,6 @@ function RecurringSocialDashboard() {
                 <p className="recurring-empty">
                   Todavía no hay series activas. Elegí un formato y definí cuándo querés retomarlo.
                 </p>
-              )}
-            </section>
-
-            <section className="recurring-section recurring-ideas-section">
-              <div className="recurring-section-heading">
-                <div>
-                  <span className="eyebrow">FORMATOS EN PAUSA</span>
-                  <h2>Ideas para sumar</h2>
-                </div>
-              </div>
-              {ideas.length ? (
-                <div className="recurring-ideas-grid">
-                  {ideas.map((item) => (
-                    <article className="recurring-idea-card" key={item.id}>
-                      <span>{item.template?.name || "Formato editorial"}</span>
-                      <h3>{item.name}</h3>
-                      <p>{item.description || item.editorialBrief}</p>
-                      <button className="recurring-text-button" onClick={() => edit(item)} type="button">
-                        Definir frecuencia ↗
-                      </button>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="recurring-empty">Las series que pauses aparecen acá para retomarlas después.</p>
               )}
             </section>
 

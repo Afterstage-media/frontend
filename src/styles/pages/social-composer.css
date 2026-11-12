@@ -48,6 +48,20 @@
   font-size: 0.75rem;
   gap: 8px;
 }
+.social-composer-recurring-link {
+  border: 1px solid rgb(186 157 255 / 45%);
+  color: #d1bdff;
+  font-size: 0.78rem;
+  font-weight: 650;
+  padding: 8px 11px;
+  text-decoration: none;
+}
+.social-composer-recurring-link:hover,
+.social-composer-recurring-link:focus-visible {
+  background: rgb(123 53 255 / 16%);
+  border-color: #ba9dff;
+  color: var(--sc-text);
+}
 .social-composer-topbar-actions {
   align-items: center;
   display: flex;
@@ -1488,13 +1502,23 @@
     padding: 12px 18px 0;
   }
   .social-composer-topbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
     min-height: 42px;
+    padding-bottom: 8px;
   }
   .social-composer-draft {
     font-size: 0.66rem;
   }
   .social-composer-topbar-actions {
+    flex-wrap: wrap;
     gap: 8px;
+    justify-content: flex-end;
+  }
+  .social-composer-recurring-link {
+    font-size: 0.68rem;
+    padding: 6px 8px;
   }
   .composer-discard-button {
     font-size: 0.64rem;

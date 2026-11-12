@@ -332,6 +332,9 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
             ← Espacio editorial
           </Link>
           <div className="social-composer-topbar-actions">
+            <Link className="social-composer-recurring-link" to="/admin/redes/series">
+              Historias y series →
+            </Link>
             <span className="social-composer-draft">
               <i /> Borrador · no se publica automáticamente
             </span>
