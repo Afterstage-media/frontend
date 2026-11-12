@@ -10,6 +10,7 @@ import { FilterBar } from "../components/ui/FilterBar.jsx";
 import { IconButton } from "../components/ui/IconButton.jsx";
 import { Notice } from "../components/ui/Notice.jsx";
 import { StatusBadge } from "../components/ui/StatusBadge.jsx";
+import { userManagementEs as text } from "../i18n/es-AR.dictionary.js";
 
 const roleOptions = [
   ["admin", "Administrador"],
@@ -279,7 +280,7 @@ function UserManagement() {
   const totals = useMemo(
     () => ({
       total: users.length,
-      active: users.filter((user) => user.active !== false).length,
+      activeAccounts: users.filter((user) => user.active !== false).length,
       admins: users.filter((user) => user.active !== false && user.roles.includes("admin")).length,
     }),
     [users],
@@ -332,8 +333,8 @@ function UserManagement() {
               <span>Total de cuentas</span>
             </div>
             <div className="users-metric">
-              <strong>{totals.active}</strong>
-              <span>Activas hoy</span>
+              <strong>{totals.activeAccounts}</strong>
+              <span>{text.activeAccounts}</span>
             </div>
             <div className="users-metric">
               <strong>{totals.admins}</strong>
