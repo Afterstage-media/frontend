@@ -7,6 +7,7 @@ import { SiteHeader } from "./shell/SiteHeader.jsx";
 import { WorkspaceSidebar } from "./shell/WorkspaceSidebar.jsx";
 import { MobileNavigation } from "./MobileNavigation.jsx";
 import { hasSessionHint, setSessionHint } from "../services/session.js";
+import { authMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 const themeStorageKey = "afterstage-theme-v2";
 const LayoutContext = createContext(false);
@@ -37,6 +38,7 @@ function LayoutShell({ children }) {
     typeof window !== "undefined" && window.location.pathname.startsWith("/agenda") ? "eventos" : "notas",
   );
   const [collapsedSections, setCollapsedSections] = useState({});
+  const [logoutError, setLogoutError] = useState("");
   const reflectorRefs = useRef([]);
   const reflectorStageRef = useRef(null);
   const location = useLocation();
@@ -141,7 +143,12 @@ function LayoutShell({ children }) {
 
   const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
   const logOut = async () => {
-    await api("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    try {
+      await api("/api/auth/logout", { method: "POST" });
+      setLogoutError("");
+    } catch {
+      setLogoutError(authMessagesEs.logoutUnconfirmed);
+    }
     setSessionHint(false);
     window.dispatchEvent(new Event("afterstage-auth-changed"));
     navigate("/");
@@ -194,6 +201,7 @@ function LayoutShell({ children }) {
         sidebar={sidebar}
         workspace={isWorkspace}
       >
+        <ErrorMessage error={logoutError} />
         {children}
       </PageShell>
     </LayoutContext.Provider>

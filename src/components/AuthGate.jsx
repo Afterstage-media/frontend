@@ -5,6 +5,7 @@ import { ErrorMessage, Layout } from "./Layout.jsx";
 import { Button, ButtonLink } from "./ui/Button.jsx";
 import { TextField } from "./ui/TextField.jsx";
 import { setSessionHint } from "../services/session.js";
+import { authMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator = true }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -68,7 +69,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
         method: "POST",
         body: JSON.stringify({ email: identifier }),
       });
-      if (!result.serviceReady) throw new Error("La recuperación de acceso no está disponible temporalmente.");
+      if (!result.serviceReady) throw new Error(authMessagesEs.recoveryUnavailable);
       setRecoverySent(true);
     } catch (requestError) {
       setError(requestError.message);
@@ -209,7 +210,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
       </button>
       {recoverySent && (
         <p className="success" role="status">
-          Contraseña actualizada. Ya podés iniciar sesión.
+          {authMessagesEs.passwordUpdated}
         </p>
       )}
       {collaborator && registering && (
