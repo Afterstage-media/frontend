@@ -15,6 +15,17 @@ const slugify = (value) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+const xml = (value) =>
+  value.replace(
+    /[&<>"']/g,
+    (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[character],
+  );
+const previewSvg = (template, data) => {
+  if (!template?.artworkSvg) return "";
+  let artwork = template.artworkSvg;
+  for (const field of template.fields) artwork = artwork.replaceAll(`{{${field.key}}}`, xml(data[field.key] || ""));
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(artwork)}`;
+};
 
 const emptyForm = () => ({
   id: "",
@@ -44,6 +55,13 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
   const [form, setForm] = useState(value || emptyForm());
   const selectedTemplate = templates.find((item) => item.slug === form.templateSlug);
   const set = (field, next) => setForm((current) => ({ ...current, [field]: next }));
+  const setStoryField = (storyIndex, fieldKey, next) =>
+    setForm((current) => ({
+      ...current,
+      fixedStoryTemplates: current.fixedStoryTemplates.map((story, index) =>
+        index === storyIndex ? { ...story, data: { ...story.data, [fieldKey]: next } } : story,
+      ),
+    }));
 
   return (
     <form
@@ -67,40 +85,49 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
           Nombre de la serie
           <input maxLength={120} onChange={(event) => set("name", event.target.value)} required value={form.name} />
         </label>
-        <label>
-          Formato editorial
-          <select
-            onChange={(event) => {
-              const templateSlug = event.target.value;
-              const template = templates.find((item) => item.slug === templateSlug);
-              setForm((current) => ({
-                ...current,
-                templateSlug,
-                editorialBrief: current.editorialBrief || template?.editorialGuidance?.purpose || "",
-              }));
-            }}
-            required
-            value={form.templateSlug}
-          >
-            <option value="">Elegí una plantilla</option>
-            {templates.map((item) => (
-              <option key={item.id} value={item.slug}>
-                {item.name} · {typeLabels[item.outputType] || item.outputType}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="recurring-field-wide">
-          Qué debe contar esta serie
-          <textarea
-            maxLength={1200}
-            onChange={(event) => set("editorialBrief", event.target.value)}
-            placeholder="La pauta editorial que se mantiene. Los datos y el texto cambian en cada entrega."
-            required
-            rows={3}
-            value={form.editorialBrief}
-          />
-        </label>
+        {form.autoPublish ? (
+          <div className="recurring-field-wide recurring-auto-publish-note">
+            <strong>Generador de historias Afterstage</strong>
+            <span>La secuencia se vuelve a generar desde estas tres plantillas SVG editables antes de publicarse.</span>
+          </div>
+        ) : (
+          <label>
+            Formato editorial
+            <select
+              onChange={(event) => {
+                const templateSlug = event.target.value;
+                const template = templates.find((item) => item.slug === templateSlug);
+                setForm((current) => ({
+                  ...current,
+                  templateSlug,
+                  editorialBrief: current.editorialBrief || template?.editorialGuidance?.purpose || "",
+                }));
+              }}
+              required
+              value={form.templateSlug}
+            >
+              <option value="">Elegí una plantilla</option>
+              {templates.map((item) => (
+                <option key={item.id} value={item.slug}>
+                  {item.name} · {typeLabels[item.outputType] || item.outputType}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {!form.autoPublish && (
+          <label className="recurring-field-wide">
+            Qué debe contar esta serie
+            <textarea
+              maxLength={1200}
+              onChange={(event) => set("editorialBrief", event.target.value)}
+              placeholder="La pauta editorial que se mantiene. Los datos y el texto cambian en cada entrega."
+              required
+              rows={3}
+              value={form.editorialBrief}
+            />
+          </label>
+        )}
         <label className="recurring-field-wide">
           Descripción breve
           <input
@@ -110,30 +137,75 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
             value={form.description}
           />
         </label>
-        <div className="recurring-cadence recurring-field-wide">
-          <span>Frecuencia</span>
-          <div>
-            <span>Cada</span>
-            <input
-              aria-label="Cantidad de días, semanas o meses"
-              min="1"
-              max="365"
-              onChange={(event) => set("every", Number(event.target.value))}
-              required
-              type="number"
-              value={form.every}
-            />
-            <select
-              aria-label="Unidad de frecuencia"
-              onChange={(event) => set("unit", event.target.value)}
-              value={form.unit}
-            >
-              <option value="day">días</option>
-              <option value="week">semanas</option>
-              <option value="month">meses</option>
-            </select>
+        {form.autoPublish ? (
+          <div className="recurring-field-wide recurring-auto-publish-note" role="status">
+            <strong>Publicación automática · todos los días</strong>
+            <label>
+              Hora de Argentina
+              <input
+                onChange={(event) => set("publishTime", event.target.value)}
+                required
+                type="time"
+                value={form.publishTime || "12:00"}
+              />
+            </label>
+            <span>Las tres historias salen en orden, separadas por un minuto.</span>
           </div>
-        </div>
+        ) : (
+          <div className="recurring-cadence recurring-field-wide">
+            <span>Frecuencia</span>
+            <div>
+              <span>Cada</span>
+              <input
+                aria-label="Cantidad de días, semanas o meses"
+                min="1"
+                max="365"
+                onChange={(event) => set("every", Number(event.target.value))}
+                required
+                type="number"
+                value={form.every}
+              />
+              <select
+                aria-label="Unidad de frecuencia"
+                onChange={(event) => set("unit", event.target.value)}
+                value={form.unit}
+              >
+                <option value="day">días</option>
+                <option value="week">semanas</option>
+                <option value="month">meses</option>
+              </select>
+            </div>
+          </div>
+        )}
+        {form.autoPublish &&
+          form.fixedStoryTemplates.map((story, storyIndex) => {
+            const template = templates.find((item) => item.slug === story.templateSlug);
+            return (
+              <fieldset className="recurring-template-fields recurring-field-wide" key={story.templateSlug}>
+                <legend>
+                  {storyIndex + 1}. {template?.name || story.templateSlug}
+                </legend>
+                {template?.artworkSvg && (
+                  <img
+                    className="recurring-template-preview"
+                    src={previewSvg(template, story.data)}
+                    alt={`Vista previa: ${template.name}`}
+                  />
+                )}
+                {template?.fields.map((field) => (
+                  <label key={field.key}>
+                    {field.label}
+                    <input
+                      maxLength={field.maxLength}
+                      onChange={(event) => setStoryField(storyIndex, field.key, event.target.value)}
+                      required={field.required}
+                      value={story.data[field.key] || ""}
+                    />
+                  </label>
+                ))}
+              </fieldset>
+            );
+          })}
         <label>
           Próxima fecha
           <input
@@ -178,7 +250,7 @@ function RecurringSocialDashboard() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(new Date());
 
   const load = async () => {
     setLoading(true);
@@ -224,12 +296,19 @@ function RecurringSocialDashboard() {
       cadence: { every: Number(form.every), unit: form.unit },
       nextRunAt: form.active ? form.nextRunAt || null : form.nextRunAt || null,
       active: form.active,
+      autoPublish: Boolean(form.autoPublish),
+      publishTime: form.publishTime || "12:00",
+      fixedStoryTemplates: form.fixedStoryTemplates || [],
     };
     try {
       if (form.id) await api(`/api/social-series/${form.id}`, { method: "PUT", body: JSON.stringify(payload) });
       else await api("/api/social-series", { method: "POST", body: JSON.stringify(payload) });
       setEditing(null);
-      setNotice("La serie quedó guardada. Cada entrega se prepara como borrador para revisar.");
+      setNotice(
+        form.autoPublish
+          ? `La secuencia quedó guardada. Se genera desde las plantillas editables y se publica todos los días a las ${form.publishTime || "12:00"}.`
+          : "La serie quedó guardada. Cada entrega se prepara como borrador para revisar.",
+      );
       await load();
     } catch (saveError) {
       setError(saveError.message);
@@ -258,7 +337,8 @@ function RecurringSocialDashboard() {
     navigate(`/admin/nueva?${query.toString()}`);
   };
 
-  const dueCount = ready.filter((item) => item.nextRunAt && item.nextRunAt <= today).length;
+  const dueCount = ready.filter((item) => !item.autoPublish && item.nextRunAt && item.nextRunAt <= today).length;
+  const automaticSeries = ready.find((item) => item.autoPublish);
 
   return (
     <Layout>
@@ -268,8 +348,9 @@ function RecurringSocialDashboard() {
             <span className="eyebrow">REDES · CONTENIDO RECURRENTE</span>
             <h1>Historias y series</h1>
             <p>
-              Elegí qué formatos querés repetir y cada cuánto. Cada entrega queda como borrador para revisar antes de
-              publicar.
+              Las series editoriales dejan borradores para revisar. La secuencia de Afterstage se genera desde sus
+              plantillas editables y publica tres historias todos los días a las{" "}
+              {automaticSeries?.publishTime || "12:00"}.
             </p>
           </div>
           <Button onClick={() => setEditing(emptyForm())} type="button">
@@ -307,7 +388,10 @@ function RecurringSocialDashboard() {
             <span>listas para preparar</span>
           </div>
           <p>
-            <span className="recurring-dot" /> Sin publicación automática
+            <span className="recurring-dot" />
+            {ready.some((item) => item.autoPublish)
+              ? "La secuencia automática publica tres historias diarias en Instagram"
+              : "Sin publicación automática"}
           </p>
         </section>
 
@@ -356,7 +440,7 @@ function RecurringSocialDashboard() {
               {ready.length ? (
                 <div className="recurring-list">
                   {ready.map((item) => {
-                    const due = item.nextRunAt && item.nextRunAt <= today;
+                    const due = !item.autoPublish && item.nextRunAt && item.nextRunAt <= today;
                     return (
                       <article className={`recurring-card${due ? " is-due" : ""}`} key={item.id}>
                         <div className="recurring-card-main">
@@ -371,8 +455,13 @@ function RecurringSocialDashboard() {
                             <h3>{item.name}</h3>
                             <p>{item.description || item.editorialBrief}</p>
                             <div className="recurring-card-schedule">
-                              <strong>{cadenceLabel(item.cadence)}</strong>
+                              <strong>
+                                {item.autoPublish
+                                  ? `Todos los días · ${item.publishTime} (Argentina)`
+                                  : cadenceLabel(item.cadence)}
+                              </strong>
                               <span>{due ? "Lista para preparar" : `Próxima: ${dateLabel(item.nextRunAt)}`}</span>
+                              {item.autoPublish && <span>Publicación automática · 3 historias en orden</span>}
                               {item.lastDraftId && (
                                 <Link to={`/admin/contenido/${item.lastDraftId}?mode=instagram&view=review`}>
                                   Ver último borrador ↗
@@ -382,11 +471,13 @@ function RecurringSocialDashboard() {
                           </div>
                         </div>
                         <div className="recurring-card-actions">
-                          <Button onClick={() => schedule(item)} type="button">
-                            Preparar borrador
-                          </Button>
+                          {!item.autoPublish && (
+                            <Button onClick={() => schedule(item)} type="button">
+                              Preparar borrador
+                            </Button>
+                          )}
                           <button className="recurring-text-button" onClick={() => edit(item)} type="button">
-                            Editar frecuencia
+                            {item.autoPublish ? "Editar historias" : "Editar frecuencia"}
                           </button>
                         </div>
                       </article>
