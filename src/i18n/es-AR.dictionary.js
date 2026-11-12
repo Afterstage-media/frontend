@@ -153,3 +153,7 @@ export const adminPlatformEs = {
   submitTransport: "Publicar traslado ↗",
   transportTitle: "Publicar un traslado.",
 };
+
+export const userManagementEs = {
+  activeAccounts: "Cuentas activas",
+};
