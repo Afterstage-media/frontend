@@ -8,12 +8,20 @@ export function PageShell({ children, header, sidebar, footer, bottomNavigation,
       {workspace ? (
         <div className="workspace-layout">
           {sidebar}
-          <main className="workspace-main route-transition" id="main-content" key={pageKey}>
+          <main
+            className={`workspace-main${bottomNavigation ? " has-bottom-navigation" : ""} route-transition`}
+            id="main-content"
+            key={pageKey}
+          >
             {children}
           </main>
         </div>
       ) : (
-        <main className="route-transition" id="main-content" key={pageKey}>
+        <main
+          className={`${bottomNavigation ? "has-bottom-navigation " : ""}route-transition`}
+          id="main-content"
+          key={pageKey}
+        >
           {children}
         </main>
       )}
