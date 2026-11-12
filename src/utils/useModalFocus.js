@@ -12,6 +12,10 @@ export function useModalFocus(onClose) {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
+    const previousRootPaddingRight = document.documentElement.style.paddingRight;
+    const root = document.documentElement;
+    const scrollbarWidth = window.innerWidth - root.clientWidth;
+    const rootPaddingRight = Number.parseFloat(window.getComputedStyle(root).paddingRight) || 0;
     const dialog = dialogRef.current;
     const getFocusable = () =>
       [...(dialog?.querySelectorAll(focusableSelector) || [])].filter((element) => {
@@ -20,7 +24,8 @@ export function useModalFocus(onClose) {
       });
 
     document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
+    root.style.overflow = "hidden";
+    if (scrollbarWidth > 0) root.style.paddingRight = `${rootPaddingRight + scrollbarWidth}px`;
     getFocusable()[0]?.focus({ preventScroll: true });
 
     const handleKeyDown = (event) => {
@@ -51,7 +56,8 @@ export function useModalFocus(onClose) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      document.documentElement.style.overflow = previousRootOverflow;
+      root.style.overflow = previousRootOverflow;
+      root.style.paddingRight = previousRootPaddingRight;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, []);
