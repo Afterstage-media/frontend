@@ -48,3 +48,11 @@ export const authMessagesEs = {
   passwordUpdated: "Contraseña actualizada. Ya podés iniciar sesión.",
   recoveryUnavailable: "La recuperación de acceso no está disponible temporalmente.",
 };
+
+export const pressMessagesEs = {
+  accreditationSending: "Enviando…",
+  sendAccreditationConfirm: ({ recipient, subject, event }) =>
+    `Vas a enviar un correo a ${recipient} con el asunto «${subject}» para solicitar acreditación de ${event}. ¿Querés enviarlo ahora?`,
+  accreditationSendPending:
+    "Ya existe un intento de envío para esta solicitud. No se envió otra copia. Revisá su estado y consultá a una persona administradora antes de volver a enviarla.",
+};
