@@ -293,12 +293,16 @@
 }
 
 .admin-platform-creation-dialog {
+  background: var(--color-surface);
+  border: var(--border-soft);
+  color: var(--color-ink);
   max-height: 90vh;
   max-height: 90dvh;
   max-width: 560px;
   overflow-y: auto;
+  padding: 28px;
   position: relative;
-  width: 100%;
+  width: min(100%, 560px);
 }
 
 .platform-dialog-close {
