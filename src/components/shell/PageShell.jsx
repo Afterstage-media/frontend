@@ -1,4 +1,4 @@
-export function PageShell({ children, header, sidebar, footer, workspace = false }) {
+export function PageShell({ children, header, sidebar, footer, bottomNavigation, pageKey, workspace = false }) {
   return (
     <div className="site-shell">
       <a className="skip-link" href="#main-content">
@@ -8,14 +8,17 @@ export function PageShell({ children, header, sidebar, footer, workspace = false
       {workspace ? (
         <div className="workspace-layout">
           {sidebar}
-          <main className="workspace-main" id="main-content">
+          <main className="workspace-main route-transition" id="main-content" key={pageKey}>
             {children}
           </main>
         </div>
       ) : (
-        <main id="main-content">{children}</main>
+        <main className="route-transition" id="main-content" key={pageKey}>
+          {children}
+        </main>
       )}
       {footer}
+      {bottomNavigation}
     </div>
   );
 }

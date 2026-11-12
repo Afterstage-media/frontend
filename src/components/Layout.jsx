@@ -5,6 +5,7 @@ import { PageShell } from "./shell/PageShell.jsx";
 import { SiteFooter } from "./shell/SiteFooter.jsx";
 import { SiteHeader } from "./shell/SiteHeader.jsx";
 import { WorkspaceSidebar } from "./shell/WorkspaceSidebar.jsx";
+import { MobileNavigation } from "./MobileNavigation.jsx";
 
 const themeStorageKey = "afterstage-theme-v2";
 const LayoutContext = createContext(false);
@@ -180,12 +181,15 @@ function LayoutShell({ children }) {
       setCollapsedSections={setCollapsedSections}
     />
   ) : null;
+  const bottomNavigation = <MobileNavigation can={can} isWorkspace={isWorkspace} logOut={logOut} roles={roles} />;
 
   return (
     <LayoutContext.Provider value>
       <PageShell
         footer={<SiteFooter admin={isAdminPath || isWorkspace} />}
         header={header}
+        bottomNavigation={bottomNavigation}
+        pageKey={location.pathname}
         sidebar={sidebar}
         workspace={isWorkspace}
       >
