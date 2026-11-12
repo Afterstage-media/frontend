@@ -136,3 +136,20 @@ export const pressMessagesEs = {
   accreditationSendPending:
     "Ya existe un intento de envío para esta solicitud. No se envió otra copia. Revisá su estado y consultá a una persona administradora antes de volver a enviarla.",
 };
+
+export const adminPlatformEs = {
+  addMarketplaceItem: "Agregar propuesta al marketplace",
+  addMarketplaceTitle: "Agregar una propuesta.",
+  closeForm: "Cerrar formulario",
+  creationActions: "Acciones",
+  creationTitle: "Crear en la plataforma.",
+  creatingMarketplaceItem: "Agregando…",
+  creatingTransport: "Publicando…",
+  loadErrorTitle: "No pudimos cargar las operaciones.",
+  loadingTitle: "Cargando operaciones…",
+  openMarketplaceForm: "Agregar propuesta al catálogo",
+  openTransportForm: "Publicar un traslado",
+  retryLoad: "Reintentar",
+  submitTransport: "Publicar traslado ↗",
+  transportTitle: "Publicar un traslado.",
+};
