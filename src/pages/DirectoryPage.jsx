@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
+import { hasSessionHint } from "../services/session.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { TokenGate } from "./AdminPages.jsx";
@@ -831,7 +832,7 @@ function AdminCards({ items, onVerify, scores = {}, onScoreChange }) {
 }
 
 function AdminDirectoryEditor() {
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [authorized, setAuthorized] = useState(() => hasSessionHint());
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(empty);
   const [query, setQuery] = useState("");

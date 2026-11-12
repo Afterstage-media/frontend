@@ -4,8 +4,7 @@ import { api, encryptAuthSecret } from "../services/api.js";
 import { ErrorMessage, Layout } from "./Layout.jsx";
 import { Button, ButtonLink } from "./ui/Button.jsx";
 import { TextField } from "./ui/TextField.jsx";
-
-const tokenKey = "afterstage-token";
+import { setSessionHint } from "../services/session.js";
 
 export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator = true }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,7 +20,10 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const resetToken = searchParams.get("reset") || "";
+  const [resetToken] = useState(() => searchParams.get("reset") || "");
+  useEffect(() => {
+    if (resetToken) setSearchParams({}, { replace: true });
+  }, [resetToken, setSearchParams]);
   const setAuthMode = (nextMode) => {
     setMode(nextMode);
     setError("");
@@ -47,7 +49,7 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
             : { identifier, keyId: encryptionKey.keyId, passwordCiphertext },
         ),
       });
-      localStorage.setItem(tokenKey, result.accessToken);
+      setSessionHint(true);
       window.dispatchEvent(new Event("afterstage-auth-changed"));
       onReady(result.user);
     } catch (requestError) {
@@ -62,10 +64,11 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
     setLoading(true);
     setError("");
     try {
-      await api("/api/auth/recover", {
+      const result = await api("/api/auth/recover", {
         method: "POST",
         body: JSON.stringify({ email: identifier }),
       });
+      if (!result.serviceReady) throw new Error("La recuperación de acceso no está disponible temporalmente.");
       setRecoverySent(true);
     } catch (requestError) {
       setError(requestError.message);
@@ -204,6 +207,11 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
       <button className="auth-recovery-link" type="button" onClick={() => setAuthMode("recover")}>
         ¿Perdiste el acceso? Recuperá tu contraseña
       </button>
+      {recoverySent && (
+        <p className="success" role="status">
+          Contraseña actualizada. Ya podés iniciar sesión.
+        </p>
+      )}
       {collaborator && registering && (
         <TextField
           autoComplete="new-password"
@@ -236,21 +244,23 @@ export function LoginForm({ onReady, collaboratorOnly = false, showCollaborator 
 
 export function AuthGate({ allowedRoles, children }) {
   const rolesKey = allowedRoles.join(",");
-  const [token, setToken] = useState(() => localStorage.getItem(tokenKey) || "");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [accessDenied, setAccessDenied] = useState(false);
-  const [loading, setLoading] = useState(Boolean(token));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      setUser(null);
-      return;
-    }
+    let active = true;
     setLoading(true);
-    api("/api/auth/me")
+    api("/api/auth/session")
       .then(({ user: actor }) => {
+        if (!active) return;
+        setSessionHint(Boolean(actor));
+        if (!actor) {
+          setUser(null);
+          setAccessDenied(false);
+          return;
+        }
         if (!(actor.roles || []).some((role) => allowedRoles.includes(role))) {
           setAccessDenied(true);
           setUser(null);
@@ -262,16 +272,19 @@ export function AuthGate({ allowedRoles, children }) {
         setError("");
       })
       .catch((requestError) => {
-        if (requestError.status === 401) {
-          localStorage.removeItem(tokenKey);
-          setToken("");
-        }
+        if (!active) return;
+        setSessionHint(false);
         setUser(null);
         setAccessDenied(requestError.status === 403);
         setError(requestError.status === 403 ? "" : requestError.message);
       })
-      .finally(() => setLoading(false));
-  }, [rolesKey, token]);
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [rolesKey]);
 
   if (loading)
     return (
@@ -306,7 +319,7 @@ export function AuthGate({ allowedRoles, children }) {
               setError("");
               return;
             }
-            setToken(localStorage.getItem(tokenKey) || "");
+            setSessionHint(true);
             setUser(actor);
             setAccessDenied(false);
             setError("");

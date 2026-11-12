@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
+import { hasSessionHint } from "../services/session.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 import { SocialComposer } from "./SocialComposer.jsx";
@@ -147,7 +148,7 @@ function AdminDashboard({ actor }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [channelFilter, setChannelFilter] = useState("all");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [authorized, setAuthorized] = useState(() => hasSessionHint());
   const load = () =>
     api("/api/content")
       .then(setItems)
@@ -1251,7 +1252,7 @@ function MediaKitForm({ mediaKit, onSaved }) {
 function PressDashboard() {
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState("");
-  const [authorized, setAuthorized] = useState(Boolean(localStorage.getItem("afterstage-token")));
+  const [authorized, setAuthorized] = useState(() => hasSessionHint());
   const [activeSection, setActiveSection] = useState("overview");
   const [event, setEvent] = useState({
     name: "",

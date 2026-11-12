@@ -6,6 +6,7 @@ import { SiteFooter } from "./shell/SiteFooter.jsx";
 import { SiteHeader } from "./shell/SiteHeader.jsx";
 import { WorkspaceSidebar } from "./shell/WorkspaceSidebar.jsx";
 import { MobileNavigation } from "./MobileNavigation.jsx";
+import { hasSessionHint, setSessionHint } from "../services/session.js";
 
 const themeStorageKey = "afterstage-theme-v2";
 const LayoutContext = createContext(false);
@@ -40,23 +41,22 @@ function LayoutShell({ children }) {
   const reflectorStageRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const hasStoredSession = typeof window !== "undefined" && Boolean(window.localStorage.getItem("afterstage-token"));
+  const hasStoredSession = hasSessionHint();
   // A logged-in person keeps the workspace shell while browsing public routes.
   const isWorkspace = roles?.length > 0 || (roles === null && hasStoredSession);
   const isAdminPath = location.pathname.startsWith("/admin") && roles?.length > 0;
 
   useEffect(() => {
     const refreshRoles = () => {
-      const token = localStorage.getItem("afterstage-token");
-      if (!token) {
-        setRoles([]);
-        return;
-      }
-      api("/api/auth/me")
+      api("/api/auth/session")
         .then(({ user }) => {
-          if (localStorage.getItem("afterstage-token") === token) setRoles(user.roles || []);
+          setSessionHint(Boolean(user));
+          setRoles(user?.roles || []);
         })
-        .catch(() => setRoles([]));
+        .catch(() => {
+          setSessionHint(false);
+          setRoles([]);
+        });
     };
     refreshRoles();
     window.addEventListener("afterstage-auth-changed", refreshRoles);
@@ -140,8 +140,9 @@ function LayoutShell({ children }) {
   }, []);
 
   const can = (...allowedRoles) => roles?.some((role) => allowedRoles.includes(role));
-  const logOut = () => {
-    localStorage.removeItem("afterstage-token");
+  const logOut = async () => {
+    await api("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    setSessionHint(false);
     window.dispatchEvent(new Event("afterstage-auth-changed"));
     navigate("/");
   };
