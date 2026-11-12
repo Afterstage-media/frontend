@@ -267,7 +267,10 @@ function RecurringSocialDashboard() {
           <div>
             <span className="eyebrow">REDES · CONTENIDO RECURRENTE</span>
             <h1>Historias y series</h1>
-            <p>Elegí qué formatos querés repetir y cada cuánto. Cada entrega queda como borrador para revisar antes de publicar.</p>
+            <p>
+              Elegí qué formatos querés repetir y cada cuánto. Cada entrega queda como borrador para revisar antes de
+              publicar.
+            </p>
           </div>
           <Button onClick={() => setEditing(emptyForm())} type="button">
             + Nueva serie
@@ -324,7 +327,8 @@ function RecurringSocialDashboard() {
                   {ideas.map((item) => (
                     <article className="recurring-idea-card" key={item.id}>
                       <span>
-                        {item.template?.name || "Formato editorial"} · {typeLabels[item.template?.outputType] || "Serie"}
+                        {item.template?.name || "Formato editorial"} ·{" "}
+                        {typeLabels[item.template?.outputType] || "Serie"}
                       </span>
                       <h3>{item.name}</h3>
                       <p>{item.description || item.editorialBrief}</p>
