@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx";
@@ -154,6 +154,7 @@ function AdminBoard() {
   const [items, setItems] = useState([]);
   const [applications, setApplications] = useState({});
   const [error, setError] = useState("");
+  const assignmentKeys = useRef(new Map());
   const [form, setForm] = useState({
     title: "",
     profile: "photographer",
@@ -177,11 +178,15 @@ function AdminBoard() {
     }
   };
   const assign = async (id) => {
+    const idempotencyKey = assignmentKeys.current.get(id) || globalThis.crypto.randomUUID();
+    assignmentKeys.current.set(id, idempotencyKey);
     try {
       await api(`/api/press/replacement-applications/${id}/assign`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ dryRun: false }),
       });
+      assignmentKeys.current.delete(id);
       load();
     } catch (e) {
       setError(e.message);
