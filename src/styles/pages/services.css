@@ -496,9 +496,14 @@
   color: var(--color-on-ink);
   display: grid;
   gap: 22px;
+  grid-template-columns: minmax(0, 1fr);
   padding: 28px;
   position: sticky;
   top: 20px;
+}
+
+.service-request-note > * {
+  min-width: 0;
 }
 
 .service-request-note .eyebrow {
@@ -533,8 +538,11 @@
   font: inherit;
   font-size: 0.9rem;
   letter-spacing: normal;
+  max-width: 100%;
+  min-width: 0;
   padding: 12px;
   text-transform: none;
+  width: 100%;
 }
 
 .service-request-note .text-link {
