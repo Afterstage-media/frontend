@@ -41,3 +41,10 @@ export const mobileNavigationEs = {
   workWithAfterstage: "Colaborá con Afterstage",
   howItWorks: "Cómo funciona",
 };
+
+export const authMessagesEs = {
+  logoutUnconfirmed:
+    "Se cerró la sesión en este navegador, pero no pudimos confirmar la revocación en el servidor. Si el acceso sigue activo, volvé a cerrar sesión.",
+  passwordUpdated: "Contraseña actualizada. Ya podés iniciar sesión.",
+  recoveryUnavailable: "La recuperación de acceso no está disponible temporalmente.",
+};
