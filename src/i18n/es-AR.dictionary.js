@@ -49,6 +49,11 @@ export const authMessagesEs = {
   recoveryUnavailable: "La recuperación de acceso no está disponible temporalmente.",
 };
 
+export const agendaMessagesEs = {
+  eventsOnMap: ({ count }) => `${count} ${count === 1 ? "fecha" : "fechas"} en el mapa`,
+  eventsInAgenda: ({ count }) => `${count} ${count === 1 ? "evento" : "eventos"} en la agenda`,
+};
+
 export const pressMessagesEs = {
   accreditationSending: "Enviando…",
   sendAccreditationConfirm: ({ recipient, subject, event }) =>
