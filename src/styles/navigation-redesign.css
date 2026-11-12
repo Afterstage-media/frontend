@@ -986,6 +986,10 @@
     padding-bottom: calc(82px + env(safe-area-inset-bottom));
   }
 
+  .has-bottom-navigation {
+    animation: none;
+  }
+
   .site-shell > footer:not(.admin-footer) {
     margin-bottom: calc(82px + env(safe-area-inset-bottom));
   }

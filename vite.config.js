@@ -6,8 +6,9 @@ function offlineAppPlugin(base) {
     name: "afterstage-offline-app",
     generateBundle(_options, bundle) {
       const cachedAssets = Object.keys(bundle).filter((fileName) => /\.(?:js|css|svg)$/.test(fileName));
+      const appEntry = `${base}index.html`;
       const precachePaths = [
-        base,
+        appEntry,
         `${base}manifest.webmanifest`,
         `${base}favicon.svg`,
         `${base}apple-touch-icon.png`,
@@ -25,7 +26,8 @@ function offlineAppPlugin(base) {
       const workerSource = `
 const CACHE_NAME = "afterstage-app-${buildFingerprint}";
 const APP_SCOPE = self.registration.scope;
-const APP_ENTRY = new URL("./", APP_SCOPE).href;
+const APP_ENTRY = new URL("index.html", APP_SCOPE).href;
+const APP_ROOT = new URL("./", APP_SCOPE).href;
 const PRECACHE_URLS = ${JSON.stringify(precachePaths)}.map((path) => new URL(path, self.location.origin).href);
 
 self.addEventListener("install", (event) => {
@@ -48,7 +50,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(APP_ENTRY, response.clone()));
       return response;
-    }).catch(async () => (await caches.match(APP_ENTRY)) || Response.error()));
+    }).catch(async () => (await caches.match(APP_ENTRY)) || (await caches.match(APP_ROOT)) || Response.error()));
     return;
   }
 
