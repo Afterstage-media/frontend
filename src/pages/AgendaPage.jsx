@@ -362,7 +362,7 @@ export function AgendaPage() {
             </div>
             {!loading && (
               <span className="muted">
-                {visibleEvents.length ? text.eventsInAgenda({ count: visibleEvents.length }) : "Agenda en movimiento"}
+                {events.length ? text.eventsInAgenda({ count: events.length }) : "Agenda en movimiento"}
               </span>
             )}
           </div>
