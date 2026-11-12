@@ -153,6 +153,7 @@ export function ReplacementsPage() {
 function AdminBoard() {
   const [items, setItems] = useState([]);
   const [applications, setApplications] = useState({});
+  const [assigning, setAssigning] = useState({});
   const [error, setError] = useState("");
   const assignmentKeys = useRef(new Map());
   const [form, setForm] = useState({
@@ -178,18 +179,33 @@ function AdminBoard() {
     }
   };
   const assign = async (id) => {
+    if (assigning[id]) return;
+    setAssigning((current) => ({ ...current, [id]: true }));
     const idempotencyKey = assignmentKeys.current.get(id) || globalThis.crypto.randomUUID();
     assignmentKeys.current.set(id, idempotencyKey);
     try {
-      await api(`/api/press/replacement-applications/${id}/assign`, {
+      const result = await api(`/api/press/replacement-applications/${id}/assign`, {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ dryRun: false }),
       });
       assignmentKeys.current.delete(id);
+      setApplications((current) => ({
+        ...current,
+        [result.searchId]: (current[result.searchId] || []).map((candidate) =>
+          candidate.id === id
+            ? { ...candidate, status: "accepted" }
+            : candidate.searchId === result.searchId &&
+                ["pending", "shortlisted", "accepted"].includes(candidate.status)
+              ? { ...candidate, status: "rejected" }
+              : candidate,
+        ),
+      }));
       load();
     } catch (e) {
       setError(e.message);
+    } finally {
+      setAssigning((current) => ({ ...current, [id]: false }));
     }
   };
   const create = async (event) => {
@@ -282,7 +298,7 @@ function AdminBoard() {
                   </a>
                 )}
                 <Button
-                  disabled={candidate.status === "accepted"}
+                  disabled={candidate.status === "accepted" || assigning[candidate.id]}
                   onClick={() => assign(candidate.id)}
                   variant="dark"
                   type="button"
