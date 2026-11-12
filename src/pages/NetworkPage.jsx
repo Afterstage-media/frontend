@@ -10,6 +10,7 @@ import { Dialog } from "../components/ui/Dialog.jsx";
 import { IconButton } from "../components/ui/IconButton.jsx";
 import { ItemList } from "../components/ui/ItemList.jsx";
 import { Notice } from "../components/ui/Notice.jsx";
+import { networkPageEs as text } from "../i18n/es-AR.dictionary.js";
 
 const emptyPhotographer = {
   name: "",
@@ -148,16 +149,16 @@ export function NetworkPage() {
 
   return (
     <Layout>
-      <SignalTicker items={["Red abierta", "Fotógrafos", "Coberturas", "Colaboraciones"]} />
+      <SignalTicker items={text.tickerItems} />
       <section className="page-intro network-intro">
-        <p className="eyebrow">Red de trabajo / 01</p>
-        <h1>La escena también se construye detrás de cámara.</h1>
-        <p>Perfiles, coberturas y oportunidades reales para que cada evento encuentre a las personas que necesita.</p>
+        <p className="eyebrow">{text.introEyebrow}</p>
+        <h1>{text.introTitle}</h1>
+        <p>{text.introDescription}</p>
       </section>
 
-      <nav className="network-mode-switcher" aria-label="Qué querés hacer en la red">
-        <p className="eyebrow">Elegí un camino</p>
-        <div role="tablist" aria-label="Acciones de la red">
+      <nav className="network-mode-switcher" aria-label={text.actionNavigationLabel}>
+        <p className="eyebrow">{text.choosePath}</p>
+        <div role="tablist" aria-label={text.actionListLabel}>
           <button
             aria-selected={networkMode === "browse"}
             className={networkMode === "browse" ? "is-active" : ""}
@@ -165,7 +166,7 @@ export function NetworkPage() {
             role="tab"
             type="button"
           >
-            Explorar perfiles y búsquedas
+            {text.browseTab}
           </button>
           <button
             aria-selected={networkMode === "photographer"}
@@ -174,7 +175,7 @@ export function NetworkPage() {
             role="tab"
             type="button"
           >
-            Sumá tu perfil
+            {text.photographerTab}
           </button>
           <button
             aria-selected={networkMode === "coverage"}
@@ -183,7 +184,7 @@ export function NetworkPage() {
             role="tab"
             type="button"
           >
-            Pedí una cobertura
+            {text.coverageTab}
           </button>
         </div>
       </nav>
@@ -192,17 +193,17 @@ export function NetworkPage() {
         <div className="network-main">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Directorio vivo</p>
-              <h2>Fotógrafos y fotógrafas.</h2>
+              <p className="eyebrow">{text.directoryEyebrow}</p>
+              <h2>{text.photographersTitle}</h2>
             </div>
-            <span className="network-count">{photographers.length} perfiles publicados</span>
+            <span className="network-count">{text.publishedProfiles(photographers.length)}</span>
           </div>
           {loading ? (
-            <LoadingState label="Buscando perfiles…" />
+            <LoadingState label={text.loadingPhotographers} />
           ) : error ? (
             <ErrorMessage error={error} />
           ) : photographers.length === 0 ? (
-            <EmptyState title="La red recién empieza." message="Podés ser la primera persona en sumar tu perfil." />
+            <EmptyState title={text.emptyNetworkTitle} message={text.emptyNetworkMessage} />
           ) : (
             <ItemList
               className="network-profile-grid"
@@ -210,18 +211,18 @@ export function NetworkPage() {
               renderItem={(photographer) => (
                 <article className="network-profile-card" key={photographer.id}>
                   <span className="network-card-index">
-                    {String(photographer.sampleCount || 0).padStart(2, "0")} fotos
+                    {text.photoCount(String(photographer.sampleCount || 0).padStart(2, "0"))}
                   </span>
                   <h3>{photographer.name}</h3>
                   <p className="network-profile-meta">
-                    {photographer.city} · {(photographer.specialties || []).join(" · ") || "Cobertura"}
+                    {photographer.city} · {(photographer.specialties || []).join(" · ") || text.coverageSpecialty}
                   </p>
                   {photographer.bio && <p>{photographer.bio}</p>}
                   {!!photographer.portfolioUrls?.length && (
-                    <div className="network-portfolio-grid" aria-label={`Portfolio de ${photographer.name}`}>
+                    <div className="network-portfolio-grid" aria-label={text.photographerPortfolio(photographer.name)}>
                       {photographer.portfolioUrls.slice(0, 10).map((photoUrl) => (
                         <a href={photoUrl} key={photoUrl} rel="noreferrer" target="_blank">
-                          <img alt={`Foto de portfolio de ${photographer.name}`} loading="lazy" src={photoUrl} />
+                          <img alt={text.portfolioPhoto(photographer.name)} loading="lazy" src={photoUrl} />
                         </a>
                       ))}
                     </div>
@@ -229,7 +230,7 @@ export function NetworkPage() {
                   <div className="network-profile-links">
                     {photographer.portfolioUrl && (
                       <a href={photographer.portfolioUrl} target="_blank" rel="noreferrer">
-                        Portfolio ↗
+                        {text.portfolioLink}
                       </a>
                     )}
                     {photographer.instagram && <span>{photographer.instagram}</span>}
@@ -241,51 +242,48 @@ export function NetworkPage() {
 
           <div className="section-head network-subsection-head">
             <div>
-              <p className="eyebrow">Oportunidades</p>
-              <h2>Búsquedas de cobertura.</h2>
+              <p className="eyebrow">{text.opportunitiesEyebrow}</p>
+              <h2>{text.coverageSearchesTitle}</h2>
             </div>
             {eventId && (
               <ButtonLink className="ghost" to={`/agenda/evento/${eventId}`}>
-                Volver al evento
+                {text.backToEvent}
               </ButtonLink>
             )}
           </div>
           <ItemList
             className="network-request-list"
-            empty={
-              <EmptyState
-                title="No hay búsquedas abiertas."
-                message="Cuando aparezca una cobertura, va a quedar publicada acá."
-              />
-            }
+            empty={<EmptyState title={text.emptyCoverageTitle} message={text.emptyCoverageMessage} />}
             items={requests}
             renderItem={(request) => (
               <article className="network-request-card" key={request.id}>
                 <div>
                   <span className="eyebrow">
-                    {request.city || "Escena"} · {request.organization || "Afterstage"}
+                    {request.city || text.scene} · {request.organization || text.afterstage}
                   </span>
                   <h3>{request.title}</h3>
                   <p>{request.description}</p>
                   <small>
-                    {request.budget || "Presupuesto a coordinar"}
-                    {request.deadlineAt ? ` · Cierra ${new Date(request.deadlineAt).toLocaleDateString("es-AR")}` : ""}
+                    {request.budget || text.budgetToCoordinate}
+                    {request.deadlineAt
+                      ? ` · ${text.deadline(new Date(request.deadlineAt).toLocaleDateString("es-AR"))}`
+                      : ""}
                   </small>
                 </div>
                 <Button onClick={() => setApplicationFor(request)} variant="dark" type="button">
-                  Postularme ↗
+                  {text.apply}
                 </Button>
               </article>
             )}
           />
         </div>
 
-        <aside className="network-forms" aria-label="Acción seleccionada">
+        <aside className="network-forms" aria-label={text.selectedAction}>
           {networkMode === "browse" && (
             <div className="network-form network-form-guide">
-              <p className="eyebrow">Encontrar colaboradores</p>
-              <h2>Explorá la red.</h2>
-              <p>Revisá perfiles publicados y postulá a las búsquedas abiertas cuando encuentres una oportunidad.</p>
+              <p className="eyebrow">{text.findCollaborators}</p>
+              <h2>{text.exploreNetworkTitle}</h2>
+              <p>{text.exploreNetworkDescription}</p>
               <Button
                 onClick={() =>
                   document.querySelector(".network-subsection-head")?.scrollIntoView({ behavior: "smooth" })
@@ -293,20 +291,17 @@ export function NetworkPage() {
                 variant="dark"
                 type="button"
               >
-                Ver búsquedas abiertas ↓
+                {text.viewOpenSearches}
               </Button>
             </div>
           )}
           {networkMode === "photographer" && (
             <form className="form network-form" onSubmit={submitPhotographer}>
-              <p className="eyebrow">Sumar perfil</p>
-              <h2>Quiero trabajar con la red.</h2>
-              <p>
-                Empezá con los datos básicos. El perfil queda en revisión antes de publicarse y después podés
-                completarlo.
-              </p>
+              <p className="eyebrow">{text.addProfile}</p>
+              <h2>{text.workWithNetwork}</h2>
+              <p>{text.photographerIntro}</p>
               <label>
-                Nombre
+                {text.name}
                 <input
                   required
                   value={photographerForm.name}
@@ -314,7 +309,7 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Ciudad
+                {text.city}
                 <input
                   required
                   value={photographerForm.city}
@@ -322,16 +317,16 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Especialidades
+                {text.specialties}
                 <input
                   required
-                  placeholder="Recitales, retrato, backstage"
+                  placeholder={text.specialtiesPlaceholder}
                   value={photographerForm.specialties}
                   onChange={(event) => setPhotographerForm({ ...photographerForm, specialties: event.target.value })}
                 />
               </label>
               <label>
-                Portfolio
+                {text.portfolio}
                 <input
                   type="url"
                   value={photographerForm.portfolioUrl}
@@ -339,12 +334,12 @@ export function NetworkPage() {
                 />
               </label>
               <details className="form-optional-fields">
-                <summary>Agregar portfolio y disponibilidad (opcional)</summary>
+                <summary>{text.optionalPortfolioAndAvailability}</summary>
                 <div className="form-optional-fields-content">
                   <label>
-                    Fotos de portfolio (hasta 10 URLs, una por línea)
+                    {text.portfolioPhotos}
                     <textarea
-                      placeholder="https://…/foto-01.jpg"
+                      placeholder={text.portfolioPhotoPlaceholder}
                       rows="3"
                       value={photographerForm.portfolioUrls}
                       onChange={(event) =>
@@ -353,14 +348,14 @@ export function NetworkPage() {
                     />
                   </label>
                   <label>
-                    Instagram
+                    {text.instagram}
                     <input
                       value={photographerForm.instagram}
                       onChange={(event) => setPhotographerForm({ ...photographerForm, instagram: event.target.value })}
                     />
                   </label>
                   <label>
-                    Bio
+                    {text.bio}
                     <textarea
                       rows="3"
                       value={photographerForm.bio}
@@ -368,7 +363,7 @@ export function NetworkPage() {
                     />
                   </label>
                   <label>
-                    Cantidad de fotos de referencia
+                    {text.referencePhotoCount}
                     <input
                       min="0"
                       type="number"
@@ -379,9 +374,9 @@ export function NetworkPage() {
                     />
                   </label>
                   <label>
-                    Disponibilidad
+                    {text.availability}
                     <input
-                      placeholder="Fines de semana, AMBA…"
+                      placeholder={text.availabilityPlaceholder}
                       value={photographerForm.availability}
                       onChange={(event) =>
                         setPhotographerForm({ ...photographerForm, availability: event.target.value })
@@ -391,7 +386,7 @@ export function NetworkPage() {
                 </div>
               </details>
               <label>
-                Email de contacto
+                {text.contactEmail}
                 <input
                   required
                   type="email"
@@ -400,17 +395,17 @@ export function NetworkPage() {
                 />
               </label>
               <Button variant="dark" type="submit">
-                Enviar perfil ↗
+                {text.submitProfile}
               </Button>
               <FormNotice error={photographerError} message={photographerNotice} />
             </form>
           )}
           {networkMode === "coverage" && (
             <form className="form network-form" onSubmit={submitCoverage}>
-              <p className="eyebrow">Publicar búsqueda</p>
-              <h2>Necesito cobertura.</h2>
+              <p className="eyebrow">{text.publishSearch}</p>
+              <h2>{text.needCoverage}</h2>
               <label>
-                Título
+                {text.title}
                 <input
                   required
                   value={coverageForm.title}
@@ -418,7 +413,7 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Qué necesitás
+                {text.whatDoYouNeed}
                 <textarea
                   required
                   minLength="10"
@@ -428,7 +423,7 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Nombre
+                {text.name}
                 <input
                   required
                   value={coverageForm.requesterName}
@@ -436,7 +431,7 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Email
+                {text.email}
                 <input
                   required
                   type="email"
@@ -445,35 +440,35 @@ export function NetworkPage() {
                 />
               </label>
               <label>
-                Productora / banda
+                {text.productionOrBand}
                 <input
                   value={coverageForm.organization}
                   onChange={(event) => setCoverageForm({ ...coverageForm, organization: event.target.value })}
                 />
               </label>
               <label>
-                Ciudad
+                {text.city}
                 <input
                   value={coverageForm.city}
                   onChange={(event) => setCoverageForm({ ...coverageForm, city: event.target.value })}
                 />
               </label>
               <label>
-                Presupuesto
+                {text.budget}
                 <input
                   value={coverageForm.budget}
                   onChange={(event) => setCoverageForm({ ...coverageForm, budget: event.target.value })}
                 />
               </label>
               <label>
-                Fecha límite
+                {text.deadlineLabel}
                 <input
                   type="datetime-local"
                   value={coverageForm.deadlineAt}
                   onChange={(event) => setCoverageForm({ ...coverageForm, deadlineAt: event.target.value })}
                 />
               </label>
-              <Button type="submit">Publicar búsqueda ↗</Button>
+              <Button type="submit">{text.submitCoverageSearch}</Button>
               <FormNotice error={coverageError} message={coverageNotice} />
             </form>
           )}
@@ -488,18 +483,18 @@ export function NetworkPage() {
           panelClassName="form network-application-modal"
           onSubmit={submitApplication}
         >
-          <IconButton label="Cerrar" onClick={() => setApplicationFor(null)}>
+          <IconButton label={text.close} onClick={() => setApplicationFor(null)}>
             ×
           </IconButton>
-          <p className="eyebrow">Postulación</p>
+          <p className="eyebrow">{text.application}</p>
           <h2 id="network-application-title">{applicationFor.title}</h2>
           <label>
-            Perfil publicado (opcional)
+            {text.publishedProfileOptional}
             <select
               value={application.photographerId}
               onChange={(event) => setApplication({ ...application, photographerId: event.target.value })}
             >
-              <option value="">Voy a enviar los datos manualmente</option>
+              <option value="">{text.sendDetailsManually}</option>
               {photographers.map((photographer) => (
                 <option key={photographer.id} value={photographer.id}>
                   {photographer.name} · {photographer.city}
@@ -508,7 +503,7 @@ export function NetworkPage() {
             </select>
           </label>
           <label>
-            Nombre
+            {text.name}
             <input
               required
               value={application.applicantName}
@@ -516,7 +511,7 @@ export function NetworkPage() {
             />
           </label>
           <label>
-            Email
+            {text.email}
             <input
               required
               type="email"
@@ -525,7 +520,7 @@ export function NetworkPage() {
             />
           </label>
           <label>
-            Portfolio
+            {text.portfolio}
             <input
               type="url"
               value={application.portfolioUrl}
@@ -533,7 +528,7 @@ export function NetworkPage() {
             />
           </label>
           <label>
-            Mensaje
+            {text.message}
             <textarea
               rows="4"
               value={application.message}
@@ -541,7 +536,7 @@ export function NetworkPage() {
             />
           </label>
           <Button variant="dark" type="submit">
-            Enviar postulación ↗
+            {text.submitApplication}
           </Button>
           <FormNotice error={coverageError} message={coverageNotice} />
         </Dialog>
