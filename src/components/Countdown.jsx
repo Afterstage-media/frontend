@@ -44,8 +44,8 @@ export function Countdown({ target, endTarget, label = "Falta" }) {
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
   const values = [
-    [days, "días"],
-    [hours, "horas"],
+    [days, days === 1 ? "día" : "días"],
+    [hours, hours === 1 ? "hora" : "horas"],
     [minutes, "min"],
   ];
 
@@ -54,7 +54,7 @@ export function Countdown({ target, endTarget, label = "Falta" }) {
       className="countdown"
       role="timer"
       aria-live="off"
-      aria-label={`${label}: ${days} días, ${hours} horas y ${minutes} minutos`}
+      aria-label={`${label}: ${days} ${days === 1 ? "día" : "días"}, ${hours} ${hours === 1 ? "hora" : "horas"} y ${minutes} minutos`}
     >
       <span className="countdown-label">{label}</span>
       <div className="countdown-values">

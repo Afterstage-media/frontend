@@ -5,8 +5,15 @@ import { formatEventDateValue, formatEventDates, getNextEventDate, isMultiDateEv
 export function EventCard({ event, index = 0 }) {
   const date = getNextEventDate(event);
   const isMultiDate = isMultiDateEvent(event);
-  const mapQuery = [event.venue, event.address, event.city, event.country].filter(Boolean).join(", ");
-  const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : "";
+  const venue = event.venue?.trim() || "";
+  const venueIsUnconfirmed = /\b(a confirmar|por confirmar|pendiente)\b/i.test(venue);
+  const mapQuery = [venueIsUnconfirmed ? "" : venue, event.address, event.city, event.country]
+    .filter(Boolean)
+    .join(", ");
+  const mapUrl =
+    mapQuery && (!venueIsUnconfirmed || event.address)
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
+      : "";
   const eventUrl = event.url || "";
   const internalUrl = eventUrl.startsWith("/") || eventUrl.startsWith("#") || !/^https?:\/\//i.test(eventUrl);
   const eventContext = new URLSearchParams({
