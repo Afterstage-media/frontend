@@ -50,7 +50,7 @@ export const authMessagesEs = {
 };
 
 export const agendaMessagesEs = {
-  eventsOnMap: ({ count }) => `${count} ${count === 1 ? "fecha" : "fechas"} en el mapa`,
+  eventsOnMap: ({ count }) => `${count} ${count === 1 ? "evento" : "eventos"} en el área visible del mapa`,
   eventsInAgenda: ({ count }) => `${count} ${count === 1 ? "evento" : "eventos"} en la agenda`,
 };
 
