@@ -479,6 +479,7 @@ function PlatformAdmin({ actor }) {
           </section>
           {creationDialog === "transport" && (
             <Dialog
+              className="admin-platform-modal-backdrop"
               labelledBy="platform-transport-title"
               onClose={() => setCreationDialog(null)}
               panelAs="form"
@@ -563,6 +564,7 @@ function PlatformAdmin({ actor }) {
           )}
           {creationDialog === "marketplace" && canEditCatalog && (
             <Dialog
+              className="admin-platform-modal-backdrop"
               labelledBy="platform-marketplace-title"
               onClose={() => setCreationDialog(null)}
               panelAs="form"

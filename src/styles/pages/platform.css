@@ -277,6 +277,16 @@
   z-index: 1000;
 }
 
+.admin-platform-modal-backdrop {
+  align-items: flex-start;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.admin-platform-modal-backdrop::-webkit-scrollbar {
+  display: none;
+}
+
 .network-application-modal {
   max-height: 90vh;
   max-width: 560px;
@@ -296,10 +306,9 @@
   background: var(--color-surface);
   border: var(--border-soft);
   color: var(--color-ink);
-  max-height: 90vh;
-  max-height: 90dvh;
   max-width: 560px;
-  overflow-y: auto;
+  margin: auto;
+  overflow: visible;
   padding: 28px;
   position: relative;
   width: min(100%, 560px);
