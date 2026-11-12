@@ -1,8 +1,8 @@
 .recurring-social-page {
-  --rs-ink: #f1ede5;
-  --rs-muted: #aaa49b;
-  --rs-rule: rgb(241 237 229 / 15%);
-  --rs-violet: #8a43ff;
+  --rs-ink: #232127;
+  --rs-muted: #595560;
+  --rs-rule: rgb(35 33 39 / 18%);
+  --rs-violet: #5d2f9f;
   color: var(--rs-ink);
   margin: 0 auto;
   max-width: 1440px;
@@ -23,7 +23,7 @@
 .recurring-page-header .eyebrow,
 .recurring-editor .eyebrow,
 .recurring-section .eyebrow {
-  color: #b99aff;
+  color: var(--rs-violet);
   font-size: 0.7rem;
   letter-spacing: 0.18em;
 }
@@ -53,7 +53,7 @@
   gap: 9px;
 }
 .recurring-summary strong {
-  color: #c3a8ff;
+  color: var(--rs-violet);
   font: 600 1.4rem var(--font-display);
 }
 .recurring-summary span,
@@ -68,7 +68,7 @@
   margin: 0 0 0 auto;
 }
 .recurring-dot {
-  background: #a783ff;
+  background: var(--rs-violet);
   border-radius: 50%;
   height: 7px;
   width: 7px;
@@ -86,8 +86,8 @@
   margin: 6px 0 0;
 }
 .recurring-due-count {
-  border: 1px solid #8a43ff;
-  color: #c6adff;
+  border: 1px solid var(--rs-violet);
+  color: var(--rs-violet);
   font-size: 0.75rem;
   padding: 8px 11px;
 }
@@ -108,8 +108,8 @@
 }
 .recurring-card:hover,
 .recurring-card.is-due {
-  background: rgb(138 67 255 / 6%);
-  border-color: rgb(138 67 255 / 55%);
+  background: rgb(93 47 159 / 6%);
+  border-color: rgb(93 47 159 / 55%);
 }
 .recurring-card-main {
   align-items: center;
@@ -119,7 +119,7 @@
 }
 .recurring-card-mark {
   align-items: center;
-  border: 1px solid #8a43ff;
+  border: 1px solid var(--rs-violet);
   display: flex;
   flex: 0 0 44px;
   height: 44px;
@@ -127,13 +127,13 @@
   transform: rotate(-5deg);
 }
 .recurring-card-mark span {
-  background: #8a43ff;
+  background: var(--rs-violet);
   height: 9px;
   transform: rotate(5deg);
   width: 9px;
 }
 .recurring-card-meta {
-  color: #b99aff;
+  color: var(--rs-violet);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.68rem;
@@ -171,12 +171,12 @@
   font-size: 0.78rem;
 }
 .recurring-card-schedule a {
-  color: #b99aff;
+  color: var(--rs-violet);
   font-size: 0.76rem;
   text-decoration: none;
 }
 .recurring-card-schedule a:hover {
-  color: #fff;
+  color: #32185f;
   text-decoration: underline;
 }
 .recurring-card-actions {
@@ -189,14 +189,14 @@
 .recurring-text-button {
   background: none;
   border: 0;
-  color: #b99aff;
+  color: var(--rs-violet);
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
   padding: 5px 0;
 }
 .recurring-text-button:hover {
-  color: #fff;
+  color: #32185f;
   text-decoration: underline;
 }
 .recurring-ideas-grid {
@@ -210,20 +210,20 @@
   padding: 20px;
 }
 .recurring-idea-card > span {
-  color: #b99aff;
+  color: var(--rs-violet);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .recurring-idea-card .recurring-text-button {
-  border: 1px solid rgb(185 154 255 / 55%);
+  border: 1px solid rgb(93 47 159 / 45%);
   margin-top: 18px;
   padding: 9px 11px;
 }
 .recurring-idea-card .recurring-text-button:hover,
 .recurring-idea-card .recurring-text-button:focus-visible {
-  background: rgb(138 67 255 / 16%);
-  border-color: #b99aff;
+  background: rgb(93 47 159 / 9%);
+  border-color: var(--rs-violet);
 }
 .recurring-empty {
   border: 1px dashed var(--rs-rule);
@@ -239,7 +239,7 @@
   padding: 20px 0;
 }
 .recurring-footer-note > span {
-  color: #b99aff;
+  color: var(--rs-violet);
   font: 600 1rem var(--font-display);
 }
 .recurring-footer-note p {
@@ -250,6 +250,10 @@
   color: var(--rs-ink);
 }
 .recurring-editor {
+  --rs-ink: #f1ede5;
+  --rs-muted: #aaa49b;
+  --rs-rule: rgb(241 237 229 / 15%);
+  --rs-violet: #c6adff;
   background: #19191e;
   border: 1px solid rgb(138 67 255 / 55%);
   margin: 24px 0;
@@ -348,8 +352,9 @@
   margin-top: 20px;
 }
 .recurring-notice {
-  border-left: 3px solid #8a43ff;
-  color: #d6c5ff;
+  background: #f1eafa;
+  border-left: 3px solid var(--rs-violet);
+  color: #39215b;
   margin: 18px 0;
   padding: 10px 14px;
 }
