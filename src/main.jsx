@@ -7,7 +7,10 @@ import "./styles.css";
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}service-worker.js`, { scope: import.meta.env.BASE_URL })
+      .register(
+        `${import.meta.env.BASE_URL}service-worker.js?build=${encodeURIComponent(__AFTERSTAGE_PWA_BUILD_ID__)}`,
+        { scope: import.meta.env.BASE_URL },
+      )
       .catch(() => {
         // La app sigue funcionando con conexión aunque el navegador no permita activar el modo sin conexión.
       });

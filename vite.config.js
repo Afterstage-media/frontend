@@ -67,8 +67,10 @@ self.addEventListener("fetch", (event) => {
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/").at(-1);
 const defaultBase =
   process.env.GITHUB_ACTIONS && repositoryName && !repositoryName.endsWith(".github.io") ? `/${repositoryName}/` : "/";
+const pwaBuildId = process.env.GITHUB_RUN_NUMBER || new Date().toISOString();
 
 export default defineConfig({
+  define: { __AFTERSTAGE_PWA_BUILD_ID__: JSON.stringify(pwaBuildId) },
   plugins: [react(), offlineAppPlugin(process.env.VITE_BASE_PATH || defaultBase)],
   base: process.env.VITE_BASE_PATH || defaultBase,
   server: { port: 5173, proxy: { "/api": "http://localhost:8787", "/media": "http://localhost:8787" } },
