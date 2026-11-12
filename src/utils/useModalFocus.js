@@ -11,6 +11,7 @@ export function useModalFocus(onClose) {
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
+    const previousRootOverflow = document.documentElement.style.overflow;
     const dialog = dialogRef.current;
     const getFocusable = () =>
       [...(dialog?.querySelectorAll(focusableSelector) || [])].filter((element) => {
@@ -19,7 +20,8 @@ export function useModalFocus(onClose) {
       });
 
     document.body.style.overflow = "hidden";
-    getFocusable()[0]?.focus();
+    document.documentElement.style.overflow = "hidden";
+    getFocusable()[0]?.focus({ preventScroll: true });
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -49,6 +51,7 @@ export function useModalFocus(onClose) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
+      document.documentElement.style.overflow = previousRootOverflow;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, []);
