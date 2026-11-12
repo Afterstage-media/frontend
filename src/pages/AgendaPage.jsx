@@ -9,6 +9,7 @@ import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Button } from "../components/ui/Button.jsx";
 import { eventMatchesDateRange, getEventDates } from "../utils/eventDates.js";
 import { normalizeSearchText } from "../utils/search.js";
+import { agendaMessagesEs as text } from "../i18n/es-AR.dictionary.js";
 
 const eventGroupLabel = (event) => event.artist?.trim() || event.name?.trim() || "Evento";
 
@@ -329,9 +330,7 @@ export function AgendaPage() {
           <section className="event-map-section" aria-label="Mapa de eventos">
             <div className="event-map-heading">
               <h2>Mapa</h2>
-              <span className="muted">
-                {mapVisibleEvents.length} {mapVisibleEvents.length === 1 ? "evento" : "eventos"} en el mapa
-              </span>
+              <span className="muted">{text.eventsOnMap({ count: mapVisibleEvents.length })}</span>
             </div>
             <EventMap
               events={events}
@@ -363,7 +362,7 @@ export function AgendaPage() {
             </div>
             {!loading && (
               <span className="muted">
-                {visibleEvents.length ? `${visibleEvents.length} encuentros en la agenda` : "Agenda en movimiento"}
+                {visibleEvents.length ? text.eventsInAgenda({ count: visibleEvents.length }) : "Agenda en movimiento"}
               </span>
             )}
           </div>
