@@ -10,6 +10,8 @@ export function useModalFocus(onClose) {
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousScrollX = window.scrollX;
+    const previousScrollY = window.scrollY;
     const previousOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
     const previousRootPaddingRight = document.documentElement.style.paddingRight;
@@ -58,7 +60,8 @@ export function useModalFocus(onClose) {
       document.body.style.overflow = previousOverflow;
       root.style.overflow = previousRootOverflow;
       root.style.paddingRight = previousRootPaddingRight;
-      if (previousFocus?.isConnected) previousFocus.focus();
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      window.scrollTo(previousScrollX, previousScrollY);
     };
   }, []);
 
