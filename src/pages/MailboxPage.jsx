@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -68,6 +68,7 @@ function MailboxContent({ actor }) {
   const [selectedId, setSelectedId] = useState(requestedThreadId);
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
+  const replySubmission = useRef(null);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
@@ -245,9 +246,15 @@ function MailboxContent({ actor }) {
     setError("");
     setStatus("");
     try {
+      const text = draft.trim();
+      const signature = `${thread.id}\u0000${text}`;
+      if (replySubmission.current?.signature !== signature) {
+        replySubmission.current = { signature, key: globalThis.crypto.randomUUID() };
+      }
       const result = await api(`/api/mail/threads/${encodeURIComponent(thread.id)}/reply`, {
         method: "POST",
-        body: JSON.stringify({ text: draft.trim() }),
+        headers: { "Idempotency-Key": replySubmission.current.key },
+        body: JSON.stringify({ text }),
       });
       setThread((current) => ({ ...current, messages: [...current.messages, result.message], unreadCount: 0 }));
       setThreads((current) =>
@@ -263,6 +270,7 @@ function MailboxContent({ actor }) {
         ),
       );
       setDraft("");
+      replySubmission.current = null;
       setStatus("Respuesta enviada.");
     } catch (requestError) {
       setError(requestError.message);
