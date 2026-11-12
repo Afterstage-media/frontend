@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { Button } from "../components/ui/Button.jsx";
 import { Notice } from "../components/ui/Notice.jsx";
 import { StatusBadge } from "../components/ui/StatusBadge.jsx";
+import { Dialog } from "../components/ui/Dialog.jsx";
 import { api } from "../services/api.js";
+import { adminPlatformEs as text } from "../i18n/es-AR.dictionary.js";
 
 const emptyOffer = {
   eventId: "",
@@ -44,12 +46,17 @@ function PlatformAdmin({ actor }) {
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(emptyOffer);
   const [listing, setListing] = useState(emptyListing);
+  const [creationDialog, setCreationDialog] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const creationInFlight = useRef(false);
   const [insuranceDrafts, setInsuranceDrafts] = useState({});
   const [notice, setNotice] = useState("");
-  const load = () =>
-    api("/api/platform/snapshot")
+  const load = () => {
+    setError("");
+    return api("/api/platform/snapshot")
       .then(setSnapshot)
       .catch((requestError) => setError(requestError.message));
+  };
   useEffect(() => {
     load();
   }, []);
@@ -66,6 +73,9 @@ function PlatformAdmin({ actor }) {
   };
   const createOffer = async (event) => {
     event.preventDefault();
+    if (creationInFlight.current) return;
+    creationInFlight.current = true;
+    setCreating(true);
     try {
       await api("/api/platform/transport-offers", {
         method: "POST",
@@ -73,13 +83,20 @@ function PlatformAdmin({ actor }) {
       });
       setOffer(emptyOffer);
       setNotice("Traslado publicado.");
+      setCreationDialog(null);
       load();
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      creationInFlight.current = false;
+      setCreating(false);
     }
   };
   const createListing = async (event) => {
     event.preventDefault();
+    if (creationInFlight.current) return;
+    creationInFlight.current = true;
+    setCreating(true);
     try {
       await api("/api/platform/marketplace", {
         method: "POST",
@@ -87,9 +104,13 @@ function PlatformAdmin({ actor }) {
       });
       setListing(emptyListing);
       setNotice("Propuesta agregada al catálogo.");
+      setCreationDialog(null);
       load();
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      creationInFlight.current = false;
+      setCreating(false);
     }
   };
   const canEditCatalog = actor.roles?.some((role) => ["admin", "editor"].includes(role));
@@ -131,7 +152,17 @@ function PlatformAdmin({ actor }) {
       <Layout>
         <section className="page-intro">
           <p className="eyebrow">Plataforma</p>
-          <h1>Cargando operaciones…</h1>
+          {error ? (
+            <>
+              <h1>{text.loadErrorTitle}</h1>
+              <ErrorMessage error={error} />
+              <Button type="button" onClick={load}>
+                {text.retryLoad}
+              </Button>
+            </>
+          ) : (
+            <h1>{text.loadingTitle}</h1>
+          )}
         </section>
       </Layout>
     );
@@ -143,7 +174,7 @@ function PlatformAdmin({ actor }) {
         <p>Moderá perfiles, seguí coberturas y mantené activo el catálogo de la red.</p>
       </section>
       <main className="admin-platform">
-        <ErrorMessage error={error} />
+        <ErrorMessage error={creationDialog ? "" : error} />
         {notice && <Notice tone="success">{notice}</Notice>}
         <section className="platform-metrics">
           <article>
@@ -418,77 +449,137 @@ function PlatformAdmin({ actor }) {
               <p className="muted">No hay búsquedas.</p>
             )}
           </section>
-          <form className="form admin-platform-panel" onSubmit={createOffer}>
-            <p className="eyebrow">Traslados</p>
-            <h2>Publicar un traslado.</h2>
-            <label>
-              ID del evento
-              <input
-                required
-                value={offer.eventId}
-                onChange={(event) => setOffer({ ...offer, eventId: event.target.value })}
-              />
-            </label>
-            <label>
-              Nombre
-              <input
-                required
-                value={offer.title}
-                onChange={(event) => setOffer({ ...offer, title: event.target.value })}
-              />
-            </label>
-            <div className="form-grid">
+          <section className="admin-platform-panel platform-creation-actions" aria-labelledby="platform-creation-title">
+            <p className="eyebrow">{text.creationActions}</p>
+            <h2 id="platform-creation-title">{text.creationTitle}</h2>
+            <div className="actions">
+              <Button
+                type="button"
+                variant="dark"
+                onClick={() => {
+                  setError("");
+                  setCreationDialog("transport");
+                }}
+              >
+                {text.openTransportForm}
+              </Button>
+              {canEditCatalog && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setError("");
+                    setCreationDialog("marketplace");
+                  }}
+                >
+                  {text.openMarketplaceForm}
+                </Button>
+              )}
+            </div>
+          </section>
+          {creationDialog === "transport" && (
+            <Dialog
+              labelledBy="platform-transport-title"
+              onClose={() => setCreationDialog(null)}
+              panelAs="form"
+              panelClassName="form admin-platform-creation-dialog"
+              onSubmit={createOffer}
+            >
+              <ErrorMessage error={error} />
+              <Button
+                className="platform-dialog-close"
+                variant="ghost"
+                type="button"
+                onClick={() => setCreationDialog(null)}
+              >
+                {text.closeForm}
+              </Button>
+              <p className="eyebrow">Traslados</p>
+              <h2 id="platform-transport-title">{text.transportTitle}</h2>
               <label>
-                Desde
+                ID del evento
                 <input
                   required
-                  value={offer.origin}
-                  onChange={(event) => setOffer({ ...offer, origin: event.target.value })}
+                  value={offer.eventId}
+                  onChange={(event) => setOffer({ ...offer, eventId: event.target.value })}
                 />
               </label>
               <label>
-                Hasta
+                Nombre
                 <input
                   required
-                  value={offer.destination}
-                  onChange={(event) => setOffer({ ...offer, destination: event.target.value })}
+                  value={offer.title}
+                  onChange={(event) => setOffer({ ...offer, title: event.target.value })}
                 />
               </label>
-            </div>
-            <label>
-              Proveedor
-              <input
-                required
-                value={offer.providerName}
-                onChange={(event) => setOffer({ ...offer, providerName: event.target.value })}
-              />
-            </label>
-            <div className="form-grid">
+              <div className="form-grid">
+                <label>
+                  Desde
+                  <input
+                    required
+                    value={offer.origin}
+                    onChange={(event) => setOffer({ ...offer, origin: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Hasta
+                  <input
+                    required
+                    value={offer.destination}
+                    onChange={(event) => setOffer({ ...offer, destination: event.target.value })}
+                  />
+                </label>
+              </div>
               <label>
-                Lugares
+                Proveedor
                 <input
-                  min="1"
-                  type="number"
-                  value={offer.seats}
-                  onChange={(event) => setOffer({ ...offer, seats: event.target.value })}
+                  required
+                  value={offer.providerName}
+                  onChange={(event) => setOffer({ ...offer, providerName: event.target.value })}
                 />
               </label>
-              <label>
-                Precio
-                <input
-                  value={offer.priceLabel}
-                  onChange={(event) => setOffer({ ...offer, priceLabel: event.target.value })}
-                />
-              </label>
-            </div>
-            <Button variant="dark" type="submit">
-              Publicar traslado ↗
-            </Button>
-          </form>
-          {canEditCatalog && (
-            <form className="form admin-platform-panel" onSubmit={createListing}>
+              <div className="form-grid">
+                <label>
+                  Lugares
+                  <input
+                    min="1"
+                    type="number"
+                    value={offer.seats}
+                    onChange={(event) => setOffer({ ...offer, seats: event.target.value })}
+                  />
+                </label>
+                <label>
+                  Precio
+                  <input
+                    value={offer.priceLabel}
+                    onChange={(event) => setOffer({ ...offer, priceLabel: event.target.value })}
+                  />
+                </label>
+              </div>
+              <Button variant="dark" type="submit" disabled={creating}>
+                {creating ? text.creatingTransport : text.submitTransport}
+              </Button>
+            </Dialog>
+          )}
+          {creationDialog === "marketplace" && canEditCatalog && (
+            <Dialog
+              labelledBy="platform-marketplace-title"
+              onClose={() => setCreationDialog(null)}
+              panelAs="form"
+              panelClassName="form admin-platform-creation-dialog"
+              onSubmit={createListing}
+            >
+              <ErrorMessage error={error} />
+              <Button
+                className="platform-dialog-close"
+                variant="ghost"
+                type="button"
+                onClick={() => setCreationDialog(null)}
+              >
+                {text.closeForm}
+              </Button>
               <p className="eyebrow">Orux / Marketplace</p>
-              <h2>Agregar una propuesta.</h2>
+              <h2 id="platform-marketplace-title">{text.addMarketplaceTitle}</h2>
               <label>
                 Nombre
                 <input
@@ -531,10 +622,10 @@ function PlatformAdmin({ actor }) {
                   onChange={(event) => setListing({ ...listing, priceLabel: event.target.value })}
                 />
               </label>
-              <Button variant="dark" type="submit">
-                Agregar al catálogo ↗
+              <Button variant="dark" type="submit" disabled={creating}>
+                {creating ? text.creatingMarketplaceItem : text.addMarketplaceItem}
               </Button>
-            </form>
+            </Dialog>
           )}
         </div>
       </main>

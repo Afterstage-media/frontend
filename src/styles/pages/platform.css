@@ -292,6 +292,19 @@
   top: 18px;
 }
 
+.admin-platform-creation-dialog {
+  max-height: 90vh;
+  max-height: 90dvh;
+  max-width: 560px;
+  overflow-y: auto;
+  position: relative;
+  width: 100%;
+}
+
+.platform-dialog-close {
+  align-self: flex-end;
+}
+
 .insurance-layout {
   align-items: start;
   grid-template-columns: minmax(320px, 0.85fr) minmax(560px, 1.15fr);
