@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -105,6 +105,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   const [discarding, setDiscarding] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState(initialNotice);
+  const createRequestRef = useRef(null);
   const availableTemplates = templates.filter((item) => item.outputType === publicationType);
   const selectedTemplate = availableTemplates.find((item) => item.id === templateId);
   const visualTemplates = [
@@ -277,17 +278,31 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
           })),
         );
         const payload = JSON.stringify({ ...common, slides: payloadSlides });
+        const publicationPayload =
+          publicationType === "carousel"
+            ? payload
+            : JSON.stringify({ ...common, type: publicationType, slides: payloadSlides });
+        let idempotencyKey;
+        if (!isEditing) {
+          if (createRequestRef.current?.payload !== publicationPayload) {
+            createRequestRef.current = { payload: publicationPayload, key: globalThis.crypto.randomUUID() };
+          }
+          idempotencyKey = createRequestRef.current.key;
+        }
         if (publicationType === "carousel") {
           result = await api(isEditing ? `/api/social-carousel/${existingItem.id}` : "/api/social-carousel", {
             method: isEditing ? "PUT" : "POST",
             body: payload,
+            ...(!isEditing ? { headers: { "Idempotency-Key": idempotencyKey } } : {}),
           });
         } else {
           result = await api(isEditing ? `/api/social-publication/${existingItem.id}` : "/api/social-publication", {
             method: isEditing ? "PUT" : "POST",
-            body: JSON.stringify({ ...common, type: publicationType, slides: payloadSlides }),
+            body: publicationPayload,
+            ...(!isEditing ? { headers: { "Idempotency-Key": idempotencyKey } } : {}),
           });
         }
+        if (!isEditing) createRequestRef.current = null;
       }
       setPublication(result);
       setActiveSlide(0);
