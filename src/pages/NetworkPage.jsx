@@ -310,7 +310,7 @@ export function NetworkPage() {
               </Button>
             </div>
           )}
-          {networkMode === "photographer" && (
+          {networkMode === "photographer" && !applicationFor && (
             <form className="form network-form" onSubmit={submitPhotographer}>
               <p className="eyebrow">{text.addProfile}</p>
               <h2>{text.workWithNetwork}</h2>
@@ -415,7 +415,7 @@ export function NetworkPage() {
               <FormNotice error={photographerError} message={photographerNotice} />
             </form>
           )}
-          {networkMode === "coverage" && (
+          {networkMode === "coverage" && !applicationFor && (
             <form className="form network-form" onSubmit={submitCoverage}>
               <p className="eyebrow">{text.publishSearch}</p>
               <h2>{text.needCoverage}</h2>
