@@ -7,6 +7,7 @@ import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 import { SocialComposer } from "./SocialComposer.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { StatusBadge } from "../components/ui/StatusBadge.jsx";
+import { contentDashboardEs as dashboardText } from "../i18n/es-AR.dictionary.js";
 import { pressMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
@@ -145,18 +146,23 @@ function ContentCard({ item }) {
 function AdminDashboard({ actor }) {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [channelFilter, setChannelFilter] = useState("all");
   const [instagramMetrics, setInstagramMetrics] = useState(null);
   const [authorized, setAuthorized] = useState(() => hasSessionHint());
-  const load = () =>
-    api("/api/content")
-      .then(setItems)
+  const load = () => {
+    setLoading(true);
+    setError("");
+    return api("/api/content")
+      .then((nextItems) => setItems(nextItems))
       .catch((e) => {
         setError(e.message);
         if (/token|autoriz|401/i.test(e.message)) setAuthorized(false);
-      });
+      })
+      .finally(() => setLoading(false));
+  };
   useEffect(() => {
     if (authorized) {
       load();
@@ -287,11 +293,30 @@ function AdminDashboard({ actor }) {
           </select>
         </div>
         <ErrorMessage error={error} />
-        <div className="admin-list">
-          {visible.length ? (
+        {error && (
+          <div>
+            <p className="muted">{dashboardText.retryConnection}</p>
+            <Button onClick={load} type="button" variant="ghost">
+              {dashboardText.retry}
+            </Button>
+          </div>
+        )}
+        <div aria-live="polite" className="admin-list" role="region">
+          {loading ? (
+            <p role="status">{dashboardText.loading}</p>
+          ) : error ? null : visible.length ? (
             visible.map((item) => <ContentCard item={item} key={item.id} />)
+          ) : items.length === 0 ? (
+            <div className="muted">
+              <p>{dashboardText.emptyTitle}</p>
+              <p>{dashboardText.emptyDescription}</p>
+              <ButtonLink to="/admin/nueva">{dashboardText.createFirstContent} ↗</ButtonLink>
+            </div>
           ) : (
-            <p className="muted">No hay contenidos que coincidan.</p>
+            <div className="muted">
+              <p>{dashboardText.noMatchesTitle}</p>
+              <p>{dashboardText.noMatchesDescription}</p>
+            </div>
           )}
         </div>
       </section>

@@ -239,3 +239,14 @@ export const userManagementEs = {
   adjustFilters: "Probá con otra búsqueda o limpiá los filtros.",
   visibleAccounts: ({ visible, total }) => `${visible} de ${total} cuentas visibles · Las bajas son reversibles.`,
 };
+
+export const contentDashboardEs = {
+  loading: "Cargando contenidos…",
+  retryConnection: "Revisá la conexión e intentá cargar la biblioteca nuevamente.",
+  retry: "Reintentar",
+  emptyTitle: "La biblioteca todavía está vacía.",
+  emptyDescription: "Cuando crees una nota o una pieza para redes, va a aparecer acá.",
+  createFirstContent: "Crear la primera nota",
+  noMatchesTitle: "No hay contenidos que coincidan.",
+  noMatchesDescription: "Probá con otra búsqueda o ajustá los filtros.",
+};
