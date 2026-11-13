@@ -720,7 +720,7 @@ export function TransportPage() {
       </section>
       <section className="transport-layout">
         <div className="transport-events">
-          <FormProgress current={1} steps={["Elegí tu fecha", "Completá tus datos"]} />
+          <FormProgress current={selectedEvent ? 2 : 1} steps={["Elegí tu fecha", "Completá tus datos"]} />
           <p className="eyebrow">Paso 1 · Fecha del show</p>
           <h2>¿A qué show vas?</h2>
           <p className="transport-selection-help">
@@ -815,7 +815,6 @@ export function TransportPage() {
         <div className="transport-request-panel">
           {selectedEvent ? (
             <>
-              <FormProgress current={2} steps={["Completá tus datos"]} />
               <div className="transport-selected-event" aria-live="polite">
                 <span className="eyebrow">Show elegido</span>
                 <strong>{selectedEventData?.artist || selectedEventData?.name || "Evento seleccionado"}</strong>
