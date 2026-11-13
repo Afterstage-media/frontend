@@ -11,6 +11,7 @@ import { IconButton } from "../components/ui/IconButton.jsx";
 import { ItemList } from "../components/ui/ItemList.jsx";
 import { Notice } from "../components/ui/Notice.jsx";
 import { networkPageEs as text } from "../i18n/es-AR.dictionary.js";
+import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
 
 const emptyPhotographer = {
   name: "",
@@ -87,24 +88,29 @@ export function NetworkPage() {
     setPhotographerError("");
     setPhotographerNotice("");
     try {
+      const payload = {
+        ...photographerForm,
+        specialties: photographerForm.specialties
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        portfolioUrls: photographerForm.portfolioUrls
+          .split(/\r?\n|,/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 10),
+        sampleCount: Number(photographerForm.sampleCount || 0),
+      };
+      const scope = "photographer-profile";
+      const idempotencyKey = await getStableIdempotencyKey(scope, payload);
       const result = await api("/api/public/photographers", {
         method: "POST",
-        body: JSON.stringify({
-          ...photographerForm,
-          specialties: photographerForm.specialties
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
-          portfolioUrls: photographerForm.portfolioUrls
-            .split(/\r?\n|,/)
-            .map((item) => item.trim())
-            .filter(Boolean)
-            .slice(0, 10),
-          sampleCount: Number(photographerForm.sampleCount || 0),
-        }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setPhotographerNotice(result.message);
       setPhotographerForm(emptyPhotographer);
+      clearStableIdempotencyKey(scope);
     } catch (requestError) {
       setPhotographerError(requestError.message);
     }
@@ -115,16 +121,21 @@ export function NetworkPage() {
     setCoverageError("");
     setCoverageNotice("");
     try {
+      const payload = {
+        ...coverageForm,
+        eventId: eventId || null,
+        deadlineAt: coverageForm.deadlineAt ? new Date(coverageForm.deadlineAt).toISOString() : null,
+      };
+      const scope = "coverage-request";
+      const idempotencyKey = await getStableIdempotencyKey(scope, payload);
       const result = await api("/api/public/coverage-requests", {
         method: "POST",
-        body: JSON.stringify({
-          ...coverageForm,
-          eventId: eventId || null,
-          deadlineAt: coverageForm.deadlineAt ? new Date(coverageForm.deadlineAt).toISOString() : null,
-        }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setCoverageNotice(result.message);
       setCoverageForm(emptyCoverage);
+      clearStableIdempotencyKey(scope);
       load();
     } catch (requestError) {
       setCoverageError(requestError.message);
@@ -135,13 +146,17 @@ export function NetworkPage() {
     event.preventDefault();
     setCoverageError("");
     try {
+      const scope = `coverage-application-${applicationFor.id}`;
+      const idempotencyKey = await getStableIdempotencyKey(scope, application);
       const result = await api(`/api/public/coverage-requests/${applicationFor.id}/applications`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify(application),
       });
       setCoverageNotice(result.message);
       setApplicationFor(null);
       setApplication({ photographerId: "", applicantName: "", applicantEmail: "", portfolioUrl: "", message: "" });
+      clearStableIdempotencyKey(scope);
     } catch (requestError) {
       setCoverageError(requestError.message);
     }
