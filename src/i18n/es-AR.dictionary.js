@@ -147,6 +147,11 @@ export const mailboxMessagesEs = {
     "Las respuestas por correo no están disponibles. Pedile a una persona administradora que configure el envío.",
   sendUnavailable: "El envío de correo no está configurado. No se envió la respuesta; el texto quedó en el formulario.",
   sendFailed: "No se pudo enviar la respuesta. El texto quedó en el formulario; podés intentar de nuevo.",
+  threadLabel: ({ subject, sender, date, mailbox, unreadCount }) => {
+    const details = [subject || "Sin asunto", sender, date, mailbox].filter(Boolean);
+    if (unreadCount > 0) details.push(`${unreadCount} sin leer`);
+    return details.join(". ");
+  },
 };
 
 export const instagramRepostEs = {

@@ -478,6 +478,13 @@ function MailboxContent({ actor }) {
               {!filteredThreads.length && <p className="muted mailbox-empty">No hay conversaciones en este filtro.</p>}
               {filteredThreads.map((item) => (
                 <button
+                  aria-label={mailboxMessagesEs.threadLabel({
+                    subject: item.subject,
+                    sender: item.participants?.[0],
+                    date: formatDate(item.lastMessageAt),
+                    mailbox: threadDisplayLabel(item),
+                    unreadCount: item.unreadCount,
+                  })}
                   className={`mailbox-thread${item.id === selectedId ? " is-selected" : ""}`}
                   key={item.id}
                   onClick={() => {
