@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -13,6 +13,7 @@ import { TextField } from "../components/ui/TextField.jsx";
 import { Toggle } from "../components/ui/Toggle.jsx";
 import { formatEventDateValue, getEventDates } from "../utils/eventDates.js";
 import { normalizeSearchText } from "../utils/search.js";
+import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
 
 const insuranceProducts = [
   { value: "ap", label: "Accidentes personales", hint: "Personas durante el evento" },
@@ -65,6 +66,8 @@ export function InsurancePage() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [insuranceStep, setInsuranceStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionInFlight = useRef(false);
   const continueInsurance = (event) => {
     event.preventDefault();
     setError("");
@@ -87,6 +90,7 @@ export function InsurancePage() {
   };
   const submit = async (event) => {
     event.preventDefault();
+    if (submissionInFlight.current) return;
     setStatus("");
     setError("");
     if (!form.coverageTypes.length) {
@@ -94,36 +98,45 @@ export function InsurancePage() {
       focusField("coverageTypes");
       return;
     }
+    submissionInFlight.current = true;
+    setIsSubmitting(true);
     try {
       const details = form.productDetails;
+      const payload = {
+        name: form.name,
+        dni: form.dni,
+        organization: form.organization,
+        email: form.email,
+        phone: form.phone,
+        coverageTypes: form.coverageTypes,
+        coverageType: form.coverageTypes.map(insuranceProductLabel).join(" + "),
+        productDetails: {
+          ...details,
+          apPeopleCount: form.coverageTypes.includes("ap") ? Number(details.apPeopleCount || 1) : null,
+          artWorkerCount: form.coverageTypes.includes("art") ? Number(details.artWorkerCount || 0) || null : null,
+          vidaInsuredAge: details.vidaInsuredAge ? Number(details.vidaInsuredAge) : null,
+          equipmentCount: form.coverageTypes.includes("robo_equipos") ? Number(details.equipmentCount || 1) : null,
+        },
+        eventId: eventId || null,
+        startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : null,
+        endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : null,
+        peopleCount: Number(details.apPeopleCount || form.peopleCount || 1),
+        notes: form.notes,
+      };
+      const idempotencyKey = await getStableIdempotencyKey("insurance-request", payload);
       const result = await api("/api/public/insurance-requests", {
         method: "POST",
-        body: JSON.stringify({
-          name: form.name,
-          dni: form.dni,
-          organization: form.organization,
-          email: form.email,
-          phone: form.phone,
-          coverageTypes: form.coverageTypes,
-          coverageType: form.coverageTypes.map(insuranceProductLabel).join(" + "),
-          productDetails: {
-            ...details,
-            apPeopleCount: form.coverageTypes.includes("ap") ? Number(details.apPeopleCount || 1) : null,
-            artWorkerCount: form.coverageTypes.includes("art") ? Number(details.artWorkerCount || 0) || null : null,
-            vidaInsuredAge: details.vidaInsuredAge ? Number(details.vidaInsuredAge) : null,
-            equipmentCount: form.coverageTypes.includes("robo_equipos") ? Number(details.equipmentCount || 1) : null,
-          },
-          eventId: eventId || null,
-          startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : null,
-          endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : null,
-          peopleCount: Number(details.apPeopleCount || form.peopleCount || 1),
-          notes: form.notes,
-        }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
+      clearStableIdempotencyKey("insurance-request");
       setStatus(result.message);
       setForm(createEmptyInsurance());
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      submissionInFlight.current = false;
+      setIsSubmitting(false);
     }
   };
   return (
@@ -512,7 +525,7 @@ export function InsurancePage() {
                 <Button className="ghost" onClick={() => setInsuranceStep(1)}>
                   ← Volver
                 </Button>
-                <Button className="dark" type="submit">
+                <Button className="dark" disabled={isSubmitting} type="submit">
                   Pedir cotización ↗
                 </Button>
               </FormActions>
