@@ -52,12 +52,16 @@ export function EventPage() {
     setStatus("");
     setFormError("");
     try {
+      const scope = `forum-thread-${id}`;
+      const idempotencyKey = await getStableIdempotencyKey(scope, thread);
       const result = await api(`/api/public/events/${id}/forum/threads`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify(thread),
       });
       setStatus(result.message);
       setThread(emptyThread);
+      clearStableIdempotencyKey(scope);
       load();
     } catch (requestError) {
       setFormError(requestError.message);
@@ -97,13 +101,17 @@ export function EventPage() {
     setStatus("");
     setFormError("");
     try {
+      const scope = `forum-post-${replyFor}`;
+      const idempotencyKey = await getStableIdempotencyKey(scope, reply);
       const result = await api(`/api/public/forum/threads/${replyFor}/posts`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify(reply),
       });
       setStatus(result.message);
       setReplyFor("");
       setReply({ body: "", authorName: "", authorEmail: "" });
+      clearStableIdempotencyKey(scope);
       load();
     } catch (requestError) {
       setFormError(requestError.message);
