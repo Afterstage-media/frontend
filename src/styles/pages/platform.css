@@ -277,6 +277,67 @@
   z-index: 1000;
 }
 
+.event-form-backdrop {
+  align-items: flex-start;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.event-form-backdrop::-webkit-scrollbar {
+  display: none;
+}
+
+.event-form-dialog {
+  background: var(--color-paper);
+  border: var(--border);
+  box-shadow: 0 22px 80px rgb(0 0 0 / 28%);
+  flex: 0 0 auto;
+  margin: auto;
+  max-width: 620px;
+  padding: clamp(20px, 4vw, 32px);
+  width: min(620px, 100%);
+}
+
+.event-form-dialog-heading {
+  align-items: flex-start;
+  border-bottom: var(--border-soft);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding-bottom: 18px;
+}
+
+.event-form-dialog-heading h2 {
+  margin: 0;
+}
+
+.event-form-dialog-heading .eyebrow {
+  margin: 0 0 8px;
+}
+
+.event-form-dialog-heading > button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px;
+}
+
+.event-form-dialog .event-action-form {
+  margin-top: 0;
+}
+
+.event-form-dialog .event-action-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.event-form-dialog .event-action-form .actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-platform-modal-backdrop {
   align-items: flex-start;
   overflow-y: auto;
