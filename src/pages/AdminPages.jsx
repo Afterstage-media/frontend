@@ -7,8 +7,7 @@ import { AuthGate, LoginForm } from "../components/AuthGate.jsx";
 import { SocialComposer } from "./SocialComposer.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { StatusBadge } from "../components/ui/StatusBadge.jsx";
-import { contentDashboardEs as dashboardText } from "../i18n/es-AR.dictionary.js";
-import { pressMessagesEs } from "../i18n/es-AR.dictionary.js";
+import { contentDashboardEs as dashboardText, instagramRepostEs, pressMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 const statuses = ["idea", "draft", "review", "approved", "scheduled", "published", "failed"];
 const labels = {
@@ -742,7 +741,7 @@ function ContentForm({
   );
 }
 
-function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram, onPreview }) {
+function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram, repostingInstagram, onPreview }) {
   const currentStage = workflowStageFor(item.status);
   const currentIndex = workflowStages.findIndex((stage) => stage.key === currentStage);
   const isPublished = item.status === "published";
@@ -833,8 +832,14 @@ function EditorialWorkflow({ item, onTransition, onPublish, onRepublishInstagram
               Retirar del sitio
             </Button>
             {item.channels?.includes("instagram") && (
-              <Button className="button-wide" onClick={onRepublishInstagram} variant="ghost" type="button">
-                Recompartir en Instagram
+              <Button
+                className="button-wide"
+                onClick={onRepublishInstagram}
+                variant="ghost"
+                type="button"
+                disabled={repostingInstagram}
+              >
+                {repostingInstagram ? instagramRepostEs.pending : instagramRepostEs.action}
               </Button>
             )}
           </>
@@ -859,6 +864,7 @@ function ContentEditorPage() {
   const [instructions, setInstructions] = useState("");
   const [files, setFiles] = useState([]);
   const [removingAssetKey, setRemovingAssetKey] = useState("");
+  const [repostingInstagram, setRepostingInstagram] = useState(false);
   const formRef = useRef(null);
   const navigate = useNavigate();
   const load = () =>
@@ -977,16 +983,27 @@ function ContentEditorPage() {
     }
   };
   const repostInstagram = async () => {
-    if (!window.confirm("¿Querés volver a publicar esta nota en Instagram? Se va a crear un post nuevo.")) return;
+    if (repostingInstagram || !window.confirm(instagramRepostEs.confirm)) return;
+    setRepostingInstagram(true);
+    const storageKey = `afterstage:instagram-repost:${id}`;
+    let idempotencyKey = window.sessionStorage.getItem(storageKey);
+    if (!idempotencyKey) {
+      idempotencyKey = window.crypto.randomUUID();
+      window.sessionStorage.setItem(storageKey, idempotencyKey);
+    }
     try {
       await api(`/api/content/${id}/repost/instagram`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({}),
       });
-      setStatus("Nota recompartida en Instagram.");
+      window.sessionStorage.removeItem(storageKey);
+      setStatus(instagramRepostEs.completed);
       load();
     } catch (e) {
       setError(e.message);
+    } finally {
+      setRepostingInstagram(false);
     }
   };
   const upload = async () => {
@@ -1193,6 +1210,7 @@ function ContentEditorPage() {
                 onTransition={transition}
                 onPublish={publish}
                 onRepublishInstagram={repostInstagram}
+                repostingInstagram={repostingInstagram}
                 onPreview={() => publish(true)}
               />
             )}

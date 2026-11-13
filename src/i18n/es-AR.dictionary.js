@@ -137,6 +137,13 @@ export const pressMessagesEs = {
     "Ya existe un intento de envío para esta solicitud. No se envió otra copia. Revisá su estado y consultá a una persona administradora antes de volver a enviarla.",
 };
 
+export const instagramRepostEs = {
+  confirm: "¿Querés volver a publicar esta nota en Instagram? Se va a crear un post nuevo.",
+  completed: "Nota recompartida en Instagram.",
+  pending: "Recompartiendo…",
+  action: "Recompartir en Instagram",
+};
+
 export const adminPlatformEs = {
   addMarketplaceItem: "Agregar propuesta al marketplace",
   addMarketplaceTitle: "Agregar una propuesta.",
