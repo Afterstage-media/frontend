@@ -27,7 +27,7 @@ export function EventCard({ event, index = 0 }) {
   }).toString();
   const marketplaceLink = `/marketplace?${eventContext}&category=merch`;
   const transportLink = `/traslados?${eventContext}`;
-  const communityLink = `/red?${eventContext}`;
+  const communityLink = event.id ? `/agenda/evento/${event.id}` : `/comunidad?${eventContext}`;
   const notesLink = `/notas?q=${encodeURIComponent(event.artist || event.name || "")}`;
   return (
     <article className="event" style={{ "--event-index": index }}>
