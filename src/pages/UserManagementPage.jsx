@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, encryptAuthSecret } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
-import { ErrorMessage, Layout } from "../components/Layout.jsx";
+import { Layout } from "../components/Layout.jsx";
 import { Button } from "../components/ui/Button.jsx";
 import { DataTable } from "../components/ui/DataTable.jsx";
 import { Drawer } from "../components/ui/Drawer.jsx";
@@ -13,21 +13,20 @@ import { StatusBadge } from "../components/ui/StatusBadge.jsx";
 import { userManagementEs as text } from "../i18n/es-AR.dictionary.js";
 
 const roleOptions = [
-  ["admin", "Administrador"],
-  ["editor", "Editor"],
-  ["press", "Prensa"],
-  ["directory", "Directorio"],
-  ["community", "Comunidad"],
-  ["auditor", "Auditor"],
-  ["social", "Social"],
+  ["admin", text.roles.admin],
+  ["editor", text.roles.editor],
+  ["press", text.roles.press],
+  ["directory", text.roles.directory],
+  ["community", text.roles.community],
+  ["auditor", text.roles.auditor],
+  ["social", text.roles.social],
 ];
 const permissionOptions = [
-  ["instagram:read", "Leer Instagram"],
-  ["instagram:metrics", "Ver métricas"],
-  ["instagram:publish", "Publicar en Instagram"],
+  ["instagram:read", text.permissions.instagramRead],
+  ["instagram:metrics", text.permissions.instagramMetrics],
+  ["instagram:publish", text.permissions.instagramPublish],
 ];
 const roleLabels = Object.fromEntries(roleOptions);
-const permissionLabels = Object.fromEntries(permissionOptions);
 
 const emptyForm = {
   username: "",
@@ -40,10 +39,10 @@ const emptyForm = {
 };
 
 const formatDate = (value) => {
-  if (!value) return "Sin registro";
+  if (!value) return text.noRecord;
   const date = new Date(value);
   return Number.isNaN(date.getTime())
-    ? "Sin registro"
+    ? text.noRecord
     : new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 };
 
@@ -88,15 +87,15 @@ function UserForm({ user, onCancel, onSaved }) {
     setError("");
     setStatus("");
     if (!form.roles.length) {
-      setError("Elegí al menos un rol para este usuario.");
+      setError(text.validationRoleRequired);
       return;
     }
     if (form.password && form.password.length < 12) {
-      setError("La contraseña debe tener al menos 12 caracteres.");
+      setError(text.validationPasswordLength);
       return;
     }
     if (form.password !== form.passwordConfirmation) {
-      setError("Las contraseñas no coinciden.");
+      setError(text.validationPasswordMismatch);
       return;
     }
     setSaving(true);
@@ -121,7 +120,7 @@ function UserForm({ user, onCancel, onSaved }) {
         method: editing ? "PATCH" : "POST",
         body: JSON.stringify(payload),
       });
-      setStatus(editing ? "Cambios guardados." : "Usuario creado.");
+      setStatus(editing ? text.changesSaved : text.userCreated);
       onSaved(result.user);
     } catch (requestError) {
       setError(requestError.message);
@@ -134,21 +133,17 @@ function UserForm({ user, onCancel, onSaved }) {
     <Drawer labelledBy="user-form-title" onClose={onCancel} panelClassName="user-drawer">
       <div className="user-drawer-header">
         <div>
-          <p className="eyebrow">{editing ? "Editar acceso" : "Nuevo acceso"}</p>
-          <h2 id="user-form-title">{editing ? user.username || user.email : "Sumar una persona"}</h2>
+          <p className="eyebrow">{editing ? text.editAccess : text.newAccess}</p>
+          <h2 id="user-form-title">{editing ? user.username || user.email : text.addPerson}</h2>
         </div>
-        <IconButton label="Cerrar panel" onClick={onCancel}>
+        <IconButton label={text.closePanel} onClick={onCancel}>
           ×
         </IconButton>
       </div>
-      <p className="user-drawer-copy">
-        {editing
-          ? "Actualizá permisos y estado. Los cambios tienen efecto en el próximo pedido de la cuenta."
-          : "Creá la cuenta y definí exactamente qué puede hacer dentro de Afterstage."}
-      </p>
+      <p className="user-drawer-copy">{editing ? text.editDescription : text.createDescription}</p>
       <form className="user-form" onSubmit={submit}>
         <label>
-          Usuario
+          {text.username}
           <input
             autoComplete="off"
             pattern="[a-zA-Z0-9._-]+"
@@ -156,10 +151,10 @@ function UserForm({ user, onCancel, onSaved }) {
             value={form.username}
             onChange={(event) => update("username", event.target.value)}
           />
-          <small>Solo letras, números, punto, guion y guion bajo.</small>
+          <small>{text.usernameHint}</small>
         </label>
         <label>
-          Email
+          {text.email}
           <input
             autoComplete="email"
             type="email"
@@ -168,7 +163,7 @@ function UserForm({ user, onCancel, onSaved }) {
           />
         </label>
         <fieldset>
-          <legend>Roles</legend>
+          <legend>{text.rolesLegend}</legend>
           <div className="user-check-grid">
             {roleOptions.map(([value, label]) => (
               <label className="user-check" key={value}>
@@ -179,7 +174,7 @@ function UserForm({ user, onCancel, onSaved }) {
           </div>
         </fieldset>
         <fieldset>
-          <legend>Permisos especiales</legend>
+          <legend>{text.permissionsLegend}</legend>
           <div className="user-check-grid">
             {permissionOptions.map(([value, label]) => (
               <label className="user-check" key={value}>
@@ -192,23 +187,23 @@ function UserForm({ user, onCancel, onSaved }) {
               </label>
             ))}
           </div>
-          <small>Los administradores ya tienen acceso a todas las funciones.</small>
+          <small>{text.adminPermissionHint}</small>
         </fieldset>
         <label className="user-status-toggle">
           <span>
-            <strong>Cuenta activa</strong>
-            <small>Si la desactivás, no podrá iniciar sesión.</small>
+            <strong>{text.accountActive}</strong>
+            <small>{text.accountInactiveHint}</small>
           </span>
           <input checked={form.active} onChange={(event) => update("active", event.target.checked)} type="checkbox" />
         </label>
         <fieldset className="user-password-fieldset">
-          <legend>{editing ? "Cambiar contraseña" : "Contraseña"}</legend>
+          <legend>{editing ? text.changePassword : text.password}</legend>
           <label>
-            <span className="sr-only">{editing ? "Nueva contraseña" : "Contraseña"}</span>
+            <span className="sr-only">{editing ? text.newPassword : text.password}</span>
             <input
               autoComplete={editing ? "new-password" : "new-password"}
               minLength="12"
-              placeholder={editing ? "Dejar vacío para conservarla" : "Mínimo 12 caracteres"}
+              placeholder={editing ? text.keepPasswordHint : text.minimumPasswordLength}
               required={!editing}
               type="password"
               value={form.password}
@@ -216,11 +211,11 @@ function UserForm({ user, onCancel, onSaved }) {
             />
           </label>
           <label>
-            <span className="sr-only">Repetir contraseña</span>
+            <span className="sr-only">{text.repeatPassword}</span>
             <input
               autoComplete="new-password"
               minLength="12"
-              placeholder="Repetir contraseña"
+              placeholder={text.repeatPassword}
               required={!editing || Boolean(form.password)}
               type="password"
               value={form.passwordConfirmation}
@@ -232,10 +227,10 @@ function UserForm({ user, onCancel, onSaved }) {
         {status && <Notice tone="success">{status}</Notice>}
         <div className="user-form-actions">
           <Button disabled={saving} variant="dark" type="submit">
-            {saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear usuario"}
+            {saving ? text.saving : editing ? text.saveChanges : text.createUser}
           </Button>
           <Button onClick={onCancel} variant="ghost" type="button">
-            Cancelar
+            {text.cancel}
           </Button>
         </div>
       </form>
@@ -301,36 +296,33 @@ function UserManagement() {
         <section className="users-hero">
           <div>
             <Link className="editor-back" to="/admin">
-              ← Volver al panel
+              {text.backToAdmin}
             </Link>
-            <p className="eyebrow">Administración · acceso interno</p>
-            <h1>Gestión de usuarios</h1>
-            <p className="users-hero-copy">
-              Administrá identidades, roles y accesos desde un solo lugar. Los cambios quedan bajo control de
-              administración.
-            </p>
+            <p className="eyebrow">{text.adminEyebrow}</p>
+            <h1>{text.pageTitle}</h1>
+            <p className="users-hero-copy">{text.pageDescription}</p>
           </div>
           <div className="users-hero-note">
             <span className="users-hero-mark">◎</span>
-            <strong>Solo admins</strong>
-            <span>Esta sección no es visible para otros roles.</span>
+            <strong>{text.adminsOnly}</strong>
+            <span>{text.adminsOnlyDescription}</span>
           </div>
         </section>
 
         <section className="users-content" aria-labelledby="users-list-title">
           <div className="users-toolbar">
             <div>
-              <p className="eyebrow">Directorio de acceso</p>
-              <h2 id="users-list-title">Usuarios</h2>
+              <p className="eyebrow">{text.directoryEyebrow}</p>
+              <h2 id="users-list-title">{text.users}</h2>
             </div>
             <Button onClick={() => setCreating(true)} variant="dark" type="button">
-              + Nuevo usuario
+              {text.newUser}
             </Button>
           </div>
-          <div className="users-metrics" aria-label="Resumen de usuarios">
+          <div className="users-metrics" aria-label={text.summaryLabel}>
             <div className="users-metric users-metric-accent">
               <strong>{totals.total}</strong>
-              <span>Total de cuentas</span>
+              <span>{text.accountTotal}</span>
             </div>
             <div className="users-metric">
               <strong>{totals.activeAccounts}</strong>
@@ -338,24 +330,24 @@ function UserManagement() {
             </div>
             <div className="users-metric">
               <strong>{totals.admins}</strong>
-              <span>Administradores</span>
+              <span>{text.administrators}</span>
             </div>
           </div>
-          <FilterBar className="users-filters" label="Filtrar usuarios" role="search">
+          <FilterBar className="users-filters" label={text.filtersLabel} role="search">
             <label className="users-search">
-              <span className="sr-only">Buscar usuario</span>
+              <span className="sr-only">{text.searchUser}</span>
               <span aria-hidden="true">⌕</span>
               <input
-                placeholder="Buscar por usuario o email"
+                placeholder={text.searchPlaceholder}
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
             </label>
             <label>
-              <span className="sr-only">Filtrar por rol</span>
+              <span className="sr-only">{text.filterByRole}</span>
               <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
-                <option value="">Todos los roles</option>
+                <option value="">{text.allRoles}</option>
                 {roleOptions.map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -364,70 +356,75 @@ function UserManagement() {
               </select>
             </label>
             <label>
-              <span className="sr-only">Filtrar por estado</span>
+              <span className="sr-only">{text.filterByStatus}</span>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                <option value="active">Activos</option>
-                <option value="inactive">Desactivados</option>
-                <option value="all">Todos</option>
+                <option value="active">{text.active}</option>
+                <option value="inactive">{text.inactive}</option>
+                <option value="all">{text.all}</option>
               </select>
             </label>
           </FilterBar>
           {error ? (
             <div className="users-empty users-empty-error" role="alert">
               <strong>{error}</strong>
-              <span>Revisá la conexión e intentá cargar el directorio nuevamente.</span>
+              <span>{text.retryConnection}</span>
               <Button onClick={loadUsers} variant="ghost" type="button">
-                Reintentar
+                {text.retry}
               </Button>
             </div>
           ) : loading ? (
-            <div className="users-empty">Cargando usuarios…</div>
+            <div className="users-empty">{text.loadingUsers}</div>
           ) : visibleUsers.length ? (
             <DataTable
-              aria-label="Tabla de usuarios"
+              aria-label={text.usersTable}
               className="users-table-wrap"
               columns={[
                 {
                   key: "person",
-                  label: "Persona",
-                  header: "Persona",
+                  label: text.person,
+                  header: text.person,
                   render: (user) => (
                     <div className="user-identity">
                       <span className="user-avatar">{initials(user)}</span>
                       <span>
-                        <strong>{user.username || "Sin usuario"}</strong>
-                        <small>{user.email || "Email no informado"}</small>
+                        <strong>{user.username || text.noUsername}</strong>
+                        <small>{user.email || text.noEmail}</small>
                       </span>
                     </div>
                   ),
                 },
-                { key: "roles", label: "Roles", header: "Roles", render: (user) => <RolePills roles={user.roles} /> },
+                {
+                  key: "roles",
+                  label: text.rolesLegend,
+                  header: text.rolesLegend,
+                  render: (user) => <RolePills roles={user.roles} />,
+                },
                 {
                   key: "status",
-                  label: "Estado",
-                  header: "Estado",
+                  label: text.status,
+                  header: text.status,
                   render: (user) => (
                     <StatusBadge
                       className={`user-status ${user.active === false ? "is-inactive" : ""}`}
                       tone={user.active === false ? "inactive" : "active"}
                     >
-                      <i /> {user.active === false ? "Desactivado" : "Activo"}
+                      <i /> {user.active === false ? text.deactivated : text.activeSingular}
                     </StatusBadge>
                   ),
                 },
                 {
                   key: "updatedAt",
-                  label: "Última actualización",
-                  header: "Última actualización",
+                  label: text.updatedAt,
+                  header: text.updatedAt,
                   render: (user) => <span className="user-date">{formatDate(user.updatedAt || user.createdAt)}</span>,
                 },
                 {
                   key: "actions",
-                  label: "Acciones",
-                  header: <span className="sr-only">Acciones</span>,
+                  label: text.actions,
+                  header: <span className="sr-only">{text.actions}</span>,
                   render: (user) => (
                     <button className="user-edit-button" onClick={() => setSelectedUser(user)} type="button">
-                      Gestionar <span aria-hidden="true">↗</span>
+                      {text.manage} <span aria-hidden="true">↗</span>
                     </button>
                   ),
                 },
@@ -440,12 +437,12 @@ function UserManagement() {
             />
           ) : (
             <div className="users-empty">
-              <strong>No encontramos usuarios con esos filtros.</strong>
-              <span>Probá con otra búsqueda o limpiá los filtros.</span>
+              <strong>{text.noUsersMatch}</strong>
+              <span>{text.adjustFilters}</span>
             </div>
           )}
           <p className="users-footnote">
-            {visibleUsers.length} de {users.length} cuentas visibles · Las bajas son reversibles.
+            {text.visibleAccounts({ visible: visibleUsers.length, total: users.length })}
           </p>
         </section>
       </div>
