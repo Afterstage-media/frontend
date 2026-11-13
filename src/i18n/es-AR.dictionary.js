@@ -49,6 +49,11 @@ export const authMessagesEs = {
   recoveryUnavailable: "La recuperación de acceso no está disponible temporalmente.",
 };
 
+export const socialSeriesMessagesEs = {
+  duplicateConflict:
+    "Ya existe una serie con ese nombre o identificador. Editá la serie existente o elegí otro nombre.",
+};
+
 export const agendaMessagesEs = {
   eventsOnMap: ({ count }) => `${count} ${count === 1 ? "evento" : "eventos"} en el área visible del mapa`,
   eventsInAgenda: ({ count }) => `${count} ${count === 1 ? "evento" : "eventos"} en la agenda`,
