@@ -25,7 +25,6 @@ const insuranceProducts = [
 
 const createEmptyInsurance = () => ({
   name: "",
-  dni: "",
   organization: "",
   email: "",
   phone: "",
@@ -105,7 +104,6 @@ export function InsurancePage() {
       const details = form.productDetails;
       const payload = {
         name: form.name,
-        dni: form.dni,
         organization: form.organization,
         email: form.email,
         phone: form.phone,
@@ -230,13 +228,6 @@ export function InsurancePage() {
             <>
               <FormSection title="Datos de contacto">
                 <div className="form-grid">
-                  <TextField
-                    label="DNI"
-                    name="dni"
-                    onChange={(event) => setForm({ ...form, dni: event.target.value })}
-                    required
-                    value={form.dni}
-                  />
                   <TextField
                     label="Teléfono"
                     name="phone"
@@ -729,7 +720,7 @@ export function TransportPage() {
       </section>
       <section className="transport-layout">
         <div className="transport-events">
-          <FormProgress current={selectedEvent ? 2 : 1} steps={["Elegí tu fecha", "Completá tus datos"]} />
+          <FormProgress current={1} steps={["Elegí tu fecha", "Completá tus datos"]} />
           <p className="eyebrow">Paso 1 · Fecha del show</p>
           <h2>¿A qué show vas?</h2>
           <p className="transport-selection-help">
@@ -824,7 +815,7 @@ export function TransportPage() {
         <div className="transport-request-panel">
           {selectedEvent ? (
             <>
-              <FormProgress current={2} steps={["Elegí tu fecha", "Completá tus datos"]} />
+              <FormProgress current={2} steps={["Completá tus datos"]} />
               <div className="transport-selected-event" aria-live="polite">
                 <span className="eyebrow">Show elegido</span>
                 <strong>{selectedEventData?.artist || selectedEventData?.name || "Evento seleccionado"}</strong>

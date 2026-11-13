@@ -251,7 +251,6 @@ function PlatformAdmin({ actor }) {
                     <span>
                       {insuranceProductsLabel(item)} · {item.email} · {item.peopleCount} persona(s)
                     </span>
-                    <small>DNI: {item.dni || "No indicado"}</small>
                     <small>
                       Aviso: {item.notificationStatus === "sent" ? "enviado" : item.notificationStatus || "pendiente"}
                       {item.mailThreadId ? " · hilo en bandeja creado" : ""}
