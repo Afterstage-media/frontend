@@ -5,6 +5,7 @@ import { EmptyState, ErrorState, LoadingState } from "../components/UiState.jsx"
 import { formatEventDateValue } from "../utils/eventDates.js";
 import { api } from "../services/api.js";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
+import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
 
 const profiles = {
   photographer: "Fotógrafo/a",
@@ -35,13 +36,18 @@ function Board() {
     event.preventDefault();
     setError("");
     try {
+      const payload = { ...form, profile: selected.profile };
+      const scope = `replacement-application-${selected.id}`;
+      const idempotencyKey = await getStableIdempotencyKey(scope, payload);
       await api(`/api/public/replacements/${selected.id}/applications`, {
         method: "POST",
-        body: JSON.stringify({ ...form, profile: selected.profile }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setSent("Postulación enviada");
       setSelected(null);
       setForm({ applicantName: "", applicantEmail: "", message: "", portfolioUrl: "" });
+      clearStableIdempotencyKey(scope);
     } catch (e) {
       setError(e.message);
     }
