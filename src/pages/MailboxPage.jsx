@@ -4,6 +4,7 @@ import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { Button } from "../components/ui/Button.jsx";
 import { api } from "../services/api.js";
+import { mailboxMessagesEs } from "../i18n/es-AR.dictionary.js";
 
 const formatDate = (value) => {
   const date = new Date(value);
@@ -65,6 +66,7 @@ function MailboxContent({ actor }) {
   const requestedThreadId = searchParams.get("thread") || "";
   const [threads, setThreads] = useState([]);
   const [routes, setRoutes] = useState([]);
+  const [replyAvailable, setReplyAvailable] = useState(false);
   const [selectedId, setSelectedId] = useState(requestedThreadId);
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
@@ -113,6 +115,7 @@ function MailboxContent({ actor }) {
     const nextThreads = threadResult.threads || [];
     setThreads(nextThreads);
     setRoutes(routeResult.routes || []);
+    setReplyAvailable(threadResult.replyAvailable === true);
     setSelectedId((current) => (nextThreads.some((item) => item.id === current) ? current : nextThreads[0]?.id || ""));
   };
 
@@ -273,7 +276,13 @@ function MailboxContent({ actor }) {
       replySubmission.current = null;
       setStatus("Respuesta enviada.");
     } catch (requestError) {
-      setError(requestError.message);
+      setError(
+        requestError.message === "mail_sending_not_configured"
+          ? mailboxMessagesEs.sendUnavailable
+          : requestError.message === "mail_reply_failed"
+            ? mailboxMessagesEs.sendFailed
+            : requestError.message,
+      );
     } finally {
       setSending(false);
     }
@@ -557,33 +566,39 @@ function MailboxContent({ actor }) {
                       </article>
                     ))}
                   </div>
-                  <form className="mailbox-reply" onSubmit={sendReply}>
-                    <div className="mailbox-reply-header">
-                      <label htmlFor="mailbox-reply-text">Responder</label>
-                      <span>
-                        Para{" "}
-                        {
-                          thread.messages
-                            .slice()
-                            .reverse()
-                            .find((item) => item.direction === "inbound")?.from
-                        }
-                      </span>
-                    </div>
-                    <textarea
-                      id="mailbox-reply-text"
-                      onChange={(event) => setDraft(event.target.value)}
-                      placeholder="Escribí una respuesta…"
-                      rows="7"
-                      value={draft}
-                    />
-                    <div className="mailbox-reply-actions">
-                      <span className="muted">La respuesta saldrá desde Afterstage.</span>
-                      <Button disabled={sending || !draft.trim()} variant="dark" type="submit">
-                        {sending ? "Enviando…" : "Enviar respuesta ↗"}
-                      </Button>
-                    </div>
-                  </form>
+                  {!replyAvailable ? (
+                    <p className="muted" role="status">
+                      {mailboxMessagesEs.replyUnavailable}
+                    </p>
+                  ) : (
+                    <form className="mailbox-reply" onSubmit={sendReply}>
+                      <div className="mailbox-reply-header">
+                        <label htmlFor="mailbox-reply-text">Responder</label>
+                        <span>
+                          Para{" "}
+                          {
+                            thread.messages
+                              .slice()
+                              .reverse()
+                              .find((item) => item.direction === "inbound")?.from
+                          }
+                        </span>
+                      </div>
+                      <textarea
+                        id="mailbox-reply-text"
+                        onChange={(event) => setDraft(event.target.value)}
+                        placeholder="Escribí una respuesta…"
+                        rows="7"
+                        value={draft}
+                      />
+                      <div className="mailbox-reply-actions">
+                        <span className="muted">La respuesta saldrá desde Afterstage.</span>
+                        <Button disabled={sending || !draft.trim()} variant="dark" type="submit">
+                          {sending ? "Enviando…" : "Enviar respuesta ↗"}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
                 </>
               )}
             </section>

@@ -137,6 +137,13 @@ export const pressMessagesEs = {
     "Ya existe un intento de envío para esta solicitud. No se envió otra copia. Revisá su estado y consultá a una persona administradora antes de volver a enviarla.",
 };
 
+export const mailboxMessagesEs = {
+  replyUnavailable:
+    "Las respuestas por correo no están disponibles. Pedile a una persona administradora que configure el envío.",
+  sendUnavailable: "El envío de correo no está configurado. No se envió la respuesta; el texto quedó en el formulario.",
+  sendFailed: "No se pudo enviar la respuesta. El texto quedó en el formulario; podés intentar de nuevo.",
+};
+
 export const instagramRepostEs = {
   confirm: "¿Querés volver a publicar esta nota en Instagram? Se va a crear un post nuevo.",
   completed: "Nota recompartida en Instagram.",
