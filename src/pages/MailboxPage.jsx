@@ -116,7 +116,7 @@ function MailboxContent({ actor }) {
     setThreads(nextThreads);
     setRoutes(routeResult.routes || []);
     setReplyAvailable(threadResult.replyAvailable === true);
-    setSelectedId((current) => (nextThreads.some((item) => item.id === current) ? current : nextThreads[0]?.id || ""));
+    setSelectedId((current) => (nextThreads.some((item) => item.id === current) ? current : ""));
   };
 
   useEffect(() => {
