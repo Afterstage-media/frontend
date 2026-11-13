@@ -8,8 +8,10 @@ import { Notice } from "../components/ui/Notice.jsx";
 import { formatEventDates, isMultiDateEvent } from "../utils/eventDates.js";
 import { transportRequestEs as transportText } from "../i18n/es-AR.dictionary.js";
 import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
+import { Dialog } from "../components/ui/Dialog.jsx";
 
 const emptyThread = { title: "", body: "", authorName: "", authorEmail: "" };
+const emptyReply = { body: "", authorName: "", authorEmail: "" };
 const emptyTransport = { name: "", email: "", partySize: "1", origin: "", notes: "", offerId: "" };
 
 function HubNotice({ error, status }) {
@@ -22,12 +24,30 @@ export function EventPage() {
   const [hub, setHub] = useState(null);
   const [error, setError] = useState("");
   const [thread, setThread] = useState(emptyThread);
-  const [replyFor, setReplyFor] = useState("");
-  const [reply, setReply] = useState({ body: "", authorName: "", authorEmail: "" });
+  const [activeDialog, setActiveDialog] = useState(null);
+  const [reply, setReply] = useState(emptyReply);
   const [transport, setTransport] = useState(emptyTransport);
   const [transportSubmitting, setTransportSubmitting] = useState(false);
   const [status, setStatus] = useState("");
   const [formError, setFormError] = useState("");
+
+  const openDialog = (dialog) => {
+    setFormError("");
+    setStatus("");
+    setActiveDialog(dialog);
+  };
+  const closeDialog = () => {
+    setActiveDialog(null);
+    setFormError("");
+  };
+  const openReplyDialog = (threadId) => {
+    if (activeDialog?.type !== "reply" || activeDialog.threadId !== threadId) setReply(emptyReply);
+    openDialog({ type: "reply", threadId });
+  };
+  const openTransportDialog = (offerId = transport.offerId) => {
+    setTransport((current) => ({ ...current, offerId }));
+    openDialog({ type: "transport" });
+  };
 
   const load = () => {
     setError("");
@@ -62,6 +82,7 @@ export function EventPage() {
       setStatus(result.message);
       setThread(emptyThread);
       clearStableIdempotencyKey(scope);
+      setActiveDialog(null);
       load();
     } catch (requestError) {
       setFormError(requestError.message);
@@ -89,6 +110,8 @@ export function EventPage() {
       setStatus(result.message);
       setTransport(emptyTransport);
       clearStableIdempotencyKey(`transport-request-${id}`);
+      setActiveDialog(null);
+      load();
     } catch (requestError) {
       setFormError(requestError.message);
     } finally {
@@ -98,6 +121,8 @@ export function EventPage() {
 
   const submitReply = async (submitEvent) => {
     submitEvent.preventDefault();
+    const replyFor = activeDialog?.type === "reply" ? activeDialog.threadId : "";
+    if (!replyFor) return;
     setStatus("");
     setFormError("");
     try {
@@ -109,9 +134,9 @@ export function EventPage() {
         body: JSON.stringify(reply),
       });
       setStatus(result.message);
-      setReplyFor("");
-      setReply({ body: "", authorName: "", authorEmail: "" });
+      setReply(emptyReply);
       clearStableIdempotencyKey(scope);
+      setActiveDialog(null);
       load();
     } catch (requestError) {
       setFormError(requestError.message);
@@ -176,6 +201,7 @@ export function EventPage() {
           </ButtonLink>
         </div>
       </article>
+      <HubNotice error={!activeDialog ? formError : ""} status={!activeDialog ? status : ""} />
 
       <section className="event-hub-grid">
         <div className="event-hub-main">
@@ -185,7 +211,12 @@ export function EventPage() {
                 <p className="eyebrow">Meet fan</p>
                 <h2>Conversación previa al show.</h2>
               </div>
-              <span className="network-count">{hub?.threads?.length || 0} temas</span>
+              <div className="actions">
+                <span className="network-count">{hub?.threads?.length || 0} temas</span>
+                <Button className="dark" onClick={() => openDialog({ type: "thread" })} type="button">
+                  Abrir conversación ↗
+                </Button>
+              </div>
             </div>
             {hub?.threads?.length ? (
               <div className="forum-list">
@@ -206,94 +237,15 @@ export function EventPage() {
                         ))}
                       </div>
                     )}
-                    <Button variant="ghost" onClick={() => setReplyFor(item.id)} type="button">
+                    <Button variant="ghost" onClick={() => openReplyDialog(item.id)} type="button">
                       Responder ↗
                     </Button>
-                    {replyFor === item.id && (
-                      <form className="compact-form forum-reply-form" onSubmit={submitReply}>
-                        <label>
-                          Tu nombre
-                          <input
-                            required
-                            value={reply.authorName}
-                            onChange={(input) => setReply({ ...reply, authorName: input.target.value })}
-                          />
-                        </label>
-                        <label>
-                          Email
-                          <input
-                            required
-                            type="email"
-                            value={reply.authorEmail}
-                            onChange={(input) => setReply({ ...reply, authorEmail: input.target.value })}
-                          />
-                        </label>
-                        <label>
-                          Respuesta
-                          <textarea
-                            required
-                            rows="3"
-                            value={reply.body}
-                            onChange={(input) => setReply({ ...reply, body: input.target.value })}
-                          />
-                        </label>
-                        <div className="actions">
-                          <Button variant="dark" type="submit">
-                            Publicar respuesta ↗
-                          </Button>
-                          <Button variant="ghost" onClick={() => setReplyFor("")} type="button">
-                            Cancelar
-                          </Button>
-                        </div>
-                      </form>
-                    )}
                   </article>
                 ))}
               </div>
             ) : (
               <p className="muted">Todavía no hay conversaciones. Abrí la primera.</p>
             )}
-            <form className="compact-form event-action-form" onSubmit={submitThread}>
-              <h3>Abrir conversación</h3>
-              <div className="form-grid">
-                <label>
-                  Título
-                  <input
-                    required
-                    value={thread.title}
-                    onChange={(input) => setThread({ ...thread, title: input.target.value })}
-                  />
-                </label>
-                <label>
-                  Tu nombre
-                  <input
-                    required
-                    value={thread.authorName}
-                    onChange={(input) => setThread({ ...thread, authorName: input.target.value })}
-                  />
-                </label>
-              </div>
-              <label>
-                Email
-                <input
-                  required
-                  type="email"
-                  value={thread.authorEmail}
-                  onChange={(input) => setThread({ ...thread, authorEmail: input.target.value })}
-                />
-              </label>
-              <label>
-                Mensaje
-                <textarea
-                  required
-                  rows="3"
-                  value={thread.body}
-                  onChange={(input) => setThread({ ...thread, body: input.target.value })}
-                />
-              </label>
-              <Button type="submit">Publicar en el foro ↗</Button>
-              <HubNotice error={formError} status={status} />
-            </form>
           </section>
           <section className="hub-panel">
             <div className="section-head">
@@ -339,11 +291,7 @@ export function EventPage() {
                     <small>
                       {offer.seats} lugares · {offer.priceLabel}
                     </small>
-                    <button
-                      className="button ghost"
-                      onClick={() => setTransport({ ...transport, offerId: offer.id })}
-                      type="button"
-                    >
+                    <button className="button ghost" onClick={() => openTransportDialog(offer.id)} type="button">
                       Elegir este traslado
                     </button>
                   </article>
@@ -352,6 +300,132 @@ export function EventPage() {
             ) : (
               <p className="muted">Todavía no hay traslados publicados para esta fecha.</p>
             )}
+            <Button className="dark" onClick={() => openTransportDialog()} type="button">
+              Pedir un traslado ↗
+            </Button>
+          </section>
+          <section className="hub-panel">
+            <p className="eyebrow">Servicios de la escena</p>
+            <h2>También podés resolver la producción.</h2>
+            <div className="hub-links">
+              <Link to={`/seguros?eventId=${event.id}`}>Cotizar seguro ↗</Link>
+              <Link to="/marketplace">Ver marketplace ↗</Link>
+              <Link to="/red">Encontrar fotógrafos ↗</Link>
+            </div>
+          </section>
+        </aside>
+      </section>
+      {activeDialog && (
+        <Dialog
+          backdropClassName="modal-backdrop event-form-backdrop"
+          labelledBy="event-action-dialog-title"
+          onClose={closeDialog}
+          panelClassName="event-form-dialog"
+        >
+          <div className="event-form-dialog-heading">
+            <div>
+              <p className="eyebrow">{event.name}</p>
+              <h2 id="event-action-dialog-title">
+                {activeDialog.type === "thread"
+                  ? "Abrir conversación"
+                  : activeDialog.type === "reply"
+                    ? "Responder en el foro"
+                    : "Pedir un traslado"}
+              </h2>
+            </div>
+            <Button onClick={closeDialog} type="button" aria-label="Cerrar formulario">
+              ×
+            </Button>
+          </div>
+          {activeDialog.type === "thread" && (
+            <form className="compact-form event-action-form" onSubmit={submitThread}>
+              <div className="form-grid">
+                <label>
+                  Título
+                  <input
+                    required
+                    value={thread.title}
+                    onChange={(input) => setThread({ ...thread, title: input.target.value })}
+                  />
+                </label>
+                <label>
+                  Tu nombre
+                  <input
+                    required
+                    value={thread.authorName}
+                    onChange={(input) => setThread({ ...thread, authorName: input.target.value })}
+                  />
+                </label>
+              </div>
+              <label>
+                Email
+                <input
+                  required
+                  type="email"
+                  value={thread.authorEmail}
+                  onChange={(input) => setThread({ ...thread, authorEmail: input.target.value })}
+                />
+              </label>
+              <label>
+                Mensaje
+                <textarea
+                  required
+                  rows="3"
+                  value={thread.body}
+                  onChange={(input) => setThread({ ...thread, body: input.target.value })}
+                />
+              </label>
+              <div className="actions">
+                <Button variant="dark" type="submit">
+                  Publicar en el foro ↗
+                </Button>
+                <Button onClick={closeDialog} type="button">
+                  Cancelar
+                </Button>
+              </div>
+              <HubNotice error={formError} />
+            </form>
+          )}
+          {activeDialog.type === "reply" && (
+            <form className="compact-form event-action-form" onSubmit={submitReply}>
+              <label>
+                Tu nombre
+                <input
+                  required
+                  value={reply.authorName}
+                  onChange={(input) => setReply({ ...reply, authorName: input.target.value })}
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  required
+                  type="email"
+                  value={reply.authorEmail}
+                  onChange={(input) => setReply({ ...reply, authorEmail: input.target.value })}
+                />
+              </label>
+              <label>
+                Respuesta
+                <textarea
+                  required
+                  rows="3"
+                  value={reply.body}
+                  onChange={(input) => setReply({ ...reply, body: input.target.value })}
+                />
+              </label>
+              <div className="actions">
+                <Button variant="dark" type="submit">
+                  Publicar respuesta ↗
+                </Button>
+                <Button onClick={closeDialog} type="button">
+                  Cancelar
+                </Button>
+              </div>
+              <HubNotice error={formError} />
+            </form>
+          )}
+          {activeDialog.type === "transport" && (
             <form className="compact-form event-action-form" onSubmit={submitTransport}>
               <label>
                 Nombre
@@ -395,22 +469,19 @@ export function EventPage() {
                   onChange={(input) => setTransport({ ...transport, notes: input.target.value })}
                 />
               </label>
-              <Button disabled={transportSubmitting} variant="dark" type="submit">
-                {transportSubmitting ? transportText.submitting : transportText.submitEvent}
-              </Button>
+              <div className="actions">
+                <Button disabled={transportSubmitting} variant="dark" type="submit">
+                  {transportSubmitting ? transportText.submitting : transportText.submitEvent}
+                </Button>
+                <Button disabled={transportSubmitting} onClick={closeDialog} type="button">
+                  Cancelar
+                </Button>
+              </div>
+              <HubNotice error={formError} />
             </form>
-          </section>
-          <section className="hub-panel">
-            <p className="eyebrow">Servicios de la escena</p>
-            <h2>También podés resolver la producción.</h2>
-            <div className="hub-links">
-              <Link to={`/seguros?eventId=${event.id}`}>Cotizar seguro ↗</Link>
-              <Link to="/marketplace">Ver marketplace ↗</Link>
-              <Link to="/red">Encontrar fotógrafos ↗</Link>
-            </div>
-          </section>
-        </aside>
-      </section>
+          )}
+        </Dialog>
+      )}
     </Layout>
   );
 }
