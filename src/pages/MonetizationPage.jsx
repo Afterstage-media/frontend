@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -92,6 +92,7 @@ export function MonetizationPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [formStep, setFormStep] = useState(1);
+  const idempotencyKeyRef = useRef("");
   useEffect(() => {
     api("/api/public/monetization/products")
       .then((items) => {
@@ -148,11 +149,14 @@ export function MonetizationPage() {
     }
     setLoading(true);
     setError("");
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = globalThis.crypto.randomUUID();
     try {
       const data = await api("/api/public/promotions", {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKeyRef.current },
         body: JSON.stringify(normalizePromotionForm(form)),
       });
+      idempotencyKeyRef.current = "";
       setResult(data);
       if (data.paymentUrl) window.location.assign(data.paymentUrl);
     } catch (e) {
