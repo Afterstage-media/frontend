@@ -1,3 +1,9 @@
+import { socialSeriesMessagesEs } from "../i18n/es-AR.dictionary.js";
+
+const apiErrorMessages = {
+  SOCIAL_SERIES_CONFLICT: socialSeriesMessagesEs.duplicateConflict,
+};
+
 export async function api(path, options = {}) {
   const isForm = typeof FormData !== "undefined" && options.body instanceof FormData;
   const headers = {
@@ -15,7 +21,7 @@ export async function api(path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(data.error || "No pudimos completar la solicitud");
+    const error = new Error(apiErrorMessages[data.code] || data.error || "No pudimos completar la solicitud");
     error.status = response.status;
     throw error;
   }
