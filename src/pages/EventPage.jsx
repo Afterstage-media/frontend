@@ -6,6 +6,8 @@ import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
 import { Notice } from "../components/ui/Notice.jsx";
 import { formatEventDates, isMultiDateEvent } from "../utils/eventDates.js";
+import { transportRequestEs as transportText } from "../i18n/es-AR.dictionary.js";
+import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
 
 const emptyThread = { title: "", body: "", authorName: "", authorEmail: "" };
 const emptyTransport = { name: "", email: "", partySize: "1", origin: "", notes: "", offerId: "" };
@@ -23,6 +25,7 @@ export function EventPage() {
   const [replyFor, setReplyFor] = useState("");
   const [reply, setReply] = useState({ body: "", authorName: "", authorEmail: "" });
   const [transport, setTransport] = useState(emptyTransport);
+  const [transportSubmitting, setTransportSubmitting] = useState(false);
   const [status, setStatus] = useState("");
   const [formError, setFormError] = useState("");
 
@@ -63,21 +66,29 @@ export function EventPage() {
 
   const submitTransport = async (submitEvent) => {
     submitEvent.preventDefault();
+    if (transportSubmitting) return;
     setStatus("");
     setFormError("");
+    setTransportSubmitting(true);
     try {
+      const payload = {
+        ...transport,
+        partySize: Number(transport.partySize || 1),
+        offerId: transport.offerId || null,
+      };
+      const idempotencyKey = await getStableIdempotencyKey(`transport-request-${id}`, payload);
       const result = await api(`/api/public/events/${id}/transport-requests`, {
         method: "POST",
-        body: JSON.stringify({
-          ...transport,
-          partySize: Number(transport.partySize || 1),
-          offerId: transport.offerId || null,
-        }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setStatus(result.message);
       setTransport(emptyTransport);
+      clearStableIdempotencyKey(`transport-request-${id}`);
     } catch (requestError) {
       setFormError(requestError.message);
+    } finally {
+      setTransportSubmitting(false);
     }
   };
 
@@ -376,8 +387,8 @@ export function EventPage() {
                   onChange={(input) => setTransport({ ...transport, notes: input.target.value })}
                 />
               </label>
-              <Button variant="dark" type="submit">
-                Pedir lugar ↗
+              <Button disabled={transportSubmitting} variant="dark" type="submit">
+                {transportSubmitting ? transportText.submitting : transportText.submitEvent}
               </Button>
             </form>
           </section>

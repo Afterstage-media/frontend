@@ -257,3 +257,13 @@ export const contentDashboardEs = {
   noMatchesTitle: "No hay contenidos que coincidan.",
   noMatchesDescription: "Probá con otra búsqueda o ajustá los filtros.",
 };
+export const transportRequestEs = {
+  ambiguousDate: "Hay varios shows en esa fecha. Elegí un artista para identificar el traslado.",
+  ambiguousShow: "Hay varios shows para esa fecha y artista. Elegí el lugar del show.",
+  chooseShow: "Lugar del show",
+  chooseShowPlaceholder: "Elegí el show",
+  venuePending: "Lugar a confirmar",
+  submitting: "Enviando…",
+  submit: "Pedir traslado ↗",
+  submitEvent: "Pedir lugar ↗",
+};
