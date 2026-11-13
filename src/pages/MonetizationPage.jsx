@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api.js";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
@@ -92,7 +92,6 @@ export function MonetizationPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [formStep, setFormStep] = useState(1);
-  const idempotencyKeyRef = useRef("");
   useEffect(() => {
     api("/api/public/monetization/products")
       .then((items) => {
@@ -149,14 +148,27 @@ export function MonetizationPage() {
     }
     setLoading(true);
     setError("");
-    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = globalThis.crypto.randomUUID();
+    const normalizedForm = normalizePromotionForm(form);
+    const fingerprintBuffer = await globalThis.crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(JSON.stringify(normalizedForm)),
+    );
+    const requestFingerprint = Array.from(new Uint8Array(fingerprintBuffer), (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+    const storedFingerprint = window.sessionStorage.getItem("afterstage:promotion:fingerprint");
+    let idempotencyKey = window.sessionStorage.getItem("afterstage:promotion:key");
+    if (!idempotencyKey || storedFingerprint !== requestFingerprint) {
+      idempotencyKey = globalThis.crypto.randomUUID();
+      window.sessionStorage.setItem("afterstage:promotion:fingerprint", requestFingerprint);
+      window.sessionStorage.setItem("afterstage:promotion:key", idempotencyKey);
+    }
     try {
       const data = await api("/api/public/promotions", {
         method: "POST",
-        headers: { "Idempotency-Key": idempotencyKeyRef.current },
-        body: JSON.stringify(normalizePromotionForm(form)),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(normalizedForm),
       });
-      idempotencyKeyRef.current = "";
       setResult(data);
       if (data.paymentUrl) window.location.assign(data.paymentUrl);
     } catch (e) {
