@@ -14,6 +14,7 @@ import { Toggle } from "../components/ui/Toggle.jsx";
 import { formatEventDateValue, getEventDates } from "../utils/eventDates.js";
 import { normalizeSearchText } from "../utils/search.js";
 import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
+import { transportRequestEs as transportText } from "../i18n/es-AR.dictionary.js";
 
 const insuranceProducts = [
   { value: "ap", label: "Accidentes personales", hint: "Personas durante el evento" },
@@ -641,6 +642,7 @@ export function TransportPage() {
   const [form, setForm] = useState({ name: "", email: "", origin: "", partySize: "1", notes: "", offerId: "" });
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   useEffect(() => {
     setEventsLoading(true);
     api("/api/public/events?limit=80")
@@ -687,19 +689,34 @@ export function TransportPage() {
     ).entries(),
   ].sort(([left], [right]) => left.localeCompare(right));
   const selectedEventData = events.find((event) => event.id === selectedEvent);
+  const selectedDateEvents = events.filter((candidate) => {
+    const artist = normalizeSearchText(candidate.artist?.trim() || candidate.name?.trim() || "Evento");
+    return (
+      (!eventArtistFilter || artist === eventArtistFilter) &&
+      getEventDates(candidate).some((date) => date.toISOString().slice(0, 10) === eventDateFilter)
+    );
+  });
   const submit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     setStatus("");
     setError("");
+    setSubmitting(true);
     try {
+      const payload = { ...form, offerId: form.offerId || null, partySize: Number(form.partySize || 1) };
+      const idempotencyKey = await getStableIdempotencyKey(`transport-request-${selectedEvent}`, payload);
       const result = await api(`/api/public/events/${selectedEvent}/transport-requests`, {
         method: "POST",
-        body: JSON.stringify({ ...form, offerId: form.offerId || null, partySize: Number(form.partySize || 1) }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setStatus(result.message);
       setForm({ name: "", email: "", origin: "", partySize: "1", notes: "", offerId: "" });
+      clearStableIdempotencyKey(`transport-request-${selectedEvent}`);
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -745,7 +762,7 @@ export function TransportPage() {
                 value={eventDateFilter}
                 onChange={(event) => {
                   const nextDate = event.target.value;
-                  const nextEvent = events.find((candidate) => {
+                  const nextEvents = events.filter((candidate) => {
                     const artist = normalizeSearchText(candidate.artist?.trim() || candidate.name?.trim() || "Evento");
                     return (
                       (!eventArtistFilter || artist === eventArtistFilter) &&
@@ -753,7 +770,7 @@ export function TransportPage() {
                     );
                   });
                   setEventDateFilter(nextDate);
-                  setSelectedEvent(nextEvent?.id || "");
+                  setSelectedEvent(nextEvents.length === 1 ? nextEvents[0].id : "");
                 }}
               >
                 <option value="">Todas las fechas</option>
@@ -774,12 +791,34 @@ export function TransportPage() {
             />
           ) : (
             <p className="muted transport-selection-status">
-              {!eventArtistFilter || !eventDateFilter
-                ? "Elegí un artista y una fecha para ver las opciones de traslado."
-                : selectedEventData
-                  ? "Listo. Ahora completá tus datos para pedir tu lugar."
-                  : "No encontramos una fecha para esa combinación."}
+              {!eventArtistFilter && eventDateFilter && selectedDateEvents.length > 1
+                ? transportText.ambiguousDate
+                : !eventArtistFilter || !eventDateFilter
+                  ? "Elegí un artista y una fecha para ver las opciones de traslado."
+                  : !selectedEventData && selectedDateEvents.length > 1
+                    ? transportText.ambiguousShow
+                    : selectedEventData
+                      ? "Listo. Ahora completá tus datos para pedir tu lugar."
+                      : "No encontramos una fecha para esa combinación."}
             </p>
+          )}
+          {eventArtistFilter && eventDateFilter && selectedDateEvents.length > 1 && !selectedEvent && (
+            <label className="transport-filter">
+              <span>{transportText.chooseShow}</span>
+              <select
+                aria-label={transportText.chooseShow}
+                value=""
+                onChange={(event) => setSelectedEvent(event.target.value)}
+              >
+                <option value="">{transportText.chooseShowPlaceholder}</option>
+                {selectedDateEvents.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>
+                    {candidate.name || candidate.artist} ·{" "}
+                    {candidate.venue || candidate.city || transportText.venuePending}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
         </div>
         <div className="transport-request-panel">
@@ -866,8 +905,8 @@ export function TransportPage() {
                     onChange={(event) => setForm({ ...form, notes: event.target.value })}
                   />
                 </label>
-                <Button variant="dark" type="submit">
-                  Pedir traslado ↗
+                <Button disabled={submitting} variant="dark" type="submit">
+                  {submitting ? transportText.submitting : transportText.submit}
                 </Button>
                 {error && <ErrorMessage error={error} />}
                 {status && <p className="success">{status}</p>}
