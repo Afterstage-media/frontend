@@ -6,6 +6,7 @@ import { AuthGate } from "../components/AuthGate.jsx";
 import { SignalTicker } from "../components/EditorialPrimitives.jsx";
 import { EditorialIntro } from "../components/ui/PageTitle.jsx";
 import { Button, ButtonLink } from "../components/ui/Button.jsx";
+import { clearStableIdempotencyKey, getStableIdempotencyKey } from "../utils/idempotency.js";
 export function CommunityPage() {
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get("eventId") || "";
@@ -63,13 +64,18 @@ export function PublishPage() {
     e.preventDefault();
     const formElement = e.currentTarget;
     const form = new FormData(formElement);
+    const payload = Object.fromEntries(form);
     try {
+      const scope = "community-submission";
+      const idempotencyKey = await getStableIdempotencyKey(scope, payload);
       const result = await api("/api/public/submissions", {
         method: "POST",
-        body: JSON.stringify(Object.fromEntries(form)),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify(payload),
       });
       setStatus(result.message);
       formElement.reset();
+      clearStableIdempotencyKey(scope);
     } catch (err) {
       setError(err.message);
     }
