@@ -103,6 +103,9 @@ function SocialComposer({
     existingSlides.length ? existingSlides : Array.from({ length: publicationType === "carousel" ? 3 : 1 }, emptySlide),
   );
   const [activeSlide, setActiveSlide] = useState(0);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const [mobileBasicsOpen, setMobileBasicsOpen] = useState(false);
+  const [mobileStyleOpen, setMobileStyleOpen] = useState(true);
   const [publication, setPublication] = useState(existingPublication);
   const [view, setView] = useState(searchParams.get("view") === "review" && existingPublication ? "review" : "edit");
   const [loadingTemplates, setLoadingTemplates] = useState(true);
@@ -497,7 +500,7 @@ function SocialComposer({
             <>
               <div className="social-composer-workspace">
                 <div className="social-composer-editor">
-                  <section className="composer-section">
+                  <section className="composer-section composer-mobile-step">
                     <div className="composer-section-title">
                       <span>01</span>
                       <div>
@@ -505,6 +508,16 @@ function SocialComposer({
                         <p>La plantilla define la composición y el formato de cada pieza.</p>
                       </div>
                     </div>
+                    <button
+                      className="composer-mobile-disclosure composer-mobile-style-toggle"
+                      aria-expanded={mobileStyleOpen}
+                      onClick={() => setMobileStyleOpen((open) => !open)}
+                      type="button"
+                    >
+                      <span>Estilo visual <small>{selectedTemplate?.visualStyle?.name || "Elegí una plantilla"}</small></span>
+                      <b aria-hidden="true">{mobileStyleOpen ? "−" : "+"}</b>
+                    </button>
+                    <div className={`composer-mobile-style-content ${mobileStyleOpen ? "is-open" : ""}`}>
                     <div className="composer-format-picker" aria-label="Formato de Instagram">
                       {[
                         ["carousel", "Carrusel", "4:5"],
@@ -574,9 +587,10 @@ function SocialComposer({
                         )}
                       </div>
                     )}
+                    </div>
                   </section>
 
-                  <section className="composer-section">
+                  <section className="composer-section composer-mobile-step">
                     <div className="composer-section-title">
                       <span>02</span>
                       <div>
@@ -625,7 +639,7 @@ function SocialComposer({
                           ) : (
                             <i />
                           )}
-                          <span>{String(index + 1).padStart(2, "0")}</span>
+                          <span>{String(index + 1).padStart(2, "0")}{activeSlide === index ? " · Editando" : ""}</span>
                         </button>
                       ))}
                       {slides.length < (publicationType === "carousel" ? 9 : 1) && (
@@ -643,7 +657,7 @@ function SocialComposer({
                       )}
                     </div>
                     <label className="composer-batch-upload">
-                      ＋ Cargar varias fotos en orden
+                      ＋ Agregar fotos desde el teléfono
                       <input
                         accept="image/jpeg,image/png,image/webp"
                         multiple
@@ -654,6 +668,7 @@ function SocialComposer({
                         type="file"
                       />
                     </label>
+                    <p className="composer-mobile-hint">Tocá una foto para editarla. Podés sumar hasta {publicationType === "carousel" ? "9" : "1"}.</p>
                     <div className="composer-slide-order">
                       <button disabled={activeSlide === 0} onClick={() => moveSlide(-1)} type="button">
                         ← Mover antes
@@ -668,9 +683,7 @@ function SocialComposer({
                           {publicationType === "story" ? "HISTORIA" : publicationType === "post" ? "POST" : "LÁMINA"}{" "}
                           {String(activeSlide + 1).padStart(2, "0")}
                         </b>
-                        <span>
-                          {slides.length}/{publicationType === "carousel" ? 9 : 1}
-                        </span>
+                        <span>Editando · {slides.length} {slides.length === 1 ? "imagen" : "imágenes"}</span>
                       </div>
                       <div className="composer-slide-assembly">
                         <div className="composer-slide-photo-column">
@@ -765,7 +778,7 @@ function SocialComposer({
                     </div>
                   </section>
 
-                  <section className="composer-section">
+                  <section className="composer-section composer-mobile-step composer-mobile-basics">
                     <div className="composer-section-title">
                       <span>03</span>
                       <div>
@@ -797,6 +810,16 @@ function SocialComposer({
                         value={source}
                       />
                     </label>
+                    <button
+                      className="composer-mobile-disclosure"
+                      aria-expanded={mobileBasicsOpen}
+                      onClick={() => setMobileBasicsOpen((open) => !open)}
+                      type="button"
+                    >
+                      <span>Créditos adicionales <small>Autoría y crédito fotográfico general</small></span>
+                      <b aria-hidden="true">{mobileBasicsOpen ? "−" : "+"}</b>
+                    </button>
+                    <div className={`composer-mobile-disclosure-content ${mobileBasicsOpen ? "is-open" : ""}`}>
                     <div className="composer-credit-grid">
                       <label className="composer-field">
                         <span>Autoría</span>
@@ -817,10 +840,21 @@ function SocialComposer({
                         />
                       </label>
                     </div>
+                    </div>
                   </section>
                 </div>
 
                 <aside className="composer-preview-column">
+                  <button
+                    className="composer-mobile-disclosure composer-mobile-preview-toggle"
+                    aria-expanded={mobilePreviewOpen}
+                    onClick={() => setMobilePreviewOpen((open) => !open)}
+                    type="button"
+                  >
+                    <span>Vista previa <small>{mobilePreviewOpen ? "Ocultar" : "Ver cómo va quedando"}</small></span>
+                    <b aria-hidden="true">{mobilePreviewOpen ? "−" : "+"}</b>
+                  </button>
+                  <div className={`composer-mobile-preview-content ${mobilePreviewOpen ? "is-open" : ""}`}>
                   <div className="composer-preview-heading">
                     <div>
                       <p className="eyebrow">VISTA PREVIA</p>
@@ -911,6 +945,7 @@ function SocialComposer({
                       <br />
                       <small>Violeta, carbón y tipografías de Afterstage</small>
                     </p>
+                  </div>
                   </div>
                 </aside>
               </div>
