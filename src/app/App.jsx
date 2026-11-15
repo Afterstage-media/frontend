@@ -24,6 +24,7 @@ import { InsurancePage, MarketplacePage, TransportPage } from "../pages/Platform
 import { AdminPlatformPage } from "../pages/AdminPlatformPage.jsx";
 import { LoginForm } from "../components/AuthGate.jsx";
 import { RecurringSocialPage } from "../pages/RecurringSocialPage.jsx";
+import { AiNewsPage } from "../pages/AiNewsPage.jsx";
 
 function AccessPage() {
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export function App() {
         <Route path="/codigo-de-creditos" element={<CreditsPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/redes" element={<SocialPage />} />
+        <Route path="/admin/novedades" element={<AiNewsPage />} />
         <Route path="/admin/redes/series" element={<RecurringSocialPage />} />
         <Route path="/admin/instagram" element={<InstagramSettingsPage />} />
         <Route path="/colaborador" element={<CollaboratorPage />} />
