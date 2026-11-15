@@ -16,12 +16,14 @@ const formatDate = (value) => {
 };
 
 const messagePreview = (message) => (message.text || message.subject || "").replace(/\s+/g, " ").trim();
-const emailHtmlDocument = (html) => {
-  const policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: cid:; style-src 'unsafe-inline'; font-src data:; script-src 'none'; form-action 'none'; base-uri 'none'">`;
+const emailHtmlDocument = (html, loadExternalImages = false) => {
+  const imageSources = `data: cid:${loadExternalImages ? " https:" : ""}`;
+  const policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imageSources}; style-src 'unsafe-inline'; font-src data:; script-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">`;
+  const responsiveStyles = `<meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{max-width:100%!important;min-width:0!important;margin:0!important;overflow-wrap:anywhere!important}img{max-width:100%!important;height:auto!important}table{max-width:100%!important}pre{max-width:100%;overflow:auto}body{font-size:16px;line-height:1.5}</style>`;
   const source = String(html || "");
   return /<head(?:\s[^>]*)?>/i.test(source)
-    ? source.replace(/<head([^>]*)>/i, `<head$1>${policy}`)
-    : `<!doctype html><html><head>${policy}</head><body>${source}</body></html>`;
+    ? source.replace(/<head([^>]*)>/i, `<head$1>${policy}${responsiveStyles}`)
+    : `<!doctype html><html><head>${policy}${responsiveStyles}</head><body>${source}</body></html>`;
 };
 const emailImages = (html) => {
   if (!html || typeof DOMParser === "undefined") return [];
@@ -71,7 +73,10 @@ function MailboxContent({ actor }) {
   const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(requestedThreadId));
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
+  const [loadExternalImages, setLoadExternalImages] = useState(false);
   const replySubmission = useRef(null);
+  const swipeStartRef = useRef(null);
+  const latestSwipeEndRef = useRef(null);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
@@ -182,6 +187,52 @@ function MailboxContent({ actor }) {
       threadKind(item) === "distribution" &&
       threadDisplayLabel(item) === filter.slice("distribution:".length));
   const filteredThreads = useMemo(() => threads.filter(isThreadVisible), [filter, routes, threads]);
+  const selectedThreadIndex = filteredThreads.findIndex((item) => item.id === selectedId);
+
+  const selectAdjacentThread = (direction) => {
+    const currentIndex = filteredThreads.findIndex((item) => item.id === selectedId);
+    const nextThread = filteredThreads[currentIndex + direction];
+    if (!nextThread) return;
+    setStatus("");
+    setLoadExternalImages(false);
+    setSelectedId(nextThread.id);
+    setMobileConversationOpen(true);
+  };
+
+  const startConversationSwipe = (event) => {
+    const touch = event.touches?.[0] || event.changedTouches?.[0];
+    if (touch) swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const finishConversationSwipe = (event) => {
+    const start = swipeStartRef.current;
+    const touch = event.changedTouches?.[0] || event.touches?.[0];
+    swipeStartRef.current = null;
+    if (!start || !touch || !mobileConversationOpen) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (Math.abs(deltaX) < 65 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+    selectAdjacentThread(deltaX < 0 ? 1 : -1);
+  };
+  latestSwipeEndRef.current = finishConversationSwipe;
+
+  const loadEmailFrame = (event) => {
+    const frame = event.currentTarget;
+    const document = frame.contentDocument;
+    if (!document) return;
+
+    const resizeFrame = () => {
+      const contentHeight = Math.max(document.documentElement?.scrollHeight || 0, document.body?.scrollHeight || 0);
+      frame.style.height = `${Math.min(Math.max(contentHeight, 240), 2400)}px`;
+    };
+    const recordFrameTouch = (touchEvent) => startConversationSwipe(touchEvent);
+    const handleFrameTouchEnd = (touchEvent) => latestSwipeEndRef.current?.(touchEvent);
+    document.addEventListener("touchstart", recordFrameTouch, { passive: true });
+    document.addEventListener("touchend", handleFrameTouchEnd, { passive: true });
+    document.querySelectorAll("img").forEach((image) => image.addEventListener("load", resizeFrame));
+    resizeFrame();
+  };
 
   const startRouteEdit = (route) => {
     setEditingRoute(route.address);
@@ -506,7 +557,12 @@ function MailboxContent({ actor }) {
                 </button>
               ))}
             </aside>
-            <section className="mailbox-conversation" aria-label="Conversación seleccionada">
+            <section
+              className="mailbox-conversation"
+              aria-label="Conversación seleccionada"
+              onTouchStart={startConversationSwipe}
+              onTouchEnd={finishConversationSwipe}
+            >
               {!selectedId && <div className="mailbox-placeholder">Elegí una conversación para empezar.</div>}
               {loadingThread && <p className="muted mailbox-conversation-loading">Cargando conversación…</p>}
               {!loadingThread && thread && (
@@ -525,6 +581,28 @@ function MailboxContent({ actor }) {
                         {threadDisplayLabel(thread)}
                       </span>
                     </div>
+                    <nav className="mailbox-message-navigation" aria-label="Navegar entre correos">
+                      <button
+                        aria-label="Correo anterior"
+                        disabled={selectedThreadIndex <= 0}
+                        onClick={() => selectAdjacentThread(-1)}
+                        type="button"
+                      >
+                        ← <span className="mailbox-message-navigation-label">Anterior</span>
+                      </button>
+                      <span aria-live="polite">
+                        {selectedThreadIndex >= 0 ? selectedThreadIndex + 1 : 0} de {filteredThreads.length}
+                        <small>Deslizá para cambiar</small>
+                      </span>
+                      <button
+                        aria-label="Correo siguiente"
+                        disabled={selectedThreadIndex < 0 || selectedThreadIndex >= filteredThreads.length - 1}
+                        onClick={() => selectAdjacentThread(1)}
+                        type="button"
+                      >
+                        <span className="mailbox-message-navigation-label">Siguiente</span> →
+                      </button>
+                    </nav>
                     <div>
                       <div className="mailbox-conversation-title">
                         <h2>{thread.subject || "(sin asunto)"}</h2>
@@ -536,51 +614,65 @@ function MailboxContent({ actor }) {
                     </div>
                   </header>
                   <div className="mailbox-messages">
-                    {thread.messages.map((message) => (
-                      <article className={`mailbox-message mailbox-message-${message.direction}`} key={message.id}>
-                        <header>
-                          <strong>{message.direction === "inbound" ? message.from : "Afterstage"}</strong>
-                          <time dateTime={message.receivedAt}>{formatDate(message.receivedAt)}</time>
-                        </header>
-                        <p className="mailbox-message-to">Para: {message.to?.join(", ")}</p>
-                        {message.html ? (
-                          <>
-                            <iframe
-                              className="mailbox-message-html"
-                              title={`Contenido de correo: ${message.subject || "sin asunto"}`}
-                              sandbox="allow-popups allow-popups-to-escape-sandbox"
-                              referrerPolicy="no-referrer"
-                              srcDoc={emailHtmlDocument(message.html)}
-                            />
-                            {emailImages(message.html).length > 0 && (
-                              <div className="mailbox-email-images" aria-label="Imágenes del correo">
-                                <div>
-                                  <strong>Imágenes del correo</strong>
-                                  <span>Se cargan solo cuando abrís el visor.</span>
-                                </div>
-                                <div className="mailbox-email-image-list">
-                                  {emailImages(message.html).map((image, index, images) => (
+                    {thread.messages.map((message) => {
+                      const images = emailImages(message.html);
+                      const hasExternalImages = images.some((image) => /^https:\/\//i.test(image.src));
+                      return (
+                        <article className={`mailbox-message mailbox-message-${message.direction}`} key={message.id}>
+                          <header>
+                            <strong>{message.direction === "inbound" ? message.from : "Afterstage"}</strong>
+                            <time dateTime={message.receivedAt}>{formatDate(message.receivedAt)}</time>
+                          </header>
+                          <p className="mailbox-message-to">Para: {message.to?.join(", ")}</p>
+                          {message.html ? (
+                            <>
+                              <iframe
+                                className="mailbox-message-html"
+                                title={`Contenido de correo: ${message.subject || "sin asunto"}`}
+                                sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                                referrerPolicy="no-referrer"
+                                onLoad={loadEmailFrame}
+                                srcDoc={emailHtmlDocument(message.html, loadExternalImages)}
+                              />
+                              {images.length > 0 && (
+                                <div className="mailbox-email-images" aria-label="Imágenes del correo">
+                                  <div>
+                                    <strong>Imágenes del correo</strong>
+                                    <span>Las imágenes externas solo se descargan cuando las habilitás.</span>
+                                  </div>
+                                  {hasExternalImages && (
                                     <button
-                                      key={`${image.src}-${index}`}
-                                      onClick={() => setImageViewer({ images, index })}
+                                      className="mailbox-load-email-images"
+                                      onClick={() => setLoadExternalImages((current) => !current)}
                                       type="button"
                                     >
-                                      <span aria-hidden="true">▧</span>
-                                      {image.alt}
-                                      <span className="mailbox-image-open">Abrir ↗</span>
+                                      {loadExternalImages ? "Ocultar imágenes externas" : "Cargar imágenes externas"}
                                     </button>
-                                  ))}
+                                  )}
+                                  <div className="mailbox-email-image-list">
+                                    {images.map((image, index) => (
+                                      <button
+                                        key={`${image.src}-${index}`}
+                                        onClick={() => setImageViewer({ images, index })}
+                                        type="button"
+                                      >
+                                        <span aria-hidden="true">▧</span>
+                                        {image.alt}
+                                        <span className="mailbox-image-open">Abrir ↗</span>
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </>
-                        ) : message.text?.trim() ? (
-                          <div className="mailbox-message-body">{message.text}</div>
-                        ) : (
-                          <div className="mailbox-message-body">{messagePreview(message) || "Sin contenido"}</div>
-                        )}
-                      </article>
-                    ))}
+                              )}
+                            </>
+                          ) : message.text?.trim() ? (
+                            <div className="mailbox-message-body">{message.text}</div>
+                          ) : (
+                            <div className="mailbox-message-body">{messagePreview(message) || "Sin contenido"}</div>
+                          )}
+                        </article>
+                      );
+                    })}
                   </div>
                   {!replyAvailable ? (
                     <p className="muted" role="status">
