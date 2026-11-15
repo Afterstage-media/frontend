@@ -84,6 +84,7 @@ export function WorkspaceSidebar({ menuOpen, closeMenu, collapsedSections, setCo
               {can("admin", "editor") && link("/admin", "Contenido", true)}
               {can("admin", "editor") && link("/admin/nueva", "Nueva publicación")}
               {can("admin", "editor") && link("/admin/redes", "Redes")}
+              {can("admin", "editor") && link("/admin/novedades", "Novedades + IA")}
               {can("admin", "editor") && link("/admin/redes/series", "Historias y series")}
               {can("admin", "editor", "press") && link("/admin/prensa", "Prensa")}
               {can("admin", "editor", "press", "community") && link("/admin/correo", "Correo")}

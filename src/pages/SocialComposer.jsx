@@ -53,7 +53,12 @@ function fileData(file) {
   });
 }
 
-function SocialComposer({ publication: existingItem = null, initialTemplateId = "", initialNotice = "" }) {
+function SocialComposer({
+  publication: existingItem = null,
+  initialTemplateId = "",
+  initialNotice = "",
+  initialCopy = "",
+}) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const requestedTemplateId = searchParams.get("templateId");
@@ -90,7 +95,7 @@ function SocialComposer({ publication: existingItem = null, initialTemplateId = 
   );
   const [templateId, setTemplateId] = useState(existingItem?.socialTemplateId || initialTemplateId || "");
   const [title, setTitle] = useState(existingItem?.title || "");
-  const [instagramCopy, setInstagramCopy] = useState(existingItem?.instagramCopy || "");
+  const [instagramCopy, setInstagramCopy] = useState(existingItem?.instagramCopy || initialCopy || "");
   const [source, setSource] = useState(existingItem?.source || "");
   const [author, setAuthor] = useState(existingItem?.author || "");
   const [photographer, setPhotographer] = useState(existingItem?.photographer || "");
