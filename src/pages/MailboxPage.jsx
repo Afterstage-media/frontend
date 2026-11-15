@@ -68,6 +68,7 @@ function MailboxContent({ actor }) {
   const [routes, setRoutes] = useState([]);
   const [replyAvailable, setReplyAvailable] = useState(false);
   const [selectedId, setSelectedId] = useState(requestedThreadId);
+  const [mobileConversationOpen, setMobileConversationOpen] = useState(Boolean(requestedThreadId));
   const [thread, setThread] = useState(null);
   const [draft, setDraft] = useState("");
   const replySubmission = useRef(null);
@@ -290,7 +291,7 @@ function MailboxContent({ actor }) {
 
   return (
     <Layout>
-      <section className="mailbox-page">
+      <section className={`mailbox-page${mobileConversationOpen ? " is-mobile-conversation-open" : ""}`}>
         <header className="mailbox-header">
           <div className="mailbox-heading">
             <div className="mailbox-heading-topline">
@@ -469,7 +470,7 @@ function MailboxContent({ actor }) {
         {loading ? (
           <p className="muted">Cargando bandeja…</p>
         ) : (
-          <div className="mailbox-layout">
+          <div className={`mailbox-layout${mobileConversationOpen ? " is-mobile-conversation-open" : ""}`}>
             <aside className="mailbox-threads" aria-label="Conversaciones">
               <div className="mailbox-section-label">
                 <span>Bandeja</span>
@@ -490,6 +491,7 @@ function MailboxContent({ actor }) {
                   onClick={() => {
                     setStatus("");
                     setSelectedId(item.id);
+                    setMobileConversationOpen(true);
                   }}
                   type="button"
                 >
@@ -510,6 +512,13 @@ function MailboxContent({ actor }) {
               {!loadingThread && thread && (
                 <>
                   <header className="mailbox-conversation-header">
+                    <button
+                      className="mailbox-back-to-inbox"
+                      onClick={() => setMobileConversationOpen(false)}
+                      type="button"
+                    >
+                      ← Volver a la bandeja
+                    </button>
                     <div className="mailbox-conversation-kicker">
                       <p className="eyebrow">Conversación</p>
                       <span className={`mailbox-kind mailbox-kind-${thread.mailboxType || "personal"}`}>

@@ -708,6 +708,10 @@
   padding: 25px clamp(22px, 4vw, 54px) 21px;
 }
 
+.mailbox-back-to-inbox {
+  display: none;
+}
+
 .mailbox-conversation-header h2 {
   font-size: clamp(1.8rem, 3vw, 2.65rem);
   letter-spacing: -0.055em;
@@ -905,9 +909,31 @@
 }
 
 @media (max-width: 800px) {
+  .mailbox-page {
+    padding: 18px 16px 32px;
+  }
+
   .mailbox-header {
-    align-items: start;
+    align-items: center;
     flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 0;
+  }
+
+  .mailbox-heading-topline {
+    gap: 8px;
+  }
+
+  .mailbox-header h1 {
+    font-size: clamp(2.8rem, 12vw, 4rem);
+    line-height: 0.9;
+    margin: 10px 0;
+  }
+
+  .mailbox-header p:not(.eyebrow) {
+    font-size: 0.84rem;
+    line-height: 1.4;
   }
 
   .mailbox-summary {
@@ -921,6 +947,8 @@
 
   .mailbox-layout {
     grid-template-columns: 1fr;
+    height: calc(100dvh - 330px);
+    min-height: 300px;
   }
 
   .mailbox-toolbar,
@@ -932,6 +960,33 @@
   .mailbox-toolbar-main,
   .mailbox-toolbar-actions {
     justify-content: space-between;
+  }
+
+  .mailbox-toolbar-main {
+    align-items: start;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .mailbox-filters {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 2px 1px 8px;
+    scrollbar-width: thin;
+    width: 100%;
+  }
+
+  .mailbox-filter {
+    flex: 0 0 auto;
+    min-height: 42px;
+    white-space: nowrap;
+  }
+
+  .mailbox-toolbar-actions {
+    align-items: center;
   }
 
   .mailbox-routes-grid {
@@ -956,13 +1011,30 @@
 
   .mailbox-routes-toggle {
     align-self: start;
+    min-height: 44px;
   }
 
   .mailbox-threads {
     border-bottom: var(--border-soft);
     border-right: 0;
     max-height: none;
-    overflow: visible;
+    overflow: auto;
+  }
+
+  .mailbox-thread {
+    gap: 7px;
+    min-height: 104px;
+    padding: 14px 14px 14px 16px;
+  }
+
+  .mailbox-thread-topline {
+    align-items: start;
+    gap: 8px;
+  }
+
+  .mailbox-thread-topline strong {
+    font-size: 0.92rem;
+    white-space: normal;
   }
 
   .mailbox-reply-actions {
@@ -972,14 +1044,107 @@
 
   .mailbox-layout {
     min-height: auto;
-    overflow: visible;
+    overflow: hidden;
   }
   .mailbox-conversation {
-    min-height: 560px;
+    min-height: 0;
   }
-  .mailbox-message-html {
-    height: 68vh;
-    min-height: 320px;
+
+  .mailbox-layout.is-mobile-conversation-open {
+    height: calc(100dvh - 96px);
+    min-height: 420px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-threads {
+    display: none;
+  }
+
+  .mailbox-layout:not(.is-mobile-conversation-open) .mailbox-conversation {
+    display: none;
+  }
+
+  .mailbox-page.is-mobile-conversation-open {
+    padding-top: 8px;
+  }
+
+  .mailbox-page.is-mobile-conversation-open > .mailbox-header,
+  .mailbox-page.is-mobile-conversation-open > .mailbox-toolbar {
+    display: none;
+  }
+
+  .mailbox-back-to-inbox {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--color-accent);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 800;
+    min-height: 44px;
+    padding: 0 0 8px;
+    text-align: left;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-conversation {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-conversation-header {
+    flex: 0 0 auto;
+    padding: 10px 16px 13px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-conversation-header h2 {
+    font-size: clamp(1.45rem, 7vw, 2rem);
+    line-height: 1.08;
+    margin: 7px 0 5px;
+    overflow-wrap: anywhere;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 14px 12px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-message {
+    max-width: 100%;
+    padding: 13px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-message-html {
+    height: 42dvh;
+    min-height: 210px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-reply {
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-reply textarea {
+    font-size: 16px;
+    min-height: 76px;
+    padding: 10px;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-reply-actions {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-reply-actions .muted {
+    font-size: 0.68rem;
+  }
+
+  .mailbox-layout.is-mobile-conversation-open .mailbox-reply-actions button {
+    flex: 0 0 auto;
+    min-height: 44px;
   }
   .mailbox-image-viewer-panel {
     height: min(760px, 94vh);
