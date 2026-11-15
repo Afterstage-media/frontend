@@ -325,7 +325,13 @@ function AdminDashboard({ actor }) {
 
 function SocialDashboard() {
   const location = useLocation();
-  return <SocialComposer initialNotice={location.state?.notice || ""} />;
+  return (
+    <SocialComposer
+      initialNotice={location.state?.notice || ""}
+      initialCopy={location.state?.instagramCopy || ""}
+      initialTemplateId={location.state?.templateId || ""}
+    />
+  );
 }
 
 export function SocialPage() {

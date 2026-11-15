@@ -295,7 +295,13 @@ function AiNewsWorkspace() {
               </Link>
             </p>
             <p>
-              <Link className="button subtle" to="/admin/redes">
+              <Link
+                className="button subtle"
+                to="/admin/redes"
+                state={{
+                  instagramCopy: `${copy.instagramPost}\n\n${copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" ")}`,
+                }}
+              >
                 Abrir compositor social
               </Link>
             </p>
