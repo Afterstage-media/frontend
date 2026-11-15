@@ -514,79 +514,83 @@ function SocialComposer({
                       onClick={() => setMobileStyleOpen((open) => !open)}
                       type="button"
                     >
-                      <span>Estilo visual <small>{selectedTemplate?.visualStyle?.name || "Elegí una plantilla"}</small></span>
+                      <span>
+                        Estilo visual <small>{selectedTemplate?.visualStyle?.name || "Elegí una plantilla"}</small>
+                      </span>
                       <b aria-hidden="true">{mobileStyleOpen ? "−" : "+"}</b>
                     </button>
                     <div className={`composer-mobile-style-content ${mobileStyleOpen ? "is-open" : ""}`}>
-                    <div className="composer-format-picker" aria-label="Formato de Instagram">
-                      {[
-                        ["carousel", "Carrusel", "4:5"],
-                        ["post", "Post", "4:5"],
-                        ["story", "Historia", "9:16"],
-                      ].map(([type, label, ratio]) => (
-                        <button
-                          aria-pressed={publicationType === type}
-                          className={publicationType === type ? "is-active" : ""}
-                          disabled={isEditing}
-                          key={type}
-                          onClick={() => chooseFormat(type)}
-                          type="button"
-                        >
-                          <b>{label}</b>
-                          <small>{ratio}</small>
-                        </button>
-                      ))}
-                    </div>
-                    {loadingTemplates ? (
-                      <p className="composer-loading">Cargando estilos…</p>
-                    ) : (
-                      <div className="composer-template-list">
-                        {visualTemplates.map((template) => {
-                          const visualStyle = template.visualStyle;
-                          const active = selectedVisualStyleId === visualStyle?.id;
-                          return (
-                            <button
-                              aria-pressed={active}
-                              className={`composer-template-option ${active ? "is-selected" : ""}`}
-                              key={visualStyle?.id || template.id}
-                              onClick={() => setTemplateId(template.id)}
-                              type="button"
-                            >
-                              <span
-                                aria-hidden="true"
-                                className={`composer-style-preview is-${visualStyle?.layout || "photo-overlay"} is-${publicationType}`}
-                                style={{
-                                  "--style-background": visualStyle?.palette?.background || "#f1f0ec",
-                                  "--style-foreground": visualStyle?.palette?.foreground || "#19191d",
-                                  "--style-accent": visualStyle?.palette?.accent || "#7b35ff",
-                                }}
-                              >
-                                <b>AFTERSTAGE</b>
-                                <strong>
-                                  UNA HISTORIA
-                                  <br />
-                                  EN IMÁGENES
-                                </strong>
-                                <i />
-                              </span>
-                              <span className="composer-template-copy">
-                                <strong>{visualStyle?.name || "Afterstage editorial"}</strong>
-                                <small>{visualStyle?.description || "Fotografía, tipografía y color del medio."}</small>
-                              </span>
-                              <span className="composer-template-count">
-                                {publicationType === "story" ? "9:16" : "4:5"}
-                              </span>
-                              <span className="composer-template-check" aria-hidden="true">
-                                {active ? "✓" : ""}
-                              </span>
-                            </button>
-                          );
-                        })}
-                        {!visualTemplates.length && !error && (
-                          <p className="composer-loading">No hay estilos visuales publicados para este formato.</p>
-                        )}
+                      <div className="composer-format-picker" aria-label="Formato de Instagram">
+                        {[
+                          ["carousel", "Carrusel", "4:5"],
+                          ["post", "Post", "4:5"],
+                          ["story", "Historia", "9:16"],
+                        ].map(([type, label, ratio]) => (
+                          <button
+                            aria-pressed={publicationType === type}
+                            className={publicationType === type ? "is-active" : ""}
+                            disabled={isEditing}
+                            key={type}
+                            onClick={() => chooseFormat(type)}
+                            type="button"
+                          >
+                            <b>{label}</b>
+                            <small>{ratio}</small>
+                          </button>
+                        ))}
                       </div>
-                    )}
+                      {loadingTemplates ? (
+                        <p className="composer-loading">Cargando estilos…</p>
+                      ) : (
+                        <div className="composer-template-list">
+                          {visualTemplates.map((template) => {
+                            const visualStyle = template.visualStyle;
+                            const active = selectedVisualStyleId === visualStyle?.id;
+                            return (
+                              <button
+                                aria-pressed={active}
+                                className={`composer-template-option ${active ? "is-selected" : ""}`}
+                                key={visualStyle?.id || template.id}
+                                onClick={() => setTemplateId(template.id)}
+                                type="button"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={`composer-style-preview is-${visualStyle?.layout || "photo-overlay"} is-${publicationType}`}
+                                  style={{
+                                    "--style-background": visualStyle?.palette?.background || "#f1f0ec",
+                                    "--style-foreground": visualStyle?.palette?.foreground || "#19191d",
+                                    "--style-accent": visualStyle?.palette?.accent || "#7b35ff",
+                                  }}
+                                >
+                                  <b>AFTERSTAGE</b>
+                                  <strong>
+                                    UNA HISTORIA
+                                    <br />
+                                    EN IMÁGENES
+                                  </strong>
+                                  <i />
+                                </span>
+                                <span className="composer-template-copy">
+                                  <strong>{visualStyle?.name || "Afterstage editorial"}</strong>
+                                  <small>
+                                    {visualStyle?.description || "Fotografía, tipografía y color del medio."}
+                                  </small>
+                                </span>
+                                <span className="composer-template-count">
+                                  {publicationType === "story" ? "9:16" : "4:5"}
+                                </span>
+                                <span className="composer-template-check" aria-hidden="true">
+                                  {active ? "✓" : ""}
+                                </span>
+                              </button>
+                            );
+                          })}
+                          {!visualTemplates.length && !error && (
+                            <p className="composer-loading">No hay estilos visuales publicados para este formato.</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </section>
 
@@ -639,7 +643,10 @@ function SocialComposer({
                           ) : (
                             <i />
                           )}
-                          <span>{String(index + 1).padStart(2, "0")}{activeSlide === index ? " · Editando" : ""}</span>
+                          <span>
+                            {String(index + 1).padStart(2, "0")}
+                            {activeSlide === index ? " · Editando" : ""}
+                          </span>
                         </button>
                       ))}
                       {slides.length < (publicationType === "carousel" ? 9 : 1) && (
@@ -668,7 +675,9 @@ function SocialComposer({
                         type="file"
                       />
                     </label>
-                    <p className="composer-mobile-hint">Tocá una foto para editarla. Podés sumar hasta {publicationType === "carousel" ? "9" : "1"}.</p>
+                    <p className="composer-mobile-hint">
+                      Tocá una foto para editarla. Podés sumar hasta {publicationType === "carousel" ? "9" : "1"}.
+                    </p>
                     <div className="composer-slide-order">
                       <button disabled={activeSlide === 0} onClick={() => moveSlide(-1)} type="button">
                         ← Mover antes
@@ -683,7 +692,9 @@ function SocialComposer({
                           {publicationType === "story" ? "HISTORIA" : publicationType === "post" ? "POST" : "LÁMINA"}{" "}
                           {String(activeSlide + 1).padStart(2, "0")}
                         </b>
-                        <span>Editando · {slides.length} {slides.length === 1 ? "imagen" : "imágenes"}</span>
+                        <span>
+                          Editando · {slides.length} {slides.length === 1 ? "imagen" : "imágenes"}
+                        </span>
                       </div>
                       <div className="composer-slide-assembly">
                         <div className="composer-slide-photo-column">
@@ -816,30 +827,32 @@ function SocialComposer({
                       onClick={() => setMobileBasicsOpen((open) => !open)}
                       type="button"
                     >
-                      <span>Créditos adicionales <small>Autoría y crédito fotográfico general</small></span>
+                      <span>
+                        Créditos adicionales <small>Autoría y crédito fotográfico general</small>
+                      </span>
                       <b aria-hidden="true">{mobileBasicsOpen ? "−" : "+"}</b>
                     </button>
                     <div className={`composer-mobile-disclosure-content ${mobileBasicsOpen ? "is-open" : ""}`}>
-                    <div className="composer-credit-grid">
-                      <label className="composer-field">
-                        <span>Autoría</span>
-                        <input
-                          maxLength={180}
-                          onChange={(event) => setAuthor(event.target.value)}
-                          placeholder="Nombre y apellido"
-                          value={author}
-                        />
-                      </label>
-                      <label className="composer-field">
-                        <span>Crédito fotográfico general</span>
-                        <input
-                          maxLength={180}
-                          onChange={(event) => setPhotographer(event.target.value)}
-                          placeholder="Nombre y apellido"
-                          value={photographer}
-                        />
-                      </label>
-                    </div>
+                      <div className="composer-credit-grid">
+                        <label className="composer-field">
+                          <span>Autoría</span>
+                          <input
+                            maxLength={180}
+                            onChange={(event) => setAuthor(event.target.value)}
+                            placeholder="Nombre y apellido"
+                            value={author}
+                          />
+                        </label>
+                        <label className="composer-field">
+                          <span>Crédito fotográfico general</span>
+                          <input
+                            maxLength={180}
+                            onChange={(event) => setPhotographer(event.target.value)}
+                            placeholder="Nombre y apellido"
+                            value={photographer}
+                          />
+                        </label>
+                      </div>
                     </div>
                   </section>
                 </div>
@@ -851,101 +864,103 @@ function SocialComposer({
                     onClick={() => setMobilePreviewOpen((open) => !open)}
                     type="button"
                   >
-                    <span>Vista previa <small>{mobilePreviewOpen ? "Ocultar" : "Ver cómo va quedando"}</small></span>
+                    <span>
+                      Vista previa <small>{mobilePreviewOpen ? "Ocultar" : "Ver cómo va quedando"}</small>
+                    </span>
                     <b aria-hidden="true">{mobilePreviewOpen ? "−" : "+"}</b>
                   </button>
                   <div className={`composer-mobile-preview-content ${mobilePreviewOpen ? "is-open" : ""}`}>
-                  <div className="composer-preview-heading">
-                    <div>
-                      <p className="eyebrow">VISTA PREVIA</p>
-                      <h2>Así queda</h2>
-                      <small className="composer-preview-linked">
-                        Vinculada a la lámina {String(activeSlide + 1).padStart(2, "0")}
-                      </small>
+                    <div className="composer-preview-heading">
+                      <div>
+                        <p className="eyebrow">VISTA PREVIA</p>
+                        <h2>Así queda</h2>
+                        <small className="composer-preview-linked">
+                          Vinculada a la lámina {String(activeSlide + 1).padStart(2, "0")}
+                        </small>
+                      </div>
+                      <span>
+                        {String(activeSlide + 1).padStart(2, "0")} <i>/</i> {String(slides.length).padStart(2, "0")}
+                      </span>
                     </div>
-                    <span>
-                      {String(activeSlide + 1).padStart(2, "0")} <i>/</i> {String(slides.length).padStart(2, "0")}
-                    </span>
-                  </div>
-                  {publication?.images?.[activeSlide] && (!visualHasChanges || (isLegacy && !selectedSlide.file)) ? (
-                    <img
-                      className={`composer-rendered-artwork ${publicationType === "story" ? "is-tall" : ""}`}
-                      src={publication.images[activeSlide].url}
-                      alt={publication.images[activeSlide].altText || `Lámina ${activeSlide + 1}`}
-                    />
-                  ) : (
-                    <div
-                      className={`composer-artboard ${publicationType === "story" ? "is-tall" : ""} is-style-${selectedTemplate?.visualStyle?.layout || "photo-overlay"}`}
-                      style={{
-                        "--artboard-background": selectedTemplate?.visualStyle?.palette?.background || "#f1f0ec",
-                        "--artboard-foreground": selectedTemplate?.visualStyle?.palette?.foreground || "#19191d",
-                        "--artboard-accent": selectedTemplate?.visualStyle?.palette?.accent || "#7b35ff",
-                      }}
-                    >
-                      {objectUrls[activeSlide] && (
-                        <img alt="" className="composer-artboard-photo" src={objectUrls[activeSlide]} />
-                      )}
-                      <div className="composer-artboard-shade" />
-                      <div className="composer-artboard-content">
-                        <div className="composer-artboard-brand">
-                          <b>AFTERSTAGE</b>
-                          <i />
-                        </div>
-                        <div className="composer-artboard-main">
-                          <span>
-                            {activeSlide === 0
-                              ? selectedTemplate?.visualStyle?.coverEyebrow || "AFTERSTAGE EDITORIAL"
-                              : `LÁMINA ${activeSlide + 1}`}
-                          </span>
-                          <h3>{selectedSlide.text || "Tu texto aparece acá"}</h3>
-                        </div>
-                        <div className="composer-artboard-footer">
-                          <b>AFTERSTAGE.AR</b>
-                          <span>
-                            {String(activeSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
-                          </span>
+                    {publication?.images?.[activeSlide] && (!visualHasChanges || (isLegacy && !selectedSlide.file)) ? (
+                      <img
+                        className={`composer-rendered-artwork ${publicationType === "story" ? "is-tall" : ""}`}
+                        src={publication.images[activeSlide].url}
+                        alt={publication.images[activeSlide].altText || `Lámina ${activeSlide + 1}`}
+                      />
+                    ) : (
+                      <div
+                        className={`composer-artboard ${publicationType === "story" ? "is-tall" : ""} is-style-${selectedTemplate?.visualStyle?.layout || "photo-overlay"}`}
+                        style={{
+                          "--artboard-background": selectedTemplate?.visualStyle?.palette?.background || "#f1f0ec",
+                          "--artboard-foreground": selectedTemplate?.visualStyle?.palette?.foreground || "#19191d",
+                          "--artboard-accent": selectedTemplate?.visualStyle?.palette?.accent || "#7b35ff",
+                        }}
+                      >
+                        {objectUrls[activeSlide] && (
+                          <img alt="" className="composer-artboard-photo" src={objectUrls[activeSlide]} />
+                        )}
+                        <div className="composer-artboard-shade" />
+                        <div className="composer-artboard-content">
+                          <div className="composer-artboard-brand">
+                            <b>AFTERSTAGE</b>
+                            <i />
+                          </div>
+                          <div className="composer-artboard-main">
+                            <span>
+                              {activeSlide === 0
+                                ? selectedTemplate?.visualStyle?.coverEyebrow || "AFTERSTAGE EDITORIAL"
+                                : `LÁMINA ${activeSlide + 1}`}
+                            </span>
+                            <h3>{selectedSlide.text || "Tu texto aparece acá"}</h3>
+                          </div>
+                          <div className="composer-artboard-footer">
+                            <b>AFTERSTAGE.AR</b>
+                            <span>
+                              {String(activeSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                    )}
+                    <div className="composer-preview-controls">
+                      <button
+                        aria-label="Lámina anterior"
+                        disabled={slides.length < 2}
+                        onClick={() => setActiveSlide((current) => (current - 1 + slides.length) % slides.length)}
+                        type="button"
+                      >
+                        ←
+                      </button>
+                      <div>
+                        {slides.map((_, index) => (
+                          <button
+                            aria-label={`Ver lámina ${index + 1}`}
+                            aria-pressed={activeSlide === index}
+                            className={activeSlide === index ? "is-active" : ""}
+                            key={index}
+                            onClick={() => setActiveSlide(index)}
+                            type="button"
+                          />
+                        ))}
+                      </div>
+                      <button
+                        aria-label="Lámina siguiente"
+                        disabled={slides.length < 2}
+                        onClick={() => setActiveSlide((current) => (current + 1) % slides.length)}
+                        type="button"
+                      >
+                        →
+                      </button>
                     </div>
-                  )}
-                  <div className="composer-preview-controls">
-                    <button
-                      aria-label="Lámina anterior"
-                      disabled={slides.length < 2}
-                      onClick={() => setActiveSlide((current) => (current - 1 + slides.length) % slides.length)}
-                      type="button"
-                    >
-                      ←
-                    </button>
-                    <div>
-                      {slides.map((_, index) => (
-                        <button
-                          aria-label={`Ver lámina ${index + 1}`}
-                          aria-pressed={activeSlide === index}
-                          className={activeSlide === index ? "is-active" : ""}
-                          key={index}
-                          onClick={() => setActiveSlide(index)}
-                          type="button"
-                        />
-                      ))}
+                    <div className="composer-preview-caption">
+                      <span className="composer-preview-dot" />
+                      <p>
+                        {publicationType === "story" ? "9:16 · 1080 × 1920" : "4:5 · 1080 × 1350"}
+                        <br />
+                        <small>Violeta, carbón y tipografías de Afterstage</small>
+                      </p>
                     </div>
-                    <button
-                      aria-label="Lámina siguiente"
-                      disabled={slides.length < 2}
-                      onClick={() => setActiveSlide((current) => (current + 1) % slides.length)}
-                      type="button"
-                    >
-                      →
-                    </button>
-                  </div>
-                  <div className="composer-preview-caption">
-                    <span className="composer-preview-dot" />
-                    <p>
-                      {publicationType === "story" ? "9:16 · 1080 × 1920" : "4:5 · 1080 × 1350"}
-                      <br />
-                      <small>Violeta, carbón y tipografías de Afterstage</small>
-                    </p>
-                  </div>
                   </div>
                 </aside>
               </div>
