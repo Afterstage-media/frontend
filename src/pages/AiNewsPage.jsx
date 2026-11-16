@@ -17,6 +17,16 @@ const initialSource = {
   maxItems: 8,
 };
 
+const normalizedUrl = (value) => {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return value.trim();
+  }
+};
+
 function AiNewsWorkspace() {
   const [sources, setSources] = useState([]);
   const [items, setItems] = useState([]);
@@ -24,6 +34,8 @@ function AiNewsWorkspace() {
   const [topic, setTopic] = useState("noticias musicales");
   const [analysis, setAnalysis] = useState(null);
   const [copy, setCopy] = useState(null);
+  const [selectedItemIds, setSelectedItemIds] = useState([]);
+  const [sourceFilter, setSourceFilter] = useState("");
   const [draftId, setDraftId] = useState("");
   const [draftKey, setDraftKey] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -52,6 +64,69 @@ function AiNewsWorkspace() {
       setBusy(false);
     }
   };
+  const visibleItems = items.filter((item) => {
+    const matchesTopic = !topic || item.topic.toLowerCase().includes(topic.toLowerCase());
+    const matchesSource = !sourceFilter || item.sourceName.toLowerCase().includes(sourceFilter.toLowerCase());
+    return matchesTopic && matchesSource;
+  });
+  const uniqueVisibleItems = [
+    ...new Map(
+      [...visibleItems]
+        .sort((left, right) => new Date(right.scrapedAt).getTime() - new Date(left.scrapedAt).getTime())
+        .map((item) => [normalizedUrl(item.url), item]),
+    ).values(),
+  ];
+  const selectedIds = selectedItemIds.filter((id) => uniqueVisibleItems.some((item) => item.id === id));
+  const createDraft = () =>
+    void run(async () => {
+      const selectedSources = analysis.sourceIds.map((id) => items.find((item) => item.id === id)).filter(Boolean);
+      if (!selectedSources.length) throw new Error("La propuesta no tiene fuentes vinculadas.");
+      const source = selectedSources
+        .map((item) => `${item.sourceName}: ${item.url}`)
+        .join("; ")
+        .slice(0, 500);
+      const instagramCopy = [
+        copy.instagramPost.trim(),
+        copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+      const note = {
+        title: copy.articleTitle,
+        summary: copy.articleSummary,
+        body: copy.articleBody,
+        instagramCopy,
+        channels: ["website", "instagram"],
+        tags: [topic, ...new Set(selectedSources.map((item) => item.sourceName.slice(0, 80)))],
+        source,
+      };
+      const duplicates = await api("/api/content/duplicates", {
+        method: "POST",
+        body: JSON.stringify({ ...note, type: "article", status: "draft", images: [] }),
+      });
+      const sameSourceDraft = duplicates.find(
+        (match) =>
+          match.item.type === "article" &&
+          match.item.status === "draft" &&
+          selectedSources.some((item) => match.item.source.includes(item.url)),
+      );
+      if (duplicates.length && !sameSourceDraft) {
+        throw new Error("Ya existe una nota parecida con otra fuente. Revisá ese borrador antes de crear otra.");
+      }
+      const result = sameSourceDraft
+        ? await api(`/api/content/${sameSourceDraft.item.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(note),
+          })
+        : await api("/api/content/with-ai", {
+            method: "POST",
+            body: JSON.stringify({ ...note, images: [], idempotencyKey: draftKey }),
+          });
+      setDraftId(result.id);
+      setMessage(
+        `${sameSourceDraft ? "Borrador actualizado" : "Nota y copy guardados como borrador"}. No se publicó nada.`,
+      );
+    });
   const saveSource = (event) => {
     event.preventDefault();
     void run(async () => {
@@ -193,33 +268,60 @@ function AiNewsWorkspace() {
             <div className="ai-news-title-row">
               <h2>Novedades capturadas</h2>
               <input aria-label="Filtrar temática" value={topic} onChange={(e) => setTopic(e.target.value)} />
+              <input
+                aria-label="Filtrar fuente"
+                onChange={(e) => setSourceFilter(e.target.value)}
+                placeholder="Fuente"
+                value={sourceFilter}
+              />
             </div>
             <div className="ai-news-items">
-              {items
-                .filter((i) => !topic || i.topic.toLowerCase().includes(topic.toLowerCase()))
-                .map((item) => (
-                  <article key={item.id}>
-                    <span>
-                      {item.topic} · {item.sourceName}
-                    </span>
-                    <h3>
-                      <a href={item.url} target="_blank" rel="noreferrer">
-                        {item.title}
-                      </a>
-                    </h3>
-                    <p>{item.summary || "Sin resumen capturado"}</p>
-                  </article>
-                ))}
+              {uniqueVisibleItems.map((item) => (
+                <article className={selectedIds.includes(item.id) ? "is-selected" : ""} key={item.id}>
+                  <label className="ai-news-select">
+                    <input
+                      checked={selectedIds.includes(item.id)}
+                      onChange={(event) =>
+                        setSelectedItemIds((previous) =>
+                          event.target.checked
+                            ? [...new Set([...previous, item.id])]
+                            : previous.filter((id) => id !== item.id),
+                        )
+                      }
+                      type="checkbox"
+                    />
+                    Incluir en el análisis
+                  </label>
+                  <span>
+                    {item.topic} · {item.sourceName} · {new Date(item.scrapedAt).toLocaleDateString("es-AR")}
+                  </span>
+                  <h3>
+                    <a href={item.url} target="_blank" rel="noreferrer">
+                      {item.title}
+                    </a>
+                  </h3>
+                  <p>{item.summary || "Sin resumen capturado"}</p>
+                </article>
+              ))}
+              {uniqueVisibleItems.length > 0 && (
+                <small>
+                  {uniqueVisibleItems.length} novedades únicas · {visibleItems.length - uniqueVisibleItems.length}{" "}
+                  repetidas ocultas
+                </small>
+              )}
               {!items.length && (
                 <p className="muted">Todavía no hay resultados. Configurá una fuente y ejecutá el scrapeo.</p>
               )}
             </div>
             <button
               className="button dark"
-              disabled={busy || !configured || !items.length}
+              disabled={busy || !configured || !uniqueVisibleItems.length}
               onClick={() =>
                 void run(async () => {
-                  const result = await api("/api/ai-news/analyze", { method: "POST", body: JSON.stringify({ topic }) });
+                  const result = await api("/api/ai-news/analyze", {
+                    method: "POST",
+                    body: JSON.stringify({ topic, ...(selectedIds.length ? { itemIds: selectedIds } : {}) }),
+                  });
                   setAnalysis(result.analysis);
                   setCopy(null);
                   setDraftId("");
@@ -288,6 +390,39 @@ function AiNewsWorkspace() {
             <pre>{copy.articleBody}</pre>
             <h3>Copy de Instagram</h3>
             <pre>{copy.instagramPost}</pre>
+            {copy.imageRecommendation && (
+              <section className="ai-news-image-recommendation" aria-labelledby="image-recommendation-title">
+                <p className="eyebrow">Recomendación visual de Gemini</p>
+                <h3 id="image-recommendation-title">
+                  {copy.imageRecommendation.kind === "source_image"
+                    ? "Imagen de la fuente"
+                    : copy.imageRecommendation.kind === "editorial_illustration"
+                      ? "Ilustración editorial"
+                      : "Publicar sin imagen"}
+                </h3>
+                <p>{copy.imageRecommendation.rationale}</p>
+                {copy.imageRecommendation.sourceUrl && (
+                  <p>
+                    <a href={copy.imageRecommendation.sourceUrl} target="_blank" rel="noreferrer">
+                      Abrir imagen de origen ↗
+                    </a>
+                  </p>
+                )}
+                {copy.imageRecommendation.searchQuery && (
+                  <p>
+                    <strong>Búsqueda / brief:</strong> {copy.imageRecommendation.searchQuery}
+                  </p>
+                )}
+                {copy.imageRecommendation.altText && (
+                  <p>
+                    <strong>Texto alternativo:</strong> {copy.imageRecommendation.altText}
+                  </p>
+                )}
+                {copy.imageRecommendation.kind === "editorial_illustration" && (
+                  <small>Esto es un brief visual, no una foto documental ni un archivo adjunto.</small>
+                )}
+              </section>
+            )}
             <h3>Historias</h3>
             {copy.stories.map((story, i) => (
               <p key={i}>
@@ -303,61 +438,7 @@ function AiNewsWorkspace() {
               <button
                 className="button dark"
                 disabled={busy || !copy.articleBody || !copy.instagramPost}
-                onClick={() =>
-                  void run(async () => {
-                    const selectedSources = analysis.sourceIds
-                      .map((id) => items.find((item) => item.id === id))
-                      .filter(Boolean);
-                    if (!selectedSources.length) throw new Error("La propuesta no tiene fuentes vinculadas.");
-                    const source = selectedSources
-                      .map((item) => `${item.sourceName}: ${item.url}`)
-                      .join("; ")
-                      .slice(0, 500);
-                    const instagramCopy = [
-                      copy.instagramPost.trim(),
-                      copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
-                    ]
-                      .filter(Boolean)
-                      .join("\n\n");
-                    const note = {
-                      title: copy.articleTitle,
-                      summary: copy.articleSummary,
-                      body: copy.articleBody,
-                      instagramCopy,
-                      channels: ["website", "instagram"],
-                      tags: [topic, ...new Set(selectedSources.map((item) => item.sourceName.slice(0, 80)))],
-                      source,
-                    };
-                    const duplicates = await api("/api/content/duplicates", {
-                      method: "POST",
-                      body: JSON.stringify({ ...note, type: "article", status: "draft", images: [] }),
-                    });
-                    const sameSourceDraft = duplicates.find(
-                      (match) =>
-                        match.item.type === "article" &&
-                        match.item.status === "draft" &&
-                        selectedSources.some((item) => match.item.source.includes(item.url)),
-                    );
-                    if (duplicates.length && !sameSourceDraft) {
-                      throw new Error(
-                        "Ya existe una nota parecida con otra fuente. Revisá ese borrador antes de crear otra.",
-                      );
-                    }
-                    const result = sameSourceDraft
-                      ? await api(`/api/content/${sameSourceDraft.item.id}`, {
-                          method: "PATCH",
-                          body: JSON.stringify(note),
-                        })
-                      : await api("/api/content/with-ai", {
-                          method: "POST",
-                          body: JSON.stringify({ ...note, images: [], idempotencyKey: draftKey }),
-                        });
-                    setDraftId(result.id);
-                    setMessage(
-                      `${sameSourceDraft ? "Borrador actualizado" : "Nota y copy guardados como borrador"}. No se publicó nada.`,
-                    );
-                  })
-                }
+                onClick={createDraft}
               >
                 Guardar nota y copy como borrador
               </button>
