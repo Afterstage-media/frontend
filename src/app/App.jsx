@@ -25,6 +25,7 @@ import { AdminPlatformPage } from "../pages/AdminPlatformPage.jsx";
 import { LoginForm } from "../components/AuthGate.jsx";
 import { RecurringSocialPage } from "../pages/RecurringSocialPage.jsx";
 import { AiNewsPage } from "../pages/AiNewsPage.jsx";
+import { ScrollToTop } from "../components/ScrollToTop.jsx";
 
 function AccessPage() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ function NotFoundPage() {
 export function App() {
   return (
     <Layout>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/notas" element={<NotesPage />} />
