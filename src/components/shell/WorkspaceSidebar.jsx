@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { Toggle } from "../ui/Toggle.jsx";
 
 function WorkspaceLink({ to, children, end = false, closeMenu }) {
@@ -9,8 +9,8 @@ function WorkspaceLink({ to, children, end = false, closeMenu }) {
   );
 }
 
-function WorkspaceSection({ id, label, collapsedSections, setCollapsedSections, children }) {
-  const collapsed = collapsedSections[id] === true;
+function WorkspaceSection({ id, label, collapsedSections, setCollapsedSections, active = false, children }) {
+  const collapsed = collapsedSections[id] === true && !active;
   return (
     <div className={`workspace-sidebar-section${collapsed ? " is-collapsed" : ""}`}>
       <Toggle
@@ -32,6 +32,7 @@ function WorkspaceSection({ id, label, collapsedSections, setCollapsedSections, 
 }
 
 export function WorkspaceSidebar({ menuOpen, closeMenu, collapsedSections, setCollapsedSections, can, logOut }) {
+  const location = useLocation();
   const link = (to, children, end = false) => (
     <WorkspaceLink closeMenu={closeMenu} end={end} to={to}>
       {children}
@@ -61,7 +62,7 @@ export function WorkspaceSidebar({ menuOpen, closeMenu, collapsedSections, setCo
           <WorkspaceSection
             collapsedSections={collapsedSections}
             id="consultar"
-            label="Consultar"
+            label="Explorar"
             setCollapsedSections={setCollapsedSections}
           >
             {link("/", "Inicio", true)}
@@ -78,10 +79,13 @@ export function WorkspaceSidebar({ menuOpen, closeMenu, collapsedSections, setCo
             <WorkspaceSection
               collapsedSections={collapsedSections}
               id="trabajar"
-              label="Trabajar"
+              label="Crear y editar"
+              active={
+                location.pathname.startsWith("/admin") || ["/publicar", "/reemplazos"].includes(location.pathname)
+              }
               setCollapsedSections={setCollapsedSections}
             >
-              {can("admin", "editor") && link("/admin", "Contenido", true)}
+              {can("admin", "editor") && link("/admin", "Notas y borradores", true)}
               {can("admin", "editor") && link("/admin/nueva", "Nueva publicación")}
               {can("admin", "editor") && link("/admin/redes", "Redes")}
               {can("admin", "editor") && link("/admin/novedades", "Novedades + IA")}
@@ -96,7 +100,7 @@ export function WorkspaceSidebar({ menuOpen, closeMenu, collapsedSections, setCo
           <WorkspaceSection
             collapsedSections={collapsedSections}
             id="gestionar"
-            label="Gestionar"
+            label="Administrar"
             setCollapsedSections={setCollapsedSections}
           >
             {can("admin", "editor", "press", "directory", "auditor") && link("/directorio", "Directorio")}
