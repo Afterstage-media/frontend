@@ -932,6 +932,39 @@
     padding-top: 10px;
   }
 
+  .mobile-more-group + .mobile-more-group {
+    border-top: 1px solid color-mix(in srgb, var(--color-ink) 13%, transparent);
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .mobile-more-group > summary {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 800;
+    justify-content: space-between;
+    letter-spacing: 0.1em;
+    list-style: none;
+    min-height: 42px;
+    text-transform: uppercase;
+  }
+
+  .mobile-more-group > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-more-group > summary::after {
+    content: "+";
+    font-size: 1rem;
+  }
+
+  .mobile-more-group[open] > summary::after {
+    content: "−";
+  }
+
   .mobile-more-links a,
   .mobile-menu-logout {
     align-items: center;

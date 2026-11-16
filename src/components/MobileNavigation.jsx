@@ -25,6 +25,24 @@ export function MobileNavigation({ can, isWorkspace, logOut, roles }) {
         index === 3 ? { ...item, label: text.network, to: "/red", icon: "network" } : item,
       )
     : mobilePrimaryLinks;
+  const contentItems = menuItems.filter((item) =>
+    ["content", "new-post", "social", "social-series", "press", "mail", "propose"].includes(item.id),
+  );
+  const exploreItems = menuItems.filter((item) =>
+    ["services", "marketplace", "insurance", "transport", "directory", "public-site"].includes(item.id),
+  );
+  const manageItems = menuItems.filter((item) =>
+    ["platform", "coverages", "manage-coverages", "instagram", "users"].includes(item.id),
+  );
+  const accountItems = menuItems.filter((item) => ["ai-access", "profile", "logout"].includes(item.id));
+  const groupedItems = isWorkspace
+    ? [
+        { id: "content", label: "Crear y editar", items: contentItems },
+        { id: "explore", label: "Explorar", items: exploreItems },
+        { id: "manage", label: "Administrar", items: manageItems },
+        { id: "account", label: "Cuenta", items: accountItems },
+      ].filter((group) => group.items.length > 0)
+    : [{ id: "explore", label: text.explore, items: menuItems }];
 
   useEffect(() => {
     setIsMoreOpen(false);
@@ -62,18 +80,23 @@ export function MobileNavigation({ can, isWorkspace, logOut, roles }) {
             ×
           </button>
         </div>
-        <div className="mobile-more-links">
-          {menuItems.map((item) =>
-            item.action ? (
-              <button className="mobile-menu-logout" key={item.id} onClick={() => onItemAction(item)} type="button">
-                <MobileIcon name={item.icon} />
-                <span>{item.label}</span>
-              </button>
-            ) : (
-              <MobileLink item={item} key={item.id} onNavigate={closeMenu} />
-            ),
-          )}
-        </div>
+        {groupedItems.map((group, index) => (
+          <details className="mobile-more-group" key={group.id} open={index === 0}>
+            <summary>{group.label}</summary>
+            <div className="mobile-more-links">
+              {group.items.map((item) =>
+                item.action ? (
+                  <button className="mobile-menu-logout" key={item.id} onClick={() => onItemAction(item)} type="button">
+                    <MobileIcon name={item.icon} />
+                    <span>{item.label}</span>
+                  </button>
+                ) : (
+                  <MobileLink item={item} key={item.id} onNavigate={closeMenu} />
+                ),
+              )}
+            </div>
+          </details>
+        ))}
       </section>
       <div className="mobile-bottom-items">
         {primaryLinks.map((item) => (

@@ -28,8 +28,8 @@ export function getMobileMenuItems({ isWorkspace, roles, can }) {
     }
     if (can("admin", "editor")) {
       items.push(
-        { id: "content", label: text.admin, to: "/admin", icon: "publish" },
-        { id: "new-post", label: text.newPost, to: "/admin/nueva", icon: "publish" },
+        { id: "content", label: text.content, to: "/admin", icon: "publish" },
+        { id: "new-post", label: text.newNote, to: "/admin/nueva", icon: "publish" },
         { id: "social", label: text.social, to: "/admin/redes", icon: "social" },
         { id: "social-series", label: text.socialSeries, to: "/admin/redes/series", icon: "social" },
       );
