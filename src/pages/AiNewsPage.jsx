@@ -24,6 +24,8 @@ function AiNewsWorkspace() {
   const [topic, setTopic] = useState("noticias musicales");
   const [analysis, setAnalysis] = useState(null);
   const [copy, setCopy] = useState(null);
+  const [draftId, setDraftId] = useState("");
+  const [draftKey, setDraftKey] = useState("");
   const [instructions, setInstructions] = useState("");
   const [configured, setConfigured] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -220,6 +222,7 @@ function AiNewsWorkspace() {
                   const result = await api("/api/ai-news/analyze", { method: "POST", body: JSON.stringify({ topic }) });
                   setAnalysis(result.analysis);
                   setCopy(null);
+                  setDraftId("");
                 })
               }
             >
@@ -267,6 +270,8 @@ function AiNewsWorkspace() {
                     body: JSON.stringify({ analysis, format: "both", instructions }),
                   });
                   setCopy(result.copy);
+                  setDraftId("");
+                  setDraftKey(`ai-news:${crypto.randomUUID()}`);
                 })
               }
             >
@@ -276,8 +281,12 @@ function AiNewsWorkspace() {
         )}
         {copy && (
           <section className="ai-news-panel ai-news-result">
-            <p className="eyebrow">04 · Propuesta para revisión</p>
-            <h2>Copy de Instagram</h2>
+            <p className="eyebrow">04 · Nota y redes · borradores</p>
+            <h2>{copy.articleTitle}</h2>
+            <p className="ai-news-article-summary">{copy.articleSummary}</p>
+            <h3>Nota web</h3>
+            <pre>{copy.articleBody}</pre>
+            <h3>Copy de Instagram</h3>
             <pre>{copy.instagramPost}</pre>
             <h3>Historias</h3>
             {copy.stories.map((story, i) => (
@@ -287,13 +296,76 @@ function AiNewsWorkspace() {
             ))}
             <p>{copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" ")}</p>
             <small>
-              Esto no se publica automáticamente. Revisá hechos y fuentes antes de pasar el texto al compositor social.
+              La nota y el copy son borradores. Revisá los hechos, la atribución y los horarios; guardar no publica ni
+              programa nada.
             </small>
-            <p>
-              <Link className="button dark" to="/admin/nueva">
-                Continuar a crear una nota
-              </Link>
-            </p>
+            {!draftId ? (
+              <button
+                className="button dark"
+                disabled={busy || !copy.articleBody || !copy.instagramPost}
+                onClick={() =>
+                  void run(async () => {
+                    const selectedSources = analysis.sourceIds
+                      .map((id) => items.find((item) => item.id === id))
+                      .filter(Boolean);
+                    if (!selectedSources.length) throw new Error("La propuesta no tiene fuentes vinculadas.");
+                    const source = selectedSources
+                      .map((item) => `${item.sourceName}: ${item.url}`)
+                      .join("; ")
+                      .slice(0, 500);
+                    const instagramCopy = [
+                      copy.instagramPost.trim(),
+                      copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
+                    ]
+                      .filter(Boolean)
+                      .join("\n\n");
+                    const note = {
+                      title: copy.articleTitle,
+                      summary: copy.articleSummary,
+                      body: copy.articleBody,
+                      instagramCopy,
+                      channels: ["website", "instagram"],
+                      tags: [topic, ...new Set(selectedSources.map((item) => item.sourceName.slice(0, 80)))],
+                      source,
+                    };
+                    const duplicates = await api("/api/content/duplicates", {
+                      method: "POST",
+                      body: JSON.stringify({ ...note, type: "article", status: "draft", images: [] }),
+                    });
+                    const sameSourceDraft = duplicates.find(
+                      (match) =>
+                        match.item.type === "article" &&
+                        match.item.status === "draft" &&
+                        selectedSources.some((item) => match.item.source.includes(item.url)),
+                    );
+                    if (duplicates.length && !sameSourceDraft) {
+                      throw new Error(
+                        "Ya existe una nota parecida con otra fuente. Revisá ese borrador antes de crear otra.",
+                      );
+                    }
+                    const result = sameSourceDraft
+                      ? await api(`/api/content/${sameSourceDraft.item.id}`, {
+                          method: "PATCH",
+                          body: JSON.stringify(note),
+                        })
+                      : await api("/api/content/with-ai", {
+                          method: "POST",
+                          body: JSON.stringify({ ...note, images: [], idempotencyKey: draftKey }),
+                        });
+                    setDraftId(result.id);
+                    setMessage(
+                      `${sameSourceDraft ? "Borrador actualizado" : "Nota y copy guardados como borrador"}. No se publicó nada.`,
+                    );
+                  })
+                }
+              >
+                Guardar nota y copy como borrador
+              </button>
+            ) : (
+              <p role="status">
+                Nota guardada como borrador. <Link to={`/admin/contenido/${draftId}`}>Abrir borrador</Link>
+              </p>
+            )}
             <p>
               <Link
                 className="button subtle"
