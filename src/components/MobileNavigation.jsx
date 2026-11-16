@@ -18,7 +18,8 @@ function MobileLink({ item, onNavigate }) {
 export function MobileNavigation({ can, isWorkspace, logOut, roles }) {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const location = useLocation();
-  const menuItems = getMobileMenuItems({ can, isWorkspace, roles });
+  const primaryIds = new Set(["home", "notes", "calendar", isWorkspace ? "network" : "community"]);
+  const menuItems = getMobileMenuItems({ can, isWorkspace, roles }).filter((item) => !primaryIds.has(item.id));
   const primaryLinks = isWorkspace
     ? mobilePrimaryLinks.map((item, index) =>
         index === 3 ? { ...item, label: text.network, to: "/red", icon: "network" } : item,

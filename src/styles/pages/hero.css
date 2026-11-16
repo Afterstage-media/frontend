@@ -1514,3 +1514,41 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Mobile prioritizes two useful routes and avoids repeating the navigation plates below. */
+.home-hero-actions {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .home-hero-copy {
+    min-height: 0;
+    padding-bottom: 24px;
+    padding-top: 64px;
+  }
+
+  .home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin: 25px 0 0 4px;
+  }
+
+  .home-hero-actions .button {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 16px;
+  }
+
+  .home-hero-photo {
+    margin: 20px 7vw 32px auto;
+    min-height: 230px;
+    width: 82%;
+  }
+
+  .home-quick-links {
+    display: none;
+  }
+}

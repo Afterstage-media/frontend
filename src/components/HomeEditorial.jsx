@@ -48,6 +48,14 @@ export function HomeHero() {
         <p className="home-hero-note">
           DESDE EL ESCENARIO <i /> <b aria-hidden="true">→</b>
         </p>
+        <nav className="home-hero-actions" aria-label="Accesos principales">
+          <Link className="button dark" to="/agenda">
+            Encontrar un show
+          </Link>
+          <Link className="button ghost" to="/notas">
+            Leer notas
+          </Link>
+        </nav>
       </div>
       <div className="home-hero-photo" role="img" aria-label="Fotografía documental de un recital">
         <span className="home-hero-star" aria-hidden="true">

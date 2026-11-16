@@ -564,20 +564,22 @@ export function MarketplacePage() {
           </p>
         )}
       </section>
-      <section className="marketplace-toolbar" aria-label="Filtros del marketplace">
-        <SegmentedControl
-          ariaLabel="Filtrar el marketplace"
-          onChange={setCategory}
-          options={[
-            { label: "Todo", value: "" },
-            { label: "Merch", value: "merch" },
-            { label: "Servicios", value: "service" },
-            { label: "Beneficios", value: "benefit" },
-          ]}
-          value={category}
-        />
-        <span>Catálogo sincronizado con Orux</span>
-      </section>
+      {(loading || error || items.length > 0) && (
+        <section className="marketplace-toolbar" aria-label="Filtros del marketplace">
+          <SegmentedControl
+            ariaLabel="Filtrar el marketplace"
+            onChange={setCategory}
+            options={[
+              { label: "Todo", value: "" },
+              { label: "Merch", value: "merch" },
+              { label: "Servicios", value: "service" },
+              { label: "Beneficios", value: "benefit" },
+            ]}
+            value={category}
+          />
+          <span>Catálogo sincronizado con Orux</span>
+        </section>
+      )}
       <section className="marketplace-grid">
         {loading ? (
           <LoadingState label="Cargando catálogo…" />
@@ -587,14 +589,14 @@ export function MarketplacePage() {
           <>
             <EmptyState
               title="El catálogo se está armando."
-              message="Pronto vas a encontrar productos y beneficios de la escena."
+              message="Todavía no hay productos publicados. Mientras tanto, podés consultar servicios o buscar una fecha en la agenda."
             />
             <div className="empty-state-actions">
               <ButtonLink className="dark" to="/servicios">
                 Ver servicios
               </ButtonLink>
-              <ButtonLink className="ghost" to="/red">
-                Explorar la red
+              <ButtonLink className="ghost" to="/agenda">
+                Explorar la agenda
               </ButtonLink>
             </div>
           </>
