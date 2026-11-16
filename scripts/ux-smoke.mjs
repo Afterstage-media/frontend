@@ -147,7 +147,7 @@ assert.match(app, /<Route path="\*" element={<NotFoundPage \/>} \/>/);
 assert.match(app, /<Route path="\/servicios" element={<ServicesPage \/>} \/>/);
 assert.match(app, /<Route path="\/admin\/directorio" element={<Navigate to="\/directorio" replace \/>} \/>/);
 assert.match(app, /<Route path="\/contratar" element={<MonetizationPage \/>} \/>/);
-assert.match(app, /<Layout>\s*<Routes>/s);
+assert.match(app, /<Layout>\s*<ScrollToTop \/>\s*<Routes>/s);
 assert.match(app, /<Route path="\/monetizar" element={<Navigate to="\/servicios" replace \/>} \/>/);
 assert.doesNotMatch(app, /path="\/busquedas"/);
 assert.match(article, /document\.title/);
