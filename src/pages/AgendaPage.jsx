@@ -90,6 +90,9 @@ export function AgendaPage() {
   });
   const [loading, setLoading] = useState(true);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth > 700,
+  );
   const [eventLimit] = useState(() => (typeof window !== "undefined" && window.innerWidth <= 600 ? 6 : 12));
   const [locationMessage, setLocationMessage] = useState("");
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -221,76 +224,6 @@ export function AgendaPage() {
                 <Button variant="ghost" type="button" onClick={useMyLocation}>
                   {locationMessage === "Detectando tu ubicación…" ? "Detectando…" : "Cerca mío"}
                 </Button>
-                <Button
-                  className={mapPickerActive ? "is-active" : ""}
-                  type="button"
-                  onClick={() => setMapPickerActive((current) => !current)}
-                  variant="ghost"
-                >
-                  {mapPickerActive ? "Cancelar selección" : "Elegir ubicación"}
-                </Button>
-                <label className="agenda-radius">
-                  <span className="agenda-radius-label">
-                    <span>Radio</span>
-                    <output htmlFor="agenda-radius">{filters.radiusKm} km</output>
-                  </span>
-                  <input
-                    id="agenda-radius"
-                    aria-label="Radio de búsqueda"
-                    type="range"
-                    min="5"
-                    max="100"
-                    step="5"
-                    value={filters.radiusKm}
-                    onChange={(e) => {
-                      const nextFilters = { ...filters, radiusKm: e.target.value };
-                      setFilters(nextFilters);
-                      if (nextFilters.lat && nextFilters.lng) load(nextFilters);
-                    }}
-                  />
-                  <span className="agenda-radius-scale" aria-hidden="true">
-                    <span>5 km</span>
-                    <span>100 km</span>
-                  </span>
-                </label>
-                <label>
-                  <span className="agenda-filter-label">Género</span>
-                  <select
-                    aria-label="Filtrar por género"
-                    value={filters.genre}
-                    onChange={(e) => {
-                      const nextFilters = { ...filters, genre: normalizeSearchText(e.target.value) };
-                      setFilters(nextFilters);
-                      load(nextFilters);
-                    }}
-                  >
-                    <option value="">Todos</option>
-                    {genreOptions.map((option) => (
-                      <option key={option} value={normalizeSearchText(option)}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="agenda-filter-label">Tags</span>
-                  <select
-                    aria-label="Filtrar por tag"
-                    value={filters.tag}
-                    onChange={(e) => {
-                      const nextFilters = { ...filters, tag: normalizeSearchText(e.target.value) };
-                      setFilters(nextFilters);
-                      load(nextFilters);
-                    }}
-                  >
-                    <option value="">Todos</option>
-                    {tagOptions.map((option) => (
-                      <option key={option} value={normalizeSearchText(option)}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label className="agenda-date-actions">
                   <span className="agenda-filter-label">Fecha</span>
                   <select
@@ -307,12 +240,94 @@ export function AgendaPage() {
                     <option value="week">Próximos 7 días</option>
                     <option value="month">Este mes</option>
                   </select>
-                  {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
-                    <Button className="filter-clear" type="button" onClick={clearFilters}>
-                      Limpiar
-                    </Button>
-                  )}
                 </label>
+                <details
+                  className="agenda-advanced-filters"
+                  onToggle={(event) => setAdvancedFiltersOpen(event.currentTarget.open)}
+                  open={advancedFiltersOpen}
+                >
+                  <summary>
+                    Más filtros
+                    {(filters.genre || filters.tag || filters.lat) && <span> · Aplicados</span>}
+                  </summary>
+                  <div className="agenda-advanced-grid">
+                    <Button
+                      className={mapPickerActive ? "is-active" : ""}
+                      type="button"
+                      onClick={() => setMapPickerActive((current) => !current)}
+                      variant="ghost"
+                    >
+                      {mapPickerActive ? "Cancelar selección" : "Elegir ubicación"}
+                    </Button>
+                    <label className="agenda-radius">
+                      <span className="agenda-radius-label">
+                        <span>Radio</span>
+                        <output htmlFor="agenda-radius">{filters.radiusKm} km</output>
+                      </span>
+                      <input
+                        id="agenda-radius"
+                        aria-label="Radio de búsqueda"
+                        type="range"
+                        min="5"
+                        max="100"
+                        step="5"
+                        value={filters.radiusKm}
+                        onChange={(e) => {
+                          const nextFilters = { ...filters, radiusKm: e.target.value };
+                          setFilters(nextFilters);
+                          if (nextFilters.lat && nextFilters.lng) load(nextFilters);
+                        }}
+                      />
+                      <span className="agenda-radius-scale" aria-hidden="true">
+                        <span>5 km</span>
+                        <span>100 km</span>
+                      </span>
+                    </label>
+                    <label>
+                      <span className="agenda-filter-label">Género</span>
+                      <select
+                        aria-label="Filtrar por género"
+                        value={filters.genre}
+                        onChange={(e) => {
+                          const nextFilters = { ...filters, genre: normalizeSearchText(e.target.value) };
+                          setFilters(nextFilters);
+                          load(nextFilters);
+                        }}
+                      >
+                        <option value="">Todos</option>
+                        {genreOptions.map((option) => (
+                          <option key={option} value={normalizeSearchText(option)}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span className="agenda-filter-label">Tags</span>
+                      <select
+                        aria-label="Filtrar por tag"
+                        value={filters.tag}
+                        onChange={(e) => {
+                          const nextFilters = { ...filters, tag: normalizeSearchText(e.target.value) };
+                          setFilters(nextFilters);
+                          load(nextFilters);
+                        }}
+                      >
+                        <option value="">Todos</option>
+                        {tagOptions.map((option) => (
+                          <option key={option} value={normalizeSearchText(option)}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {(filters.query || filters.genre || filters.tag || filters.dateRange !== "all" || filters.lat) && (
+                      <Button className="filter-clear" type="button" onClick={clearFilters}>
+                        Limpiar filtros
+                      </Button>
+                    )}
+                  </div>
+                </details>
               </div>
               {locationMessage && (
                 <p className="agenda-location-status" role="status">

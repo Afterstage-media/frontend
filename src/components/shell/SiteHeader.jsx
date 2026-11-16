@@ -5,6 +5,7 @@ import { Toggle } from "../ui/Toggle.jsx";
 export function SiteHeader({
   isWorkspace,
   isAdminPath,
+  hideSearch = false,
   menuOpen,
   setMenuOpen,
   searchScope,
@@ -48,13 +49,15 @@ export function SiteHeader({
       >
         <span /> <span /> <span />
       </Toggle>
-      <SearchField
-        onQueryChange={setSearchQuery}
-        onScopeChange={setSearchScope}
-        onSubmit={submitSearch}
-        query={searchQuery}
-        scope={searchScope}
-      />
+      {!hideSearch && (
+        <SearchField
+          onQueryChange={setSearchQuery}
+          onScopeChange={setSearchScope}
+          onSubmit={submitSearch}
+          query={searchQuery}
+          scope={searchScope}
+        />
+      )}
       {!isWorkspace && (
         <nav id="site-navigation" aria-label="Navegación principal" className={menuOpen ? "is-open" : ""}>
           {isAdminPath ? (

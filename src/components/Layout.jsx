@@ -164,6 +164,7 @@ function LayoutShell({ children }) {
   const header = (
     <SiteHeader
       can={can}
+      hideSearch={roles?.length === 0 && ["/acceso", "/colaborador"].includes(location.pathname)}
       isAdminPath={isAdminPath}
       isWorkspace={isWorkspace}
       logOut={logOut}

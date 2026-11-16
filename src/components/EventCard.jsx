@@ -49,32 +49,38 @@ export function EventCard({ event, index = 0 }) {
       </div>
       <div className="event-aside">
         {date && <Countdown endTarget={event.endsAt} target={date.toISOString()} />}
-        <div className="event-links">
-          {mapUrl && (
-            <a href={mapUrl} target="_blank" rel="noreferrer">
-              Ver ubicación ↗
-            </a>
-          )}
-          {eventUrl && (
-            <a href={eventUrl} {...(internalUrl ? {} : { target: "_blank", rel: "noreferrer" })}>
-              Más información ↗
-            </a>
-          )}
-        </div>
-        <div aria-label={`Explorar ${event.name || "este evento"}`} className="event-related-links">
-          <Link className="event-context-link event-context-link-accent" to={marketplaceLink}>
-            Merch ↗
-          </Link>
-          <Link className="event-context-link" to={transportLink}>
-            Traslado ↗
-          </Link>
-          <Link className="event-context-link" to={communityLink}>
-            Comunidad ↗
-          </Link>
-          <Link className="event-context-link" to={notesLink}>
-            Notas ↗
-          </Link>
-        </div>
+        <Link className="event-primary-link" to={communityLink}>
+          Ver evento ↗
+        </Link>
+        <details className="event-more-actions">
+          <summary>Más opciones</summary>
+          <div className="event-links">
+            {mapUrl && (
+              <a href={mapUrl} target="_blank" rel="noreferrer">
+                Ver ubicación ↗
+              </a>
+            )}
+            {eventUrl && (
+              <a href={eventUrl} {...(internalUrl ? {} : { target: "_blank", rel: "noreferrer" })}>
+                Información oficial ↗
+              </a>
+            )}
+          </div>
+          <div aria-label={`Explorar ${event.name || "este evento"}`} className="event-related-links">
+            <Link className="event-context-link event-context-link-accent" to={marketplaceLink}>
+              Merch ↗
+            </Link>
+            <Link className="event-context-link" to={transportLink}>
+              Traslado ↗
+            </Link>
+            <Link className="event-context-link" to={communityLink}>
+              Comunidad ↗
+            </Link>
+            <Link className="event-context-link" to={notesLink}>
+              Notas ↗
+            </Link>
+          </div>
+        </details>
       </div>
     </article>
   );
