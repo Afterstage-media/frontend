@@ -39,6 +39,10 @@ function AiNewsWorkspace() {
   const [draftId, setDraftId] = useState("");
   const [draftKey, setDraftKey] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [weeklyQuery, setWeeklyQuery] = useState("música Argentina (artistas OR festivales OR discos OR recitales)");
+  const [weeklyDays, setWeeklyDays] = useState(7);
+  const [weeklyInstructions, setWeeklyInstructions] = useState("");
+  const [weeklyDigest, setWeeklyDigest] = useState(null);
   const [configured, setConfigured] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -82,9 +86,12 @@ function AiNewsWorkspace() {
       const selectedSources = analysis.sourceIds.map((id) => items.find((item) => item.id === id)).filter(Boolean);
       if (!selectedSources.length) throw new Error("La propuesta no tiene fuentes vinculadas.");
       const source = selectedSources
-        .map((item) => `${item.sourceName}: ${item.url}`)
-        .join("; ")
-        .slice(0, 500);
+        .reduce((entries, item) => {
+          const entry = `${item.sourceName}: ${item.url}`;
+          const next = [...entries, entry];
+          return next.join("; ").length <= 500 ? next : entries;
+        }, [])
+        .join("; ");
       const instagramCopy = [
         copy.instagramPost.trim(),
         copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
@@ -139,6 +146,33 @@ function AiNewsWorkspace() {
       setMessage("Fuente guardada.");
     });
   };
+  const discoverWeekly = () =>
+    void run(async () => {
+      const digest = await api("/api/ai-news/discover-weekly", {
+        method: "POST",
+        body: JSON.stringify({ query: weeklyQuery, days: Number(weeklyDays), limit: 10 }),
+      });
+      setWeeklyDigest(digest);
+      setAnalysis(null);
+      setCopy(null);
+      setDraftId("");
+      await refresh();
+    });
+  const prepareWeeklyStory = (story) =>
+    void run(async () => {
+      const storyItems = story.items || [];
+      if (!storyItems.length) throw new Error("No hay fuentes disponibles para esta historia.");
+      const storyTopic = weeklyDigest.query.slice(0, 80);
+      const result = await api("/api/ai-news/package", {
+        method: "POST",
+        body: JSON.stringify({ query: storyTopic, itemIds: story.itemIds, instructions: weeklyInstructions }),
+      });
+      setTopic(storyTopic);
+      setAnalysis({ sourceIds: story.itemIds });
+      setCopy(result.copy);
+      setDraftId("");
+      setDraftKey(`ai-news:${crypto.randomUUID()}`);
+    });
   return (
     <Layout>
       <main className="ai-news-page">
@@ -156,6 +190,93 @@ function AiNewsWorkspace() {
         </header>
         <ErrorMessage message={error} />
         {message && <p role="status">{message}</p>}
+        <section className="ai-news-panel ai-weekly-search">
+          <p className="eyebrow">Búsqueda actual · Argentina</p>
+          <h2>Las 10 noticias musicales más relevantes</h2>
+          <p>
+            Busca noticias de los últimos días, agrupa notas sobre el mismo hecho y Gemini las ordena. Las fuentes y
+            fechas quedan visibles para revisión.
+          </p>
+          <div className="ai-weekly-controls">
+            <label>
+              Qué buscar
+              <input maxLength={180} onChange={(event) => setWeeklyQuery(event.target.value)} value={weeklyQuery} />
+            </label>
+            <label>
+              Período
+              <select onChange={(event) => setWeeklyDays(Number(event.target.value))} value={weeklyDays}>
+                <option value={3}>Últimos 3 días</option>
+                <option value={7}>Última semana</option>
+                <option value={14}>Últimos 14 días</option>
+              </select>
+            </label>
+            <button
+              className="button dark"
+              disabled={busy || !configured || !weeklyQuery.trim()}
+              onClick={discoverWeekly}
+              type="button"
+            >
+              {busy ? "Buscando…" : "Buscar y ordenar con Gemini"}
+            </button>
+          </div>
+          <label className="ai-weekly-instructions">
+            Indicaciones editoriales (opcional)
+            <textarea
+              maxLength={3000}
+              onChange={(event) => setWeeklyInstructions(event.target.value)}
+              placeholder="Ej.: tono cercano, priorizar el impacto local, evitar adjetivos promocionales…"
+              rows={3}
+              value={weeklyInstructions}
+            />
+          </label>
+          <small>
+            Las noticias se obtienen de Google News para Argentina. Gemini rankea los resultados; no crea enlaces ni
+            publica automáticamente.
+          </small>
+          {weeklyDigest && (
+            <div className="ai-weekly-results">
+              <div className="ai-weekly-summary">
+                <h3>{weeklyDigest.stories.length} historias seleccionadas</h3>
+                <span>
+                  {weeklyDigest.candidatesScanned} resultados recientes revisados ·{" "}
+                  {new Date(weeklyDigest.windowStart).toLocaleDateString("es-AR")}–
+                  {new Date(weeklyDigest.windowEnd).toLocaleDateString("es-AR")}
+                </span>
+              </div>
+              {weeklyDigest.stories.map((story, index) => (
+                <article className="ai-weekly-story" key={story.itemIds.join("-")}>
+                  <div className="ai-weekly-rank">{index + 1}</div>
+                  <div className="ai-weekly-story-content">
+                    <div className="ai-weekly-story-heading">
+                      <strong>{story.relevanceScore}/100</strong>
+                      <span>{story.items.map((item) => item.sourceName).join(" · ")}</span>
+                    </div>
+                    <h3>{story.items[0]?.title}</h3>
+                    <p>{story.reason}</p>
+                    <div className="ai-weekly-source-links">
+                      {story.items.map((item) => (
+                        <a href={item.url} key={item.id} rel="noreferrer" target="_blank">
+                          {item.sourceName} · {new Date(item.scrapedAt).toLocaleDateString("es-AR")} ↗
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    className="button subtle"
+                    disabled={busy}
+                    onClick={() => prepareWeeklyStory(story)}
+                    type="button"
+                  >
+                    Generar nota y copys
+                  </button>
+                </article>
+              ))}
+              {!weeklyDigest.stories.length && (
+                <p>No hubo noticias suficientes para armar el ranking. Probá ampliar la búsqueda.</p>
+              )}
+            </div>
+          )}
+        </section>
         <section className="ai-news-grid">
           <article className="ai-news-panel">
             <p className="eyebrow">01 · Fuentes</p>
