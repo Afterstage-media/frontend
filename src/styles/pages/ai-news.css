@@ -31,6 +31,12 @@
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 20px;
 }
+.ai-news-source-panel {
+  order: 2;
+}
+.ai-news-raw-panel {
+  order: 1;
+}
 .ai-news-panel {
   background: #f5f2ec;
   border: 1px solid #d1cbc0;
@@ -95,6 +101,13 @@
   display: block;
   margin: 8px 0 20px;
   color: #655f5a;
+}
+.ai-news-fallback {
+  border-left: 3px solid #b77612;
+  background: #fff8e8;
+  padding: 10px 12px;
+  color: #65420b;
+  line-height: 1.5;
 }
 .ai-weekly-results {
   margin-top: 25px;
@@ -175,6 +188,7 @@
 }
 .ai-news-form input,
 .ai-news-form textarea,
+.ai-news-form select,
 .ai-news-title-row input,
 .ai-news-result > textarea {
   font: inherit;
@@ -190,6 +204,9 @@
   font:
     12px/1.5 ui-monospace,
     monospace;
+}
+.ai-news-form select {
+  min-height: 42px;
 }
 .ai-news-form details {
   border-top: 1px solid #d1cbc0;

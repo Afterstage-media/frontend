@@ -9,11 +9,12 @@ const initialSource = {
   name: "",
   url: "",
   topic: "noticias musicales",
+  format: "rss",
   enabled: true,
-  itemPattern: "<article\\b[^>]*>[\\s\\S]*?<\\/article>",
-  titlePattern: "<h[1-3][^>]*>([\\s\\S]*?)<\\/h[1-3]>",
-  linkPattern: "href=[\\\"']([^\\\"']+)[\\\"']",
-  summaryPattern: "<p[^>]*>([\\s\\S]*?)<\\/p>",
+  itemPattern: "",
+  titlePattern: "",
+  linkPattern: "",
+  summaryPattern: "",
   maxItems: 8,
 };
 
@@ -27,11 +28,36 @@ const normalizedUrl = (value) => {
   }
 };
 
+const titleTokens = (title) =>
+  new Set(
+    title
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+[|–—-]\s+[^|–—-]{2,60}$/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(/\s+/)
+      .filter(
+        (word) =>
+          word.length > 2 &&
+          !/^(con|para|por|una|uno|del|las|los|que|como|desde|sobre|tras|entre|ante|este|esta|sus|mas|hoy|sera|vuelve|llega|anuncia|anuncio|musica)$/.test(
+            word,
+          ),
+      ),
+  );
+
+const sameStoryTitle = (left, right) => {
+  const a = titleTokens(left);
+  const b = titleTokens(right);
+  const shared = [...a].filter((word) => b.has(word)).length;
+  return shared >= 3 && shared / Math.min(a.size || 1, b.size || 1) >= 0.68;
+};
+
 function AiNewsWorkspace() {
   const [sources, setSources] = useState([]);
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(initialSource);
-  const [topic, setTopic] = useState("noticias musicales");
+  const [topic, setTopic] = useState("");
   const [analysis, setAnalysis] = useState(null);
   const [copy, setCopy] = useState(null);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
@@ -39,7 +65,7 @@ function AiNewsWorkspace() {
   const [draftId, setDraftId] = useState("");
   const [draftKey, setDraftKey] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [weeklyQuery, setWeeklyQuery] = useState("música Argentina (artistas OR festivales OR discos OR recitales)");
+  const [weeklyQuery, setWeeklyQuery] = useState("música Argentina");
   const [weeklyDays, setWeeklyDays] = useState(7);
   const [weeklyInstructions, setWeeklyInstructions] = useState("");
   const [weeklyDigest, setWeeklyDigest] = useState(null);
@@ -73,13 +99,14 @@ function AiNewsWorkspace() {
     const matchesSource = !sourceFilter || item.sourceName.toLowerCase().includes(sourceFilter.toLowerCase());
     return matchesTopic && matchesSource;
   });
-  const uniqueVisibleItems = [
-    ...new Map(
-      [...visibleItems]
-        .sort((left, right) => new Date(right.scrapedAt).getTime() - new Date(left.scrapedAt).getTime())
-        .map((item) => [normalizedUrl(item.url), item]),
-    ).values(),
-  ];
+  const uniqueVisibleItems = [];
+  for (const item of [...visibleItems].sort(
+    (left, right) => new Date(right.scrapedAt).getTime() - new Date(left.scrapedAt).getTime(),
+  )) {
+    const duplicateUrl = uniqueVisibleItems.some((existing) => normalizedUrl(existing.url) === normalizedUrl(item.url));
+    const duplicateStory = uniqueVisibleItems.some((existing) => sameStoryTitle(existing.title, item.title));
+    if (!duplicateUrl && !duplicateStory) uniqueVisibleItems.push(item);
+  }
   const selectedIds = selectedItemIds.filter((id) => uniqueVisibleItems.some((item) => item.id === id));
   const createDraft = () =>
     void run(async () => {
@@ -137,9 +164,20 @@ function AiNewsWorkspace() {
   const saveSource = (event) => {
     event.preventDefault();
     void run(async () => {
+      const payload =
+        form.format === "rss"
+          ? {
+              name: form.name,
+              url: form.url,
+              topic: form.topic,
+              format: form.format,
+              enabled: form.enabled,
+              maxItems: Number(form.maxItems),
+            }
+          : { ...form, maxItems: Number(form.maxItems) };
       await api("/api/ai-news/sources", {
         method: "POST",
-        body: JSON.stringify({ ...form, maxItems: Number(form.maxItems) }),
+        body: JSON.stringify(payload),
       });
       setForm(initialSource);
       await refresh();
@@ -153,6 +191,7 @@ function AiNewsWorkspace() {
         body: JSON.stringify({ query: weeklyQuery, days: Number(weeklyDays), limit: 10 }),
       });
       setWeeklyDigest(digest);
+      setTopic(digest.query);
       setAnalysis(null);
       setCopy(null);
       setDraftId("");
@@ -194,8 +233,8 @@ function AiNewsWorkspace() {
           <p className="eyebrow">Búsqueda actual · Argentina</p>
           <h2>Las 10 noticias musicales más relevantes</h2>
           <p>
-            Busca noticias de los últimos días, agrupa notas sobre el mismo hecho y Gemini las ordena. Las fuentes y
-            fechas quedan visibles para revisión.
+            Rastrea novedades musicales generales en varios frentes, agrupa publicaciones sobre el mismo hecho y Gemini
+            prioriza lo más relevante. Revisá los medios y enlaces antes de preparar una nota.
           </p>
           <div className="ai-weekly-controls">
             <label>
@@ -230,7 +269,7 @@ function AiNewsWorkspace() {
             />
           </label>
           <small>
-            Las noticias se obtienen de Google News para Argentina. Gemini rankea los resultados; no crea enlaces ni
+            La búsqueda consulta Google News para Argentina en lanzamientos, shows y festivales e industria musical. No
             publica automáticamente.
           </small>
           {weeklyDigest && (
@@ -238,11 +277,17 @@ function AiNewsWorkspace() {
               <div className="ai-weekly-summary">
                 <h3>{weeklyDigest.stories.length} historias seleccionadas</h3>
                 <span>
-                  {weeklyDigest.candidatesScanned} resultados recientes revisados ·{" "}
-                  {new Date(weeklyDigest.windowStart).toLocaleDateString("es-AR")}–
+                  {weeklyDigest.candidatesScanned} resultados recientes · {weeklyDigest.duplicateItemsGrouped ?? 0}{" "}
+                  repetidos agrupados · {new Date(weeklyDigest.windowStart).toLocaleDateString("es-AR")}–
                   {new Date(weeklyDigest.windowEnd).toLocaleDateString("es-AR")}
                 </span>
               </div>
+              {weeklyDigest.rankingMethod === "recency-fallback" && (
+                <p className="ai-news-fallback" role="status">
+                  Gemini no pudo completar el ranking. Mostramos las novedades agrupadas por similitud de titulares y
+                  ordenadas por fecha para que no se pierdan.
+                </p>
+              )}
               {weeklyDigest.stories.map((story, index) => (
                 <article className="ai-weekly-story" key={story.itemIds.join("-")}>
                   <div className="ai-weekly-rank">{index + 1}</div>
@@ -278,9 +323,13 @@ function AiNewsWorkspace() {
           )}
         </section>
         <section className="ai-news-grid">
-          <article className="ai-news-panel">
+          <article className="ai-news-panel ai-news-source-panel">
             <p className="eyebrow">01 · Fuentes</p>
-            <h2>Sumar página para scrapear</h2>
+            <h2>Fuentes extra</h2>
+            <p>
+              La búsqueda general ya trae noticias. Sumá un feed editorial RSS/Atom; las páginas HTML quedan como opción
+              avanzada.
+            </p>
             <form onSubmit={saveSource} className="ai-news-form">
               <label>
                 Nombre
@@ -300,37 +349,46 @@ function AiNewsWorkspace() {
                 <input required value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
               </label>
               <label>
-                Regex de cada elemento
-                <textarea
-                  required
-                  value={form.itemPattern}
-                  onChange={(e) => setForm({ ...form, itemPattern: e.target.value })}
-                />
+                Formato
+                <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}>
+                  <option value="rss">Feed RSS o Atom · automático</option>
+                  <option value="html">Página HTML · configuración avanzada</option>
+                </select>
               </label>
-              <details>
-                <summary>Patrones de extracción</summary>
-                <label>
-                  Título
-                  <textarea
-                    value={form.titlePattern}
-                    onChange={(e) => setForm({ ...form, titlePattern: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Enlace
-                  <textarea
-                    value={form.linkPattern}
-                    onChange={(e) => setForm({ ...form, linkPattern: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Resumen
-                  <textarea
-                    value={form.summaryPattern}
-                    onChange={(e) => setForm({ ...form, summaryPattern: e.target.value })}
-                  />
-                </label>
-              </details>
+              {form.format === "html" && (
+                <details>
+                  <summary>Patrones para HTML</summary>
+                  <label>
+                    Regex de cada elemento
+                    <textarea
+                      required
+                      value={form.itemPattern}
+                      onChange={(e) => setForm({ ...form, itemPattern: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Título
+                    <textarea
+                      value={form.titlePattern}
+                      onChange={(e) => setForm({ ...form, titlePattern: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Enlace
+                    <textarea
+                      value={form.linkPattern}
+                      onChange={(e) => setForm({ ...form, linkPattern: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Resumen
+                    <textarea
+                      value={form.summaryPattern}
+                      onChange={(e) => setForm({ ...form, summaryPattern: e.target.value })}
+                    />
+                  </label>
+                </details>
+              )}
               <button className="button dark" disabled={busy}>
                 Guardar fuente
               </button>
@@ -341,7 +399,8 @@ function AiNewsWorkspace() {
                   <div>
                     <strong>{s.name}</strong>
                     <span>
-                      {s.topic} · {s.enabled ? "activa" : "pausada"}
+                      {s.topic} · {s.format === "html" || (!s.format && s.itemPattern) ? "HTML" : "RSS/Atom"} ·{" "}
+                      {s.enabled ? "activa" : "pausada"}
                     </span>
                   </div>
                   <button
@@ -384,11 +443,16 @@ function AiNewsWorkspace() {
               Scrapear todas las fuentes
             </button>
           </article>
-          <article className="ai-news-panel">
+          <article className="ai-news-panel ai-news-raw-panel">
             <p className="eyebrow">02 · Material crudo</p>
             <div className="ai-news-title-row">
               <h2>Novedades capturadas</h2>
-              <input aria-label="Filtrar temática" value={topic} onChange={(e) => setTopic(e.target.value)} />
+              <input
+                aria-label="Filtrar temática"
+                placeholder="Todas las temáticas"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
               <input
                 aria-label="Filtrar fuente"
                 onChange={(e) => setSourceFilter(e.target.value)}
