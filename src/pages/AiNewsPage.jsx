@@ -172,7 +172,7 @@ function AiNewsWorkspace() {
             <span>1</span>
             <div>
               <strong>Buscar noticias</strong>
-              <small>Argentina · hasta 14 días</small>
+              <small>Argentina · hasta 14 días · búsqueda manual</small>
             </div>
           </li>
           <li>
@@ -267,7 +267,9 @@ function AiNewsWorkspace() {
             )}
             {digest.stories.length > 0 && (
               <div className="ai-news-batch-bar">
-                <span>Podés generar una nota por tema para los primeros cinco.</span>
+                <span>
+                  Gemini puede preparar una nota por cada uno de los primeros cinco temas. Revisás antes de publicar.
+                </span>
                 <button className="button dark" disabled={busy} onClick={makeFiveDrafts}>
                   {busy ? "Creando borradores…" : "Crear hasta 5 borradores"}
                 </button>
@@ -298,7 +300,7 @@ function AiNewsWorkspace() {
                     )}
                   </div>
                   <button className="button subtle" disabled={busy} onClick={() => makeOneDraft(story)}>
-                    Crear borrador
+                    Preparar nota
                   </button>
                 </article>
               ))}
@@ -326,10 +328,10 @@ function AiNewsWorkspace() {
         )}
 
         <details className="ai-news-advanced">
-          <summary>Configuración avanzada · fuentes extra</summary>
+          <summary>Fuentes adicionales (opcional)</summary>
           <p>
-            Estas fuentes se actualizan manualmente y se consultan por separado. No se mezclan con el ranking semanal de
-            Google News. Para la búsqueda general no hace falta agregar fuentes ni configurar regex.
+            La búsqueda principal ya consulta noticias musicales de Argentina. Estas fuentes se actualizan manualmente y
+            se consultan aparte; no hace falta agregarlas para usar la búsqueda semanal.
           </p>
           <form onSubmit={saveSource} className="ai-news-source-form">
             <label>
