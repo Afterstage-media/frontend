@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 import { AuthGate } from "../components/AuthGate.jsx";
 import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import "../styles/pages/ai-news.css";
-import { Link } from "react-router-dom";
 
-const initialSource = {
+const DEFAULT_QUERY = "música Argentina";
+const freshSource = () => ({
   name: "",
   url: "",
   topic: "noticias musicales",
@@ -16,72 +17,31 @@ const initialSource = {
   linkPattern: "",
   summaryPattern: "",
   maxItems: 8,
-};
-
-const normalizedUrl = (value) => {
-  try {
-    const url = new URL(value);
-    url.hash = "";
-    return url.toString().replace(/\/$/, "");
-  } catch {
-    return value.trim();
-  }
-};
-
-const titleTokens = (title) =>
-  new Set(
-    title
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/\s+[|–—-]\s+[^|–—-]{2,60}$/g, "")
-      .replace(/[^a-z0-9]+/g, " ")
-      .split(/\s+/)
-      .filter(
-        (word) =>
-          word.length > 2 &&
-          !/^(con|para|por|una|uno|del|las|los|que|como|desde|sobre|tras|entre|ante|este|esta|sus|mas|hoy|sera|vuelve|llega|anuncia|anuncio|musica)$/.test(
-            word,
-          ),
-      ),
-  );
-
-const sameStoryTitle = (left, right) => {
-  const a = titleTokens(left);
-  const b = titleTokens(right);
-  const shared = [...a].filter((word) => b.has(word)).length;
-  return shared >= 3 && shared / Math.min(a.size || 1, b.size || 1) >= 0.68;
-};
+});
 
 function AiNewsWorkspace() {
-  const [sources, setSources] = useState([]);
-  const [items, setItems] = useState([]);
-  const [form, setForm] = useState(initialSource);
-  const [topic, setTopic] = useState("");
-  const [analysis, setAnalysis] = useState(null);
-  const [copy, setCopy] = useState(null);
-  const [selectedItemIds, setSelectedItemIds] = useState([]);
-  const [sourceFilter, setSourceFilter] = useState("");
-  const [draftId, setDraftId] = useState("");
-  const [draftKey, setDraftKey] = useState("");
+  const [query, setQuery] = useState(DEFAULT_QUERY);
+  const [days, setDays] = useState(7);
   const [instructions, setInstructions] = useState("");
-  const [weeklyQuery, setWeeklyQuery] = useState("música Argentina");
-  const [weeklyDays, setWeeklyDays] = useState(7);
-  const [weeklyInstructions, setWeeklyInstructions] = useState("");
-  const [weeklyDigest, setWeeklyDigest] = useState(null);
+  const [digest, setDigest] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [sourceForm, setSourceForm] = useState(freshSource());
   const [configured, setConfigured] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const refresh = async () => {
-    const [sourceData, itemData] = await Promise.all([api("/api/ai-news/sources"), api("/api/ai-news/items")]);
-    setSources(sourceData.sources);
-    setItems(itemData.items);
-    setConfigured(sourceData.geminiConfigured);
+  const [createdDrafts, setCreatedDrafts] = useState([]);
+
+  const refreshSources = async () => {
+    const result = await api("/api/ai-news/sources");
+    setSources(result.sources);
+    setConfigured(result.geminiConfigured);
   };
+
   useEffect(() => {
-    refresh().catch((e) => setError(e.message));
+    refreshSources().catch((e) => setError(e.message));
   }, []);
+
   const run = async (action) => {
     setBusy(true);
     setError("");
@@ -94,561 +54,377 @@ function AiNewsWorkspace() {
       setBusy(false);
     }
   };
-  const visibleItems = items.filter((item) => {
-    const matchesTopic = !topic || item.topic.toLowerCase().includes(topic.toLowerCase());
-    const matchesSource = !sourceFilter || item.sourceName.toLowerCase().includes(sourceFilter.toLowerCase());
-    return matchesTopic && matchesSource;
-  });
-  const uniqueVisibleItems = [];
-  for (const item of [...visibleItems].sort(
-    (left, right) => new Date(right.scrapedAt).getTime() - new Date(left.scrapedAt).getTime(),
-  )) {
-    const duplicateUrl = uniqueVisibleItems.some((existing) => normalizedUrl(existing.url) === normalizedUrl(item.url));
-    const duplicateStory = uniqueVisibleItems.some((existing) => sameStoryTitle(existing.title, item.title));
-    if (!duplicateUrl && !duplicateStory) uniqueVisibleItems.push(item);
-  }
-  const selectedIds = selectedItemIds.filter((id) => uniqueVisibleItems.some((item) => item.id === id));
-  const createDraft = () =>
+
+  const discover = () =>
     void run(async () => {
-      const selectedSources = analysis.sourceIds.map((id) => items.find((item) => item.id === id)).filter(Boolean);
-      if (!selectedSources.length) throw new Error("La propuesta no tiene fuentes vinculadas.");
-      const source = selectedSources
-        .reduce((entries, item) => {
-          const entry = `${item.sourceName}: ${item.url}`;
-          const next = [...entries, entry];
-          return next.join("; ").length <= 500 ? next : entries;
-        }, [])
-        .join("; ");
-      const instagramCopy = [
-        copy.instagramPost.trim(),
-        copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-      const note = {
+      const result = await api("/api/ai-news/discover-weekly", {
+        method: "POST",
+        body: JSON.stringify({ query: query.trim() || DEFAULT_QUERY, days, limit: 10 }),
+      });
+      setDigest(result);
+      setCreatedDrafts([]);
+      setMessage(
+        result.stories?.length
+          ? `Gemini encontró ${result.stories.length} temas para revisar.`
+          : "No hubo temas rankeados. Ampliá la búsqueda o revisá las fuentes más tarde.",
+      );
+    });
+
+  const createDraftForStory = async (story) => {
+    const storyItems = story.items ?? [];
+    if (!story.itemIds?.length || !storyItems.length)
+      throw new Error("Esta historia no tiene fuentes para preparar un borrador.");
+    const { copy } = await api("/api/ai-news/package", {
+      method: "POST",
+      body: JSON.stringify({ query: query.trim() || DEFAULT_QUERY, itemIds: story.itemIds, instructions }),
+    });
+    const source = storyItems
+      .map((item) => `${item.sourceName}: ${item.url}`)
+      .join("; ")
+      .slice(0, 500);
+    const instagramCopy = [
+      copy.instagramPost,
+      (copy.hashtags ?? []).map((tag) => `#${tag.replace(/^#/, "")}`).join(" "),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    return api("/api/content/with-ai", {
+      method: "POST",
+      body: JSON.stringify({
         title: copy.articleTitle,
         summary: copy.articleSummary,
         body: copy.articleBody,
         instagramCopy,
         channels: ["website", "instagram"],
-        tags: [topic, ...new Set(selectedSources.map((item) => item.sourceName.slice(0, 80)))],
+        tags: [query.trim() || DEFAULT_QUERY],
         source,
-      };
-      const duplicates = await api("/api/content/duplicates", {
-        method: "POST",
-        body: JSON.stringify({ ...note, type: "article", status: "draft", images: [] }),
-      });
-      const sameSourceDraft = duplicates.find(
-        (match) =>
-          match.item.type === "article" &&
-          match.item.status === "draft" &&
-          selectedSources.some((item) => match.item.source.includes(item.url)),
-      );
-      if (duplicates.length && !sameSourceDraft) {
-        throw new Error("Ya existe una nota parecida con otra fuente. Revisá ese borrador antes de crear otra.");
-      }
-      const result = sameSourceDraft
-        ? await api(`/api/content/${sameSourceDraft.item.id}`, {
-            method: "PATCH",
-            body: JSON.stringify(note),
-          })
-        : await api("/api/content/with-ai", {
-            method: "POST",
-            body: JSON.stringify({ ...note, images: [], idempotencyKey: draftKey }),
-          });
-      setDraftId(result.id);
-      setMessage(
-        `${sameSourceDraft ? "Borrador actualizado" : "Nota y copy guardados como borrador"}. No se publicó nada.`,
-      );
+        images: [],
+        idempotencyKey: `ai-news:${crypto.randomUUID()}`,
+      }),
     });
+  };
+
+  const makeOneDraft = (story) =>
+    void run(async () => {
+      const draft = await createDraftForStory(story);
+      setCreatedDrafts((current) => [...current, { ...draft, storyKey: story.itemIds.join("-") }]);
+      setMessage("Borrador creado. No se publicó ni programó.");
+    });
+
+  const makeFiveDrafts = () =>
+    void run(async () => {
+      const stories = (digest?.stories ?? []).slice(0, 5);
+      const completed = [];
+      const failures = [];
+      for (const [index, story] of stories.entries()) {
+        try {
+          completed.push({ ...(await createDraftForStory(story)), storyKey: story.itemIds.join("-") });
+        } catch (e) {
+          failures.push(`${index + 1}. ${e.message}`);
+        }
+      }
+      setCreatedDrafts((current) => [...current, ...completed]);
+      setMessage(
+        `${completed.length} borradores creados${failures.length ? `; ${failures.length} no se pudieron generar` : ""}. Ninguno fue publicado.`,
+      );
+      if (failures.length) setError(failures.join("\n"));
+    });
+
   const saveSource = (event) => {
     event.preventDefault();
     void run(async () => {
       const payload =
-        form.format === "rss"
+        sourceForm.format === "rss"
           ? {
-              name: form.name,
-              url: form.url,
-              topic: form.topic,
-              format: form.format,
-              enabled: form.enabled,
-              maxItems: Number(form.maxItems),
+              name: sourceForm.name,
+              url: sourceForm.url,
+              topic: sourceForm.topic,
+              format: "rss",
+              enabled: true,
+              maxItems: Number(sourceForm.maxItems),
             }
-          : { ...form, maxItems: Number(form.maxItems) };
-      await api("/api/ai-news/sources", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      setForm(initialSource);
-      await refresh();
-      setMessage("Fuente guardada.");
+          : { ...sourceForm, maxItems: Number(sourceForm.maxItems) };
+      await api("/api/ai-news/sources", { method: "POST", body: JSON.stringify(payload) });
+      setSourceForm(freshSource());
+      await refreshSources();
+      setMessage("Fuente adicional guardada.");
     });
   };
-  const discoverWeekly = () =>
-    void run(async () => {
-      const digest = await api("/api/ai-news/discover-weekly", {
-        method: "POST",
-        body: JSON.stringify({ query: weeklyQuery, days: Number(weeklyDays), limit: 10 }),
-      });
-      setWeeklyDigest(digest);
-      setTopic(digest.query);
-      setAnalysis(null);
-      setCopy(null);
-      setDraftId("");
-      await refresh();
-    });
-  const prepareWeeklyStory = (story) =>
-    void run(async () => {
-      const storyItems = story.items || [];
-      if (!storyItems.length) throw new Error("No hay fuentes disponibles para esta historia.");
-      const storyTopic = weeklyDigest.query.slice(0, 80);
-      const result = await api("/api/ai-news/package", {
-        method: "POST",
-        body: JSON.stringify({ query: storyTopic, itemIds: story.itemIds, instructions: weeklyInstructions }),
-      });
-      setTopic(storyTopic);
-      setAnalysis({ sourceIds: story.itemIds });
-      setCopy(result.copy);
-      setDraftId("");
-      setDraftKey(`ai-news:${crypto.randomUUID()}`);
-    });
+
   return (
     <Layout>
       <main className="ai-news-page">
-        <header className="page-intro">
-          <p className="eyebrow">Redacción · Automatización</p>
-          <h1>
-            Novedades
-            <br />
-            musicales.
-          </h1>
-          <p>Fuentes configurables, recortes verificables y borradores asistidos por Gemini.</p>
+        <header className="ai-news-header">
+          <div>
+            <p className="eyebrow">Asistente editorial</p>
+            <h1>Novedades musicales</h1>
+            <p className="ai-news-lede">
+              Buscá noticias, elegí los temas y dejá que Gemini arme borradores para revisar.
+            </p>
+          </div>
           <span className={`ai-news-status ${configured ? "is-ready" : ""}`}>
-            {configured ? "Gemini conectado" : "Falta configurar GEMINI_API_KEY"}
+            {configured ? "Gemini listo" : "Gemini sin configurar"}
           </span>
         </header>
+
+        <ol className="ai-news-steps" aria-label="Flujo editorial">
+          <li className="is-current">
+            <span>1</span>
+            <div>
+              <strong>Buscar noticias</strong>
+              <small>Argentina · hasta 14 días</small>
+            </div>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <strong>Gemini prepara</strong>
+              <small>Hasta cinco borradores</small>
+            </div>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <strong>Vos revisás</strong>
+              <small>Antes de publicar</small>
+            </div>
+          </li>
+        </ol>
+
         <ErrorMessage message={error} />
-        {message && <p role="status">{message}</p>}
-        <section className="ai-news-panel ai-weekly-search">
-          <p className="eyebrow">Búsqueda actual · Argentina</p>
-          <h2>Las 10 noticias musicales más relevantes</h2>
-          <p>
-            Rastrea novedades musicales generales en varios frentes, agrupa publicaciones sobre el mismo hecho y Gemini
-            prioriza lo más relevante. Revisá los medios y enlaces antes de preparar una nota.
+        {message && (
+          <p className="ai-news-message" role="status">
+            {message}
           </p>
-          <div className="ai-weekly-controls">
-            <label>
-              Qué buscar
-              <input maxLength={180} onChange={(event) => setWeeklyQuery(event.target.value)} value={weeklyQuery} />
+        )}
+
+        <section className="ai-news-panel ai-news-search">
+          <span className="ai-news-kicker">PASO 1 · DESCUBRIR</span>
+          <h2>¿Qué pasó esta semana en la música?</h2>
+          <p className="ai-news-description">
+            Buscamos medios de Argentina, agrupamos coberturas repetidas y ordenamos hasta diez temas.
+          </p>
+          <form
+            className="ai-news-search-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              discover();
+            }}
+          >
+            <label className="ai-news-query-label">
+              Búsqueda
+              <input
+                maxLength={180}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ej.: música Argentina"
+              />
             </label>
             <label>
               Período
-              <select onChange={(event) => setWeeklyDays(Number(event.target.value))} value={weeklyDays}>
-                <option value={3}>Últimos 3 días</option>
+              <select value={days} onChange={(event) => setDays(Number(event.target.value))}>
+                <option value={3}>3 días</option>
                 <option value={7}>Última semana</option>
-                <option value={14}>Últimos 14 días</option>
+                <option value={14}>14 días</option>
               </select>
             </label>
-            <button
-              className="button dark"
-              disabled={busy || !configured || !weeklyQuery.trim()}
-              onClick={discoverWeekly}
-              type="button"
-            >
-              {busy ? "Buscando…" : "Buscar y ordenar con Gemini"}
+            <button className="button dark" type="submit" disabled={busy || !configured}>
+              {busy ? "Procesando…" : "Buscar noticias"}
             </button>
-          </div>
-          <label className="ai-weekly-instructions">
-            Indicaciones editoriales (opcional)
-            <textarea
-              maxLength={3000}
-              onChange={(event) => setWeeklyInstructions(event.target.value)}
-              placeholder="Ej.: tono cercano, priorizar el impacto local, evitar adjetivos promocionales…"
-              rows={3}
-              value={weeklyInstructions}
-            />
-          </label>
-          <small>
-            La búsqueda consulta Google News para Argentina en lanzamientos, shows y festivales e industria musical. No
-            publica automáticamente.
-          </small>
-          {weeklyDigest && (
-            <div className="ai-weekly-results">
-              <div className="ai-weekly-summary">
-                <h3>{weeklyDigest.stories.length} historias seleccionadas</h3>
-                <span>
-                  {weeklyDigest.candidatesScanned} resultados recientes · {weeklyDigest.duplicateItemsGrouped ?? 0}{" "}
-                  repetidos agrupados · {new Date(weeklyDigest.windowStart).toLocaleDateString("es-AR")}–
-                  {new Date(weeklyDigest.windowEnd).toLocaleDateString("es-AR")}
-                </span>
+          </form>
+          {digest?.stories?.length > 0 && (
+            <label className="ai-news-instructions">
+              Indicaciones para los borradores <span>(opcional)</span>
+              <textarea
+                maxLength={3000}
+                rows={2}
+                value={instructions}
+                onChange={(event) => setInstructions(event.target.value)}
+                placeholder="Ej.: tono cercano, priorizar impacto local"
+              />
+            </label>
+          )}
+          <p className="ai-news-note">
+            La búsqueda se inicia con el botón. No hay una tarea recurrente activa: cada corrida la iniciás vos.
+          </p>
+        </section>
+
+        {digest && (
+          <section className="ai-news-panel ai-news-results" aria-live="polite">
+            <div className="ai-news-results-heading">
+              <div>
+                <span className="ai-news-kicker">RESULTADOS</span>
+                <h2>{digest.stories.length} temas encontrados</h2>
               </div>
-              {weeklyDigest.rankingMethod === "recency-fallback" && (
-                <p className="ai-news-fallback" role="status">
-                  Gemini no pudo completar el ranking. Mostramos las novedades agrupadas por similitud de titulares y
-                  ordenadas por fecha para que no se pierdan.
-                </p>
-              )}
-              {weeklyDigest.stories.map((story, index) => (
-                <article className="ai-weekly-story" key={story.itemIds.join("-")}>
-                  <div className="ai-weekly-rank">{index + 1}</div>
-                  <div className="ai-weekly-story-content">
-                    <div className="ai-weekly-story-heading">
-                      <strong>{story.relevanceScore}/100</strong>
-                      <span>{story.items.map((item) => item.sourceName).join(" · ")}</span>
+              <div className="ai-news-result-meta">
+                {digest.candidatesScanned} recortes · {digest.duplicateItemsGrouped ?? 0} repetidos agrupados
+              </div>
+            </div>
+            {digest.rankingMethod === "recency-fallback" && (
+              <p className="ai-news-fallback">
+                Gemini no pudo ordenar esta vez; se muestran los temas agrupados por fecha para revisión.
+              </p>
+            )}
+            {digest.stories.length > 0 && (
+              <div className="ai-news-batch-bar">
+                <span>Podés generar una nota por tema para los primeros cinco.</span>
+                <button className="button dark" disabled={busy} onClick={makeFiveDrafts}>
+                  {busy ? "Creando borradores…" : "Crear hasta 5 borradores"}
+                </button>
+              </div>
+            )}
+            <div className="ai-news-story-list">
+              {digest.stories.map((story, index) => (
+                <article className="ai-news-story" key={story.itemIds.join("-")}>
+                  <div className="ai-news-story-number">{index + 1}</div>
+                  <div className="ai-news-story-main">
+                    <div className="ai-news-story-meta">
+                      <strong>Relevancia {story.relevanceScore}/100</strong>
+                      <span>
+                        {story.items.length} {story.items.length === 1 ? "fuente" : "fuentes"}
+                      </span>
                     </div>
                     <h3>{story.items[0]?.title}</h3>
                     <p>{story.reason}</p>
-                    <div className="ai-weekly-source-links">
+                    <div className="ai-news-sources-list">
                       {story.items.map((item) => (
-                        <a href={item.url} key={item.id} rel="noreferrer" target="_blank">
+                        <a href={item.url} key={item.id} target="_blank" rel="noreferrer">
                           {item.sourceName} · {new Date(item.scrapedAt).toLocaleDateString("es-AR")} ↗
                         </a>
                       ))}
                     </div>
+                    {createdDrafts.some((draft) => draft.storyKey === story.itemIds.join("-")) && (
+                      <span className="ai-news-created-label">Borrador creado</span>
+                    )}
                   </div>
-                  <button
-                    className="button subtle"
-                    disabled={busy}
-                    onClick={() => prepareWeeklyStory(story)}
-                    type="button"
-                  >
-                    Generar nota y copys
+                  <button className="button subtle" disabled={busy} onClick={() => makeOneDraft(story)}>
+                    Crear borrador
                   </button>
                 </article>
               ))}
-              {!weeklyDigest.stories.length && (
-                <p>No hubo noticias suficientes para armar el ranking. Probá ampliar la búsqueda.</p>
-              )}
             </div>
-          )}
-        </section>
-        <section className="ai-news-grid">
-          <article className="ai-news-panel ai-news-source-panel">
-            <p className="eyebrow">01 · Fuentes</p>
-            <h2>Fuentes extra</h2>
-            <p>
-              La búsqueda general ya trae noticias. Sumá un feed editorial RSS/Atom; las páginas HTML quedan como opción
-              avanzada.
-            </p>
-            <form onSubmit={saveSource} className="ai-news-form">
-              <label>
-                Nombre
-                <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              </label>
-              <label>
-                URL pública HTTPS
-                <input
-                  type="url"
-                  required
-                  value={form.url}
-                  onChange={(e) => setForm({ ...form, url: e.target.value })}
-                />
-              </label>
-              <label>
-                Temática
-                <input required value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
-              </label>
-              <label>
-                Formato
-                <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}>
-                  <option value="rss">Feed RSS o Atom · automático</option>
-                  <option value="html">Página HTML · configuración avanzada</option>
-                </select>
-              </label>
-              {form.format === "html" && (
-                <details>
-                  <summary>Patrones para HTML</summary>
-                  <label>
-                    Regex de cada elemento
-                    <textarea
-                      required
-                      value={form.itemPattern}
-                      onChange={(e) => setForm({ ...form, itemPattern: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Título
-                    <textarea
-                      value={form.titlePattern}
-                      onChange={(e) => setForm({ ...form, titlePattern: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Enlace
-                    <textarea
-                      value={form.linkPattern}
-                      onChange={(e) => setForm({ ...form, linkPattern: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Resumen
-                    <textarea
-                      value={form.summaryPattern}
-                      onChange={(e) => setForm({ ...form, summaryPattern: e.target.value })}
-                    />
-                  </label>
-                </details>
-              )}
-              <button className="button dark" disabled={busy}>
-                Guardar fuente
-              </button>
-            </form>
-            <ul className="ai-news-sources">
-              {sources.map((s) => (
-                <li key={s.id}>
-                  <div>
-                    <strong>{s.name}</strong>
-                    <span>
-                      {s.topic} · {s.format === "html" || (!s.format && s.itemPattern) ? "HTML" : "RSS/Atom"} ·{" "}
-                      {s.enabled ? "activa" : "pausada"}
-                    </span>
-                  </div>
-                  <button
-                    className="button subtle"
-                    disabled={busy}
-                    onClick={() =>
-                      void run(async () => {
-                        await api("/api/ai-news/scrape", { method: "POST", body: JSON.stringify({ sourceId: s.id }) });
-                        await refresh();
-                      })
-                    }
-                  >
-                    Scrapear
-                  </button>
-                  <button
-                    aria-label={`Eliminar ${s.name}`}
-                    className="ai-news-remove"
-                    onClick={() =>
-                      void run(async () => {
-                        await api(`/api/ai-news/sources/${s.id}`, { method: "DELETE" });
-                        await refresh();
-                      })
-                    }
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="button subtle"
-              disabled={busy || !sources.length}
-              onClick={() =>
-                void run(async () => {
-                  await api("/api/ai-news/scrape", { method: "POST", body: JSON.stringify({}) });
-                  await refresh();
-                })
-              }
-            >
-              Scrapear todas las fuentes
-            </button>
-          </article>
-          <article className="ai-news-panel ai-news-raw-panel">
-            <p className="eyebrow">02 · Material crudo</p>
-            <div className="ai-news-title-row">
-              <h2>Novedades capturadas</h2>
-              <input
-                aria-label="Filtrar temática"
-                placeholder="Todas las temáticas"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
-              <input
-                aria-label="Filtrar fuente"
-                onChange={(e) => setSourceFilter(e.target.value)}
-                placeholder="Fuente"
-                value={sourceFilter}
-              />
-            </div>
-            <div className="ai-news-items">
-              {uniqueVisibleItems.map((item) => (
-                <article className={selectedIds.includes(item.id) ? "is-selected" : ""} key={item.id}>
-                  <label className="ai-news-select">
-                    <input
-                      checked={selectedIds.includes(item.id)}
-                      onChange={(event) =>
-                        setSelectedItemIds((previous) =>
-                          event.target.checked
-                            ? [...new Set([...previous, item.id])]
-                            : previous.filter((id) => id !== item.id),
-                        )
-                      }
-                      type="checkbox"
-                    />
-                    Incluir en el análisis
-                  </label>
-                  <span>
-                    {item.topic} · {item.sourceName} · {new Date(item.scrapedAt).toLocaleDateString("es-AR")}
-                  </span>
-                  <h3>
-                    <a href={item.url} target="_blank" rel="noreferrer">
-                      {item.title}
-                    </a>
-                  </h3>
-                  <p>{item.summary || "Sin resumen capturado"}</p>
-                </article>
-              ))}
-              {uniqueVisibleItems.length > 0 && (
-                <small>
-                  {uniqueVisibleItems.length} novedades únicas · {visibleItems.length - uniqueVisibleItems.length}{" "}
-                  repetidas ocultas
-                </small>
-              )}
-              {!items.length && (
-                <p className="muted">Todavía no hay resultados. Configurá una fuente y ejecutá el scrapeo.</p>
-              )}
-            </div>
-            <button
-              className="button dark"
-              disabled={busy || !configured || !uniqueVisibleItems.length}
-              onClick={() =>
-                void run(async () => {
-                  const result = await api("/api/ai-news/analyze", {
-                    method: "POST",
-                    body: JSON.stringify({ topic, ...(selectedIds.length ? { itemIds: selectedIds } : {}) }),
-                  });
-                  setAnalysis(result.analysis);
-                  setCopy(null);
-                  setDraftId("");
-                })
-              }
-            >
-              Ordenar esta temática con Gemini
-            </button>
-          </article>
-        </section>
-        {analysis && (
-          <section className="ai-news-panel ai-news-result">
-            <p className="eyebrow">03 · Información limpia</p>
-            <h2>{analysis.title}</h2>
-            <p>{analysis.summary}</p>
-            <h3>Hechos informados</h3>
-            <ul>
-              {analysis.facts.map((x, i) => (
-                <li key={i}>{x}</li>
-              ))}
-            </ul>
-            {analysis.missingFacts.length > 0 && (
-              <>
-                <h3>Falta verificar</h3>
+            {!digest.stories.length && (
+              <div className="ai-news-empty">
+                <strong>No se encontraron temas.</strong>
+                <p>Probá ampliar el período o cambiar la búsqueda.</p>
+              </div>
+            )}
+            {createdDrafts.length > 0 && (
+              <div className="ai-news-created-box">
+                <strong>Borradores listos para revisión</strong>
                 <ul>
-                  {analysis.missingFacts.map((x, i) => (
-                    <li key={i}>{x}</li>
+                  {createdDrafts.map((draft) => (
+                    <li key={draft.id}>
+                      <Link to={`/admin/contenido/${draft.id}`}>{draft.title}</Link>
+                    </li>
                   ))}
                 </ul>
-              </>
+                <p>Quedaron en borrador. No se publicaron ni programaron.</p>
+              </div>
             )}
-            <p>
-              <strong>Enfoque sugerido:</strong> {analysis.suggestedAngle}
-            </p>
-            <h3>Indicaciones para copy</h3>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Tono, longitud, CTA u otras indicaciones"
-            />
-            <button
-              className="button dark"
-              disabled={busy || !configured}
-              onClick={() =>
-                void run(async () => {
-                  const result = await api("/api/ai-news/copy", {
-                    method: "POST",
-                    body: JSON.stringify({ analysis, format: "both", instructions }),
-                  });
-                  setCopy(result.copy);
-                  setDraftId("");
-                  setDraftKey(`ai-news:${crypto.randomUUID()}`);
-                })
-              }
-            >
-              Crear copy e historias con Gemini
+          </section>
+        )}
+
+        <details className="ai-news-advanced">
+          <summary>Configuración avanzada · fuentes extra</summary>
+          <p>
+            La búsqueda general ya trae noticias. Usá esto si querés sumar un feed RSS/Atom propio; HTML con expresiones
+            regulares queda como modo avanzado.
+          </p>
+          <form onSubmit={saveSource} className="ai-news-source-form">
+            <label>
+              Nombre
+              <input
+                required
+                value={sourceForm.name}
+                onChange={(event) => setSourceForm({ ...sourceForm, name: event.target.value })}
+              />
+            </label>
+            <label>
+              URL HTTPS
+              <input
+                required
+                type="url"
+                value={sourceForm.url}
+                onChange={(event) => setSourceForm({ ...sourceForm, url: event.target.value })}
+              />
+            </label>
+            <label>
+              Temática
+              <input
+                required
+                value={sourceForm.topic}
+                onChange={(event) => setSourceForm({ ...sourceForm, topic: event.target.value })}
+              />
+            </label>
+            <label>
+              Formato
+              <select
+                value={sourceForm.format}
+                onChange={(event) => setSourceForm({ ...sourceForm, format: event.target.value })}
+              >
+                <option value="rss">RSS o Atom</option>
+                <option value="html">Página HTML</option>
+              </select>
+            </label>
+            {sourceForm.format === "html" && (
+              <label>
+                Regex para cada noticia
+                <textarea
+                  required
+                  value={sourceForm.itemPattern}
+                  onChange={(event) => setSourceForm({ ...sourceForm, itemPattern: event.target.value })}
+                />
+              </label>
+            )}
+            <button className="button subtle" disabled={busy}>
+              Agregar fuente
             </button>
-          </section>
-        )}
-        {copy && (
-          <section className="ai-news-panel ai-news-result">
-            <p className="eyebrow">04 · Nota y redes · borradores</p>
-            <h2>{copy.articleTitle}</h2>
-            <p className="ai-news-article-summary">{copy.articleSummary}</p>
-            <h3>Nota web</h3>
-            <pre>{copy.articleBody}</pre>
-            <h3>Copy de Instagram</h3>
-            <pre>{copy.instagramPost}</pre>
-            {copy.imageRecommendation && (
-              <section className="ai-news-image-recommendation" aria-labelledby="image-recommendation-title">
-                <p className="eyebrow">Recomendación visual de Gemini</p>
-                <h3 id="image-recommendation-title">
-                  {copy.imageRecommendation.kind === "source_image"
-                    ? "Imagen de la fuente"
-                    : copy.imageRecommendation.kind === "editorial_illustration"
-                      ? "Ilustración editorial"
-                      : "Publicar sin imagen"}
-                </h3>
-                <p>{copy.imageRecommendation.rationale}</p>
-                {copy.imageRecommendation.sourceUrl && (
-                  <p>
-                    <a href={copy.imageRecommendation.sourceUrl} target="_blank" rel="noreferrer">
-                      Abrir imagen de origen ↗
-                    </a>
-                  </p>
-                )}
-                {copy.imageRecommendation.searchQuery && (
-                  <p>
-                    <strong>Búsqueda / brief:</strong> {copy.imageRecommendation.searchQuery}
-                  </p>
-                )}
-                {copy.imageRecommendation.altText && (
-                  <p>
-                    <strong>Texto alternativo:</strong> {copy.imageRecommendation.altText}
-                  </p>
-                )}
-                {copy.imageRecommendation.kind === "editorial_illustration" && (
-                  <small>Esto es un brief visual, no una foto documental ni un archivo adjunto.</small>
-                )}
-              </section>
-            )}
-            <h3>Historias</h3>
-            {copy.stories.map((story, i) => (
-              <p key={i}>
-                <strong>{i + 1}.</strong> {story}
-              </p>
+          </form>
+          <ul className="ai-news-source-list">
+            {sources.map((source) => (
+              <li key={source.id}>
+                <span>
+                  {source.name} ·{" "}
+                  {source.format === "html" || (!source.format && source.itemPattern) ? "HTML" : "RSS/Atom"} ·{" "}
+                  {source.enabled ? "activa" : "pausada"}
+                </span>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      await api(`/api/ai-news/scrape`, {
+                        method: "POST",
+                        body: JSON.stringify({ sourceId: source.id }),
+                      });
+                      await refreshSources();
+                      setMessage(`Fuente ${source.name} scrapeada.`);
+                    })
+                  }
+                >
+                  Actualizar
+                </button>
+                <button
+                  aria-label={`Eliminar ${source.name}`}
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      await api(`/api/ai-news/sources/${source.id}`, { method: "DELETE" });
+                      await refreshSources();
+                    })
+                  }
+                >
+                  Eliminar
+                </button>
+              </li>
             ))}
-            <p>{copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" ")}</p>
-            <small>
-              La nota y el copy son borradores. Revisá los hechos, la atribución y los horarios; guardar no publica ni
-              programa nada.
-            </small>
-            {!draftId ? (
-              <button
-                className="button dark"
-                disabled={busy || !copy.articleBody || !copy.instagramPost}
-                onClick={createDraft}
-              >
-                Guardar nota y copy como borrador
-              </button>
-            ) : (
-              <p role="status">
-                Nota guardada como borrador. <Link to={`/admin/contenido/${draftId}`}>Abrir borrador</Link>
-              </p>
-            )}
-            <p>
-              <Link
-                className="button subtle"
-                to="/admin/redes"
-                state={{
-                  instagramCopy: `${copy.instagramPost}\n\n${copy.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" ")}`,
-                }}
-              >
-                Abrir compositor social
-              </Link>
-            </p>
-          </section>
-        )}
+          </ul>
+        </details>
       </main>
     </Layout>
   );
 }
+
 export function AiNewsPage() {
   return <AuthGate allowedRoles={["admin", "editor"]}>{() => <AiNewsWorkspace />}</AuthGate>;
 }
