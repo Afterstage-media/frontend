@@ -113,6 +113,7 @@ function SocialComposer({
   const [discarding, setDiscarding] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState(initialNotice);
+  const [unavailablePreviewUrls, setUnavailablePreviewUrls] = useState(() => new Set());
   const createRequestRef = useRef(null);
   const availableTemplates = templates.filter((item) => item.outputType === publicationType);
   const selectedTemplate = availableTemplates.find((item) => item.id === templateId);
@@ -121,6 +122,12 @@ function SocialComposer({
   ];
   const selectedVisualStyleId = selectedTemplate?.visualStyle?.id;
   const selectedSlide = slides[activeSlide] || slides[0];
+  const previewImages = (publication?.images || []).filter(
+    (image) => typeof image?.url === "string" && image.url.trim(),
+  );
+  const previewImageIndex = Math.min(activeSlide, Math.max(0, previewImages.length - 1));
+  const previewImage = previewImages[previewImageIndex] || null;
+  const previewImageUnavailable = !previewImage || unavailablePreviewUrls.has(previewImage.url);
   const objectUrls = useMemo(
     () => slides.map((slide) => (slide.file ? URL.createObjectURL(slide.file) : slide.sourceUrl || "")),
     [slides],
@@ -207,16 +214,20 @@ function SocialComposer({
     };
   };
 
+  const hasNoArtwork = Boolean(
+    publication?.images?.length === 0 &&
+    slides.every((slide) => !slide.file && !slide.sourceUrl && !slide.sourceAssetId),
+  );
   const visualHasChanges = Boolean(
     publication &&
     (title !== publication.title ||
-      templateId !== publication.templateId ||
-      slides.length !== publication.images.length ||
+      (!hasNoArtwork && templateId !== publication.templateId) ||
+      (!hasNoArtwork && slides.length !== publication.images.length) ||
       slides.some(
         (slide, index) =>
           slide.file ||
-          slide.sourceAssetId !== publication.slides?.[index]?.sourceAssetId ||
-          slide.text !== publication.slides?.[index]?.text,
+          (slide.sourceAssetId || "") !== (publication.slides?.[index]?.sourceAssetId || "") ||
+          slide.text !== (publication.slides?.[index]?.text || ""),
       )),
   );
   const hasUnsavedChanges = Boolean(
@@ -422,47 +433,68 @@ function SocialComposer({
                   <span aria-hidden="true">•••</span>
                 </header>
                 <div className="instagram-post-image-wrap">
-                  <img
-                    src={publication.images?.[activeSlide]?.url}
-                    alt={publication.images?.[activeSlide]?.altText || `Lámina ${activeSlide + 1}`}
-                  />
-                  {publication.images?.length > 1 && (
+                  {previewImageUnavailable ? (
+                    <div className="instagram-post-empty" role="status">
+                      <span className="instagram-post-empty-icon" aria-hidden="true">
+                        <svg viewBox="0 0 48 48" fill="none">
+                          <rect x="5.5" y="7.5" width="37" height="33" rx="3.5" />
+                          <circle cx="17" cy="18" r="3.5" />
+                          <path d="m8 36 11-11 7 7 5-5 9 9" />
+                        </svg>
+                      </span>
+                      <strong>
+                        {previewImage ? "No se pudo cargar esta imagen" : "Este borrador todavía no tiene imágenes"}
+                      </strong>
+                      <span>
+                        {previewImage
+                          ? "Volvé a editarlo y reemplazá el archivo para completar la vista previa."
+                          : "Volvé a editarlo y cargá una imagen para ver cómo quedará en Instagram."}
+                      </span>
+                    </div>
+                  ) : (
+                    <img
+                      src={previewImage.url}
+                      alt={previewImage.altText || `Lámina ${activeSlide + 1}`}
+                      onError={() => setUnavailablePreviewUrls((current) => new Set(current).add(previewImage.url))}
+                    />
+                  )}
+                  {previewImages.length > 1 && (
                     <span className="instagram-post-count">
-                      {activeSlide + 1}/{publication.images.length}
+                      {previewImageIndex + 1}/{previewImages.length}
                     </span>
                   )}
                 </div>
-                <div className="instagram-post-controls">
-                  <button
-                    aria-label="Lámina anterior"
-                    disabled={activeSlide === 0}
-                    onClick={() => setActiveSlide((index) => Math.max(0, index - 1))}
-                    type="button"
-                  >
-                    ‹
-                  </button>
-                  <div>
-                    {publication.images?.map((image, index) => (
-                      <button
-                        key={image.url}
-                        className={activeSlide === index ? "is-active" : ""}
-                        aria-label={`Ver lámina ${index + 1}`}
-                        onClick={() => setActiveSlide(index)}
-                        type="button"
-                      />
-                    ))}
+                {previewImages.length > 1 && (
+                  <div className="instagram-post-controls">
+                    <button
+                      aria-label="Lámina anterior"
+                      disabled={previewImageIndex === 0}
+                      onClick={() => setActiveSlide((index) => Math.max(0, index - 1))}
+                      type="button"
+                    >
+                      ‹
+                    </button>
+                    <div>
+                      {previewImages.map((image, index) => (
+                        <button
+                          key={image.url}
+                          className={previewImageIndex === index ? "is-active" : ""}
+                          aria-label={`Ver lámina ${index + 1}`}
+                          onClick={() => setActiveSlide(index)}
+                          type="button"
+                        />
+                      ))}
+                    </div>
+                    <button
+                      aria-label="Lámina siguiente"
+                      disabled={previewImageIndex >= previewImages.length - 1}
+                      onClick={() => setActiveSlide((index) => Math.min(previewImages.length - 1, index + 1))}
+                      type="button"
+                    >
+                      ›
+                    </button>
                   </div>
-                  <button
-                    aria-label="Lámina siguiente"
-                    disabled={activeSlide >= (publication.images?.length || 1) - 1}
-                    onClick={() =>
-                      setActiveSlide((index) => Math.min((publication.images?.length || 1) - 1, index + 1))
-                    }
-                    type="button"
-                  >
-                    ›
-                  </button>
-                </div>
+                )}
                 <div className="instagram-post-actions" aria-hidden="true">
                   <span>♡　♧　➤</span>
                   <span>♧</span>
@@ -471,14 +503,20 @@ function SocialComposer({
                   <b>afterstage.ar</b>{" "}
                   {instagramCopy || "Sumá el copy de Instagram para ver cómo acompaña a las imágenes."}
                 </p>
-                <small className="instagram-post-date">BORRADOR · {publication.images?.length || 0} LÁMINAS</small>
+                <small className="instagram-post-date">
+                  BORRADOR · {previewImageUnavailable ? "VISTA PREVIA INCOMPLETA" : `${previewImages.length} LÁMINAS`}
+                </small>
               </article>
               <p className="instagram-review-note">
-                {hasUnsavedChanges
-                  ? visualHasChanges
-                    ? "Hay cambios sin guardar. Guardá para regenerar las imágenes y ver la versión final."
-                    : "Hay cambios sin guardar. Guardalos para actualizar el borrador."
-                  : "Vista previa de las imágenes finales generadas por Afterstage."}
+                {previewImageUnavailable
+                  ? previewImage
+                    ? "No pudimos cargar esta imagen. Reemplazala desde la edición para completar la vista previa."
+                    : "Este borrador todavía no tiene imágenes. Volvé a editarlo y cargá una para completar la vista previa."
+                  : hasUnsavedChanges
+                    ? visualHasChanges
+                      ? "Hay cambios sin guardar. Guardá para regenerar las imágenes y ver la versión final."
+                      : "Hay cambios sin guardar. Guardalos para actualizar el borrador."
+                    : "Vista previa de las imágenes finales generadas por Afterstage."}
               </p>
               <footer className="composer-savebar">
                 <div>
