@@ -328,8 +328,8 @@ function AiNewsWorkspace() {
         <details className="ai-news-advanced">
           <summary>Configuración avanzada · fuentes extra</summary>
           <p>
-            La búsqueda general ya trae noticias. Usá esto si querés sumar un feed RSS/Atom propio; HTML con expresiones
-            regulares queda como modo avanzado.
+            Estas fuentes se actualizan manualmente y se consultan por separado. No se mezclan con el ranking semanal de
+            Google News. Para la búsqueda general no hace falta agregar fuentes ni configurar regex.
           </p>
           <form onSubmit={saveSource} className="ai-news-source-form">
             <label>
@@ -393,12 +393,14 @@ function AiNewsWorkspace() {
                   disabled={busy}
                   onClick={() =>
                     void run(async () => {
-                      await api(`/api/ai-news/scrape`, {
+                      const result = await api(`/api/ai-news/scrape`, {
                         method: "POST",
                         body: JSON.stringify({ sourceId: source.id }),
                       });
                       await refreshSources();
-                      setMessage(`Fuente ${source.name} scrapeada.`);
+                      setMessage(
+                        `${result.items.length} recortes guardados de ${source.name}. Se consultan por separado y no se agregan al ranking semanal.`,
+                      );
                     })
                   }
                 >
