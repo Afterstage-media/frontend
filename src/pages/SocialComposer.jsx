@@ -128,6 +128,9 @@ function SocialComposer({
   const previewImageIndex = Math.min(activeSlide, Math.max(0, previewImages.length - 1));
   const previewImage = previewImages[previewImageIndex] || null;
   const previewImageUnavailable = !previewImage || unavailablePreviewUrls.has(previewImage.url);
+  const previewArtworkTitle = title || existingItem?.title || publication?.title || "Novedades musicales";
+  const previewArtworkSummary = existingItem?.summary || publication?.summary || "";
+  const previewArtworkTopic = existingItem?.tags?.slice(0, 2).join(" · ") || "NOVEDADES MUSICALES";
   const objectUrls = useMemo(
     () => slides.map((slide) => (slide.file ? URL.createObjectURL(slide.file) : slide.sourceUrl || "")),
     [slides],
@@ -434,22 +437,25 @@ function SocialComposer({
                 </header>
                 <div className="instagram-post-image-wrap">
                   {previewImageUnavailable ? (
-                    <div className="instagram-post-empty" role="status">
-                      <span className="instagram-post-empty-icon" aria-hidden="true">
-                        <svg viewBox="0 0 48 48" fill="none">
-                          <rect x="5.5" y="7.5" width="37" height="33" rx="3.5" />
-                          <circle cx="17" cy="18" r="3.5" />
-                          <path d="m8 36 11-11 7 7 5-5 9 9" />
-                        </svg>
-                      </span>
-                      <strong>
-                        {previewImage ? "No se pudo cargar esta imagen" : "Este borrador todavía no tiene imágenes"}
-                      </strong>
-                      <span>
+                    <div
+                      className="instagram-post-text-art"
+                      role="img"
+                      aria-label={`Propuesta de portada tipográfica para ${previewArtworkTitle}`}
+                    >
+                      <div className="instagram-post-text-art-brand">
+                        <span aria-hidden="true">A</span>
+                        AFTERSTAGE
+                      </div>
+                      <div className="instagram-post-text-art-copy">
+                        <p>{previewArtworkTopic}</p>
+                        <h3>{previewArtworkTitle}</h3>
+                        {previewArtworkSummary && <span>{previewArtworkSummary}</span>}
+                      </div>
+                      <small>
                         {previewImage
-                          ? "Volvé a editarlo y reemplazá el archivo para completar la vista previa."
-                          : "Volvé a editarlo y cargá una imagen para ver cómo quedará en Instagram."}
-                      </span>
+                          ? "Propuesta tipográfica · la imagen original no cargó"
+                          : "Propuesta tipográfica · podés reemplazarla con una foto"}
+                      </small>
                     </div>
                   ) : (
                     <img
@@ -504,14 +510,14 @@ function SocialComposer({
                   {instagramCopy || "Sumá el copy de Instagram para ver cómo acompaña a las imágenes."}
                 </p>
                 <small className="instagram-post-date">
-                  BORRADOR · {previewImageUnavailable ? "VISTA PREVIA INCOMPLETA" : `${previewImages.length} LÁMINAS`}
+                  BORRADOR · {previewImageUnavailable ? "PORTADA TIPOGRÁFICA" : `${previewImages.length} LÁMINAS`}
                 </small>
               </article>
               <p className="instagram-review-note">
                 {previewImageUnavailable
                   ? previewImage
-                    ? "No pudimos cargar esta imagen. Reemplazala desde la edición para completar la vista previa."
-                    : "Este borrador todavía no tiene imágenes. Volvé a editarlo y cargá una para completar la vista previa."
+                    ? "No pudimos cargar la imagen. Mostramos una propuesta tipográfica temporal; reemplazala desde la edición."
+                    : "Mostramos una propuesta tipográfica con el título y el resumen. Cargá una foto si querés usar una imagen original."
                   : hasUnsavedChanges
                     ? visualHasChanges
                       ? "Hay cambios sin guardar. Guardá para regenerar las imágenes y ver la versión final."
