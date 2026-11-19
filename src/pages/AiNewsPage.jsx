@@ -31,6 +31,7 @@ function AiNewsWorkspace() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [createdDrafts, setCreatedDrafts] = useState([]);
+  const [automation, setAutomation] = useState(null);
 
   const refreshSources = async () => {
     const result = await api("/api/ai-news/sources");
@@ -39,7 +40,9 @@ function AiNewsWorkspace() {
   };
 
   useEffect(() => {
-    refreshSources().catch((e) => setError(e.message));
+    Promise.all([refreshSources(), api("/api/ai-news/automation").then(setAutomation)]).catch((e) =>
+      setError(e.message),
+    );
   }, []);
 
   const run = async (action) => {
@@ -171,15 +174,15 @@ function AiNewsWorkspace() {
           <li className="is-current">
             <span>1</span>
             <div>
-              <strong>Buscar noticias</strong>
-              <small>Argentina · hasta 14 días · búsqueda manual</small>
+              <strong>Afterstage busca</strong>
+              <small>Cada lunes · noticias musicales de Argentina</small>
             </div>
           </li>
           <li>
             <span>2</span>
             <div>
-              <strong>Gemini prepara</strong>
-              <small>Hasta cinco borradores</small>
+              <strong>Gemini redacta</strong>
+              <small>Hasta cinco borradores con fuentes</small>
             </div>
           </li>
           <li>
@@ -190,6 +193,29 @@ function AiNewsWorkspace() {
             </div>
           </li>
         </ol>
+        {automation && (
+          <section className="ai-news-automation" aria-label="Automatización semanal">
+            <span className="ai-news-automation-icon" aria-hidden="true">
+              ✓
+            </span>
+            <div>
+              <strong>Automático: lunes a las 9:00</strong>
+              <p>
+                Afterstage busca noticias de los últimos 7 días y Gemini deja hasta 5 borradores para revisar. Nunca
+                publica.
+              </p>
+              {automation.lastRun && (
+                <small>
+                  Última corrida: {automation.lastRun.week} ·{" "}
+                  {automation.lastRun.status === "completed"
+                    ? `${automation.lastRun.notes?.length ?? 0} borradores listos`
+                    : automation.lastRun.status}
+                </small>
+              )}
+            </div>
+            <Link to="/admin">Ver borradores</Link>
+          </section>
+        )}
 
         <ErrorMessage message={error} />
         {message && (
@@ -245,7 +271,8 @@ function AiNewsWorkspace() {
             </label>
           )}
           <p className="ai-news-note">
-            La búsqueda se inicia con el botón. No hay una tarea recurrente activa: cada corrida la iniciás vos.
+            Esta búsqueda manual sirve para adelantar una corrida o explorar otro tema. El ciclo semanal también corre
+            automáticamente.
           </p>
         </section>
 
