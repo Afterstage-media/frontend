@@ -172,7 +172,7 @@ function AiNewsWorkspace() {
             <span>1</span>
             <div>
               <strong>Buscar noticias</strong>
-            <small>Argentina · hasta 14 días · búsqueda manual</small>
+              <small>Argentina · hasta 14 días · búsqueda manual</small>
             </div>
           </li>
           <li>
@@ -267,7 +267,9 @@ function AiNewsWorkspace() {
             )}
             {digest.stories.length > 0 && (
               <div className="ai-news-batch-bar">
-              <span>Gemini puede preparar una nota por cada uno de los primeros cinco temas. Revisás antes de publicar.</span>
+                <span>
+                  Gemini puede preparar una nota por cada uno de los primeros cinco temas. Revisás antes de publicar.
+                </span>
                 <button className="button dark" disabled={busy} onClick={makeFiveDrafts}>
                   {busy ? "Creando borradores…" : "Crear hasta 5 borradores"}
                 </button>
@@ -297,8 +299,8 @@ function AiNewsWorkspace() {
                       <span className="ai-news-created-label">Borrador creado</span>
                     )}
                   </div>
-                <button className="button subtle" disabled={busy} onClick={() => makeOneDraft(story)}>
-                  Preparar nota
+                  <button className="button subtle" disabled={busy} onClick={() => makeOneDraft(story)}>
+                    Preparar nota
                   </button>
                 </article>
               ))}
