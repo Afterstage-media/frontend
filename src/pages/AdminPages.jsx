@@ -78,6 +78,8 @@ const workflowStageFor = (status) => {
   if (["scheduled", "publishing", "published"].includes(status)) return "publish";
   return "draft";
 };
+
+const isAutomaticSocialPublication = (item) => item.idempotencyKey?.startsWith("social-series:");
 export function TokenGate({ onReady }) {
   return <LoginForm onReady={onReady} />;
 }
@@ -176,7 +178,8 @@ function AdminDashboard({ actor }) {
         <TokenGate onReady={() => setAuthorized(true)} />
       </Layout>
     );
-  const visible = items.filter(
+  const libraryItems = items.filter((item) => !isAutomaticSocialPublication(item));
+  const visible = libraryItems.filter(
     (item) =>
       (channelFilter === "all" || item.channels?.includes(channelFilter)) &&
       (!statusFilter || item.status === statusFilter) &&
@@ -259,9 +262,9 @@ function AdminDashboard({ actor }) {
         </div>
         <div className="admin-library-filters" aria-label="Filtrar por destino">
           {[
-            ["all", "Todo", items.length],
-            ["website", "Sitio", items.filter((item) => item.channels?.includes("website")).length],
-            ["instagram", "Instagram", items.filter((item) => item.channels?.includes("instagram")).length],
+            ["all", "Todo", libraryItems.length],
+            ["website", "Sitio", libraryItems.filter((item) => item.channels?.includes("website")).length],
+            ["instagram", "Instagram", libraryItems.filter((item) => item.channels?.includes("instagram")).length],
           ].map(([value, label, count]) => (
             <button
               aria-pressed={channelFilter === value}
