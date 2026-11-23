@@ -8,6 +8,7 @@ const read = (file) => readFile(path.join(root, file), "utf8");
 const { normalizeSearchText } = await import("../src/utils/search.js");
 
 const home = await read("src/pages/HomePage.jsx");
+const recurringSocial = await read("src/pages/RecurringSocialPage.jsx");
 const agenda = await read("src/pages/AgendaPage.jsx");
 const eventMap = await read("src/components/EventMap.jsx");
 const eventCard = await read("src/components/EventCard.jsx");
@@ -72,6 +73,13 @@ const pageSources = (await Promise.all(pageFiles.map((file) => read(`src/pages/$
 assert.match(home, /LoadingState/);
 assert.match(home, /ErrorState/);
 assert.match(home, /EmptyState/);
+assert.match(recurringSocial, /cadenceLabel\(item\.cadence\)/);
+assert.match(recurringSocial, /una historia por entrega/);
+assert.match(recurringSocial, /rotationCount\(item\)/);
+assert.doesNotMatch(
+  recurringSocial,
+  /tres historias todos los días|tres historias diarias|Todos los días ·|3 historias en orden/,
+);
 assert.match(home, /Encontrar un plan/);
 assert.match(agenda, /Intentar de nuevo/);
 assert.match(agenda, /EmptyState/);

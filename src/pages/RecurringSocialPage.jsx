@@ -6,7 +6,6 @@ import { ErrorMessage, Layout } from "../components/Layout.jsx";
 import { Button } from "../components/ui/Button.jsx";
 import "../styles/pages/recurring-social.css";
 
-const cadenceLabels = { day: "día", week: "semana", month: "mes" };
 const typeLabels = { story: "Historia", post: "Publicación", carousel: "Carrusel" };
 const slugify = (value) =>
   value
@@ -46,10 +45,19 @@ const dateLabel = (value) =>
     : "Sin programar";
 
 function cadenceLabel(cadence) {
-  if (!cadence) return "Sin frecuencia";
-  const unit = cadenceLabels[cadence.unit] || cadence.unit;
-  return `Cada ${cadence.every} ${unit}${cadence.every === 1 ? "" : cadence.unit === "day" ? "s" : cadence.unit === "week" ? "s" : "es"}`;
+  const every = Number(cadence?.every);
+  const labels = {
+    day: ["día", "días"],
+    week: ["semana", "semanas"],
+    month: ["mes", "meses"],
+  };
+  const unit = labels[cadence?.unit];
+  if (!unit || !Number.isInteger(every) || every < 1) return "Sin frecuencia";
+  return every === 1 ? `Cada ${unit[0]}` : `Cada ${every} ${unit[1]}`;
 }
+
+const cadencePhrase = (cadence) => cadenceLabel(cadence).replace(/^Cada/, "cada");
+const rotationCount = (series) => series.fixedStoryTemplates?.length || 0;
 
 function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
   const [form, setForm] = useState(value || emptyForm());
@@ -88,7 +96,10 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
         {form.autoPublish ? (
           <div className="recurring-field-wide recurring-auto-publish-note">
             <strong>Generador de historias Afterstage</strong>
-            <span>La secuencia se vuelve a generar desde estas tres plantillas SVG editables antes de publicarse.</span>
+            <span>
+              Cada entrega publica una historia de la rotación. Se alterna entre {rotationCount(form)} plantillas SVG
+              editables.
+            </span>
           </div>
         ) : (
           <label>
@@ -139,7 +150,9 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
         </label>
         {form.autoPublish ? (
           <div className="recurring-field-wide recurring-auto-publish-note" role="status">
-            <strong>Publicación automática · todos los días</strong>
+            <strong>
+              Publicación automática · {cadenceLabel(form.cadence || { every: form.every, unit: form.unit })}
+            </strong>
             <label>
               Hora de Argentina
               <input
@@ -149,7 +162,7 @@ function SeriesEditor({ templates, value, onCancel, onSave, saving, error }) {
                 value={form.publishTime || "12:00"}
               />
             </label>
-            <span>Las tres historias salen en orden, separadas por un minuto.</span>
+            <span>Se publica una historia por entrega, siguiendo la rotación de plantillas.</span>
           </div>
         ) : (
           <div className="recurring-cadence recurring-field-wide">
@@ -306,7 +319,7 @@ function RecurringSocialDashboard() {
       setEditing(null);
       setNotice(
         form.autoPublish
-          ? `La secuencia quedó guardada. Se genera desde las plantillas editables y se publica todos los días a las ${form.publishTime || "12:00"}.`
+          ? `La secuencia quedó guardada. Publica una historia rotativa ${cadencePhrase({ every: Number(form.every), unit: form.unit })} a las ${form.publishTime || "12:00"}.`
           : "La serie quedó guardada. Cada entrega se prepara como borrador para revisar.",
       );
       await load();
@@ -348,9 +361,14 @@ function RecurringSocialDashboard() {
             <span className="eyebrow">REDES · CONTENIDO RECURRENTE</span>
             <h1>Historias y series</h1>
             <p>
-              Las series editoriales dejan borradores para revisar. La secuencia de Afterstage se genera desde sus
-              plantillas editables y publica tres historias todos los días a las{" "}
-              {automaticSeries?.publishTime || "12:00"}.
+              Las series editoriales dejan borradores para revisar.
+              {automaticSeries && (
+                <>
+                  {" "}
+                  La secuencia de Afterstage rota sus plantillas y publica una historia{" "}
+                  {cadencePhrase(automaticSeries.cadence)} a las {automaticSeries.publishTime || "12:00"}.
+                </>
+              )}
             </p>
           </div>
           <Button onClick={() => setEditing(emptyForm())} type="button">
@@ -390,7 +408,7 @@ function RecurringSocialDashboard() {
           <p>
             <span className="recurring-dot" />
             {ready.some((item) => item.autoPublish)
-              ? "La secuencia automática publica tres historias diarias en Instagram"
+              ? `Instagram · una historia rotativa ${cadencePhrase(automaticSeries.cadence)}`
               : "Sin publicación automática"}
           </p>
         </section>
@@ -457,11 +475,16 @@ function RecurringSocialDashboard() {
                             <div className="recurring-card-schedule">
                               <strong>
                                 {item.autoPublish
-                                  ? `Todos los días · ${item.publishTime} (Argentina)`
+                                  ? `${cadenceLabel(item.cadence)} · ${item.publishTime} (Argentina)`
                                   : cadenceLabel(item.cadence)}
                               </strong>
                               <span>{due ? "Lista para preparar" : `Próxima: ${dateLabel(item.nextRunAt)}`}</span>
-                              {item.autoPublish && <span>Publicación automática · 3 historias en orden</span>}
+                              {item.autoPublish && (
+                                <span>
+                                  Publicación automática · una historia por entrega; {rotationCount(item)} plantillas en
+                                  rotación
+                                </span>
+                              )}
                               {item.lastDraftId && (
                                 <Link to={`/admin/contenido/${item.lastDraftId}?mode=instagram&view=review`}>
                                   Ver último borrador ↗
