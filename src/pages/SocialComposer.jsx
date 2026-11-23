@@ -8,6 +8,250 @@ const emptySlide = () => ({ file: null, text: "", altText: "", credit: "" });
 const imageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const imageMaxBytes = 2.5 * 1024 * 1024;
 
+const safeHttpsUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
+  } catch {
+    return "";
+  }
+};
+
+function PhotoRightsReview({ publicationId, slides, onReviewed }) {
+  const pendingSlides = slides.filter((slide) => slide.photoRights?.review?.status === "pending");
+  const reviewedSlides = slides.filter((slide) => ["approved", "rejected"].includes(slide.photoRights?.review?.status));
+  const [drafts, setDrafts] = useState({});
+  const [busySlide, setBusySlide] = useState(null);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  if (!pendingSlides.length && !reviewedSlides.length) return null;
+
+  const reviewPhoto = async (slide, decision) => {
+    const draft = drafts[slide.slide] || {};
+    const relevanceNotes = (draft.relevanceNotes || "").trim();
+    if (!relevanceNotes || (decision === "approved" && relevanceNotes.length < 20)) return;
+    setBusySlide(slide.slide);
+    setError("");
+    setNotice("");
+    try {
+      const updated = await api(
+        `/api/social-publication/${encodeURIComponent(publicationId)}/photos/${slide.slide}/review`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            decision,
+            relevanceNotes,
+            isLicenseVerified: decision === "approved" && Boolean(draft.isLicenseVerified),
+            isAuthenticPhotoVerified: decision === "approved" && Boolean(draft.isAuthenticPhotoVerified),
+            contextVerified: decision === "approved" && Boolean(draft.contextVerified),
+          }),
+        },
+      );
+      setNotice(
+        decision === "approved"
+          ? `Foto de la lámina ${slide.slide} aprobada.`
+          : `Foto de la lámina ${slide.slide} rechazada.`,
+      );
+      onReviewed(updated, {
+        relevanceNotes,
+        isLicenseVerified: decision === "approved" && Boolean(draft.isLicenseVerified),
+        isAuthenticPhotoVerified: decision === "approved" && Boolean(draft.isAuthenticPhotoVerified),
+        contextVerified: decision === "approved" && Boolean(draft.contextVerified),
+      });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setBusySlide(null);
+    }
+  };
+
+  return (
+    <section className="photo-rights-review" aria-labelledby="photo-rights-review-title">
+      <p className="eyebrow">REVISIÓN EDITORIAL</p>
+      <h2 id="photo-rights-review-title">Derechos y contexto de las fotos</h2>
+      <p>Revisá los datos de origen y verificá cada foto antes de aprobar su uso en Instagram.</p>
+      {error && (
+        <p className="photo-review-error" role="alert">
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p className="photo-review-success" role="status">
+          {notice}
+        </p>
+      )}
+      {pendingSlides.map((slide) => {
+        const rights = slide.photoRights;
+        const draft = drafts[slide.slide] || {};
+        const authenticId = `photo-authentic-${slide.slide}`;
+        const licenseId = `photo-license-${slide.slide}`;
+        const contextId = `photo-context-${slide.slide}`;
+        const noteId = `photo-notes-${slide.slide}`;
+        const noteLength = (draft.relevanceNotes || "").trim().length;
+        const sourceUrl = safeHttpsUrl(rights.sourceUrl);
+        const licenseUrl = safeHttpsUrl(rights.licenseUrl);
+        const termsUrl = safeHttpsUrl(rights.termsUrl);
+        return (
+          <article className="photo-review-card" key={slide.slide}>
+            <h3>Foto de la lámina {slide.slide}</h3>
+            <dl>
+              <div>
+                <dt>Autoría</dt>
+                <dd>{rights.creator || "No informada"}</dd>
+              </div>
+              <div>
+                <dt>Origen</dt>
+                <dd>
+                  {sourceUrl ? (
+                    <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+                      Ver foto de origen ↗
+                    </a>
+                  ) : (
+                    "No disponible"
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Licencia</dt>
+                <dd>
+                  {[rights.license, rights.licenseVersion].filter(Boolean).join(" · ") || "No informada"}
+                  {licenseUrl && (
+                    <>
+                      {" "}
+                      ·{" "}
+                      <a href={licenseUrl} target="_blank" rel="noopener noreferrer">
+                        ver licencia ↗
+                      </a>
+                    </>
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Términos</dt>
+                <dd>
+                  {termsUrl ? (
+                    <a href={termsUrl} target="_blank" rel="noopener noreferrer">
+                      Leer términos ↗
+                    </a>
+                  ) : (
+                    "No disponibles"
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Contexto declarado</dt>
+                <dd>{rights.subjectContext || "No informado"}</dd>
+              </div>
+            </dl>
+            <div className="photo-review-form">
+              <label className="photo-review-checkbox" htmlFor={authenticId}>
+                <input
+                  id={authenticId}
+                  type="checkbox"
+                  checked={Boolean(draft.isAuthenticPhotoVerified)}
+                  onChange={(event) =>
+                    setDrafts((current) => ({
+                      ...current,
+                      [slide.slide]: { ...current[slide.slide], isAuthenticPhotoVerified: event.target.checked },
+                    }))
+                  }
+                />
+                Confirmo que es una fotografía auténtica, no una imagen generada por IA.
+              </label>
+              <label className="photo-review-checkbox" htmlFor={licenseId}>
+                <input
+                  id={licenseId}
+                  type="checkbox"
+                  checked={Boolean(draft.isLicenseVerified)}
+                  onChange={(event) =>
+                    setDrafts((current) => ({
+                      ...current,
+                      [slide.slide]: { ...current[slide.slide], isLicenseVerified: event.target.checked },
+                    }))
+                  }
+                />
+                Confirmo que revisé la licencia y sus términos: permiten el uso comercial en Instagram, la adaptación de
+                la foto y la sublicencia técnica a Meta.
+              </label>
+              <label className="photo-review-checkbox" htmlFor={contextId}>
+                <input
+                  id={contextId}
+                  type="checkbox"
+                  checked={Boolean(draft.contextVerified)}
+                  onChange={(event) =>
+                    setDrafts((current) => ({
+                      ...current,
+                      [slide.slide]: { ...current[slide.slide], contextVerified: event.target.checked },
+                    }))
+                  }
+                />
+                Confirmo que la foto representa el contexto descrito y pertinente para esta publicación.
+              </label>
+              <label className="photo-review-notes" htmlFor={noteId}>
+                <span>
+                  Explicación de la revisión <small>{noteLength}/20 caracteres mínimos para aprobar</small>
+                </span>
+                <textarea
+                  id={noteId}
+                  maxLength={1000}
+                  minLength={1}
+                  required
+                  value={draft.relevanceNotes || ""}
+                  aria-describedby={`${noteId}-hint`}
+                  onChange={(event) =>
+                    setDrafts((current) => ({
+                      ...current,
+                      [slide.slide]: { ...current[slide.slide], relevanceNotes: event.target.value },
+                    }))
+                  }
+                />
+              </label>
+              <small id={`${noteId}-hint`}>
+                Explicá qué verificaste sobre la autenticidad y la relación de la foto con el contenido.
+              </small>
+              <div className="photo-review-actions">
+                <button
+                  className="photo-review-approve"
+                  type="button"
+                  disabled={
+                    busySlide !== null ||
+                    !draft.isAuthenticPhotoVerified ||
+                    !draft.isLicenseVerified ||
+                    !draft.contextVerified ||
+                    noteLength < 20
+                  }
+                  onClick={() => reviewPhoto(slide, "approved")}
+                >
+                  {busySlide === slide.slide ? "Guardando…" : "Aprobar foto"}
+                </button>
+                <button
+                  className="photo-review-reject"
+                  type="button"
+                  disabled={busySlide !== null || noteLength < 1}
+                  onClick={() => reviewPhoto(slide, "rejected")}
+                >
+                  Rechazar foto
+                </button>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+      {reviewedSlides.map((slide) => (
+        <p
+          className={`photo-review-result is-${slide.photoRights.review.status}`}
+          key={`reviewed-${slide.slide}`}
+          role="status"
+        >
+          Lámina {slide.slide}: foto {slide.photoRights.review.status === "approved" ? "aprobada" : "rechazada"}.
+          {slide.photoRights.review.relevanceNotes ? ` ${slide.photoRights.review.relevanceNotes}` : ""}
+        </p>
+      ))}
+    </section>
+  );
+}
+
 const publicationFromItem = (item) => ({
   id: item.id,
   status: item.status,
@@ -20,6 +264,7 @@ const publicationFromItem = (item) => ({
     url: asset.url,
     altText: asset.altText || `Lámina ${index + 1}`,
     credit: asset.credit || "",
+    photoRights: asset.photoRights,
   })),
   slides: item.socialSlides?.length
     ? item.socialSlides.map((slide, index) => ({
@@ -29,6 +274,7 @@ const publicationFromItem = (item) => ({
         text: slide.text,
         altText: slide.source.altText,
         credit: slide.source.credit,
+        photoRights: slide.source.photoRights,
       }))
     : (item.assets || []).map((asset, index) => ({
         slide: index + 1,
@@ -37,6 +283,7 @@ const publicationFromItem = (item) => ({
         text: slideTextsFromBody(item.body)[index] || "",
         altText: asset.altText,
         credit: asset.credit,
+        photoRights: asset.photoRights,
         isRenderedArtwork: true,
       })),
 });
@@ -75,6 +322,7 @@ function SocialComposer({
         text: slide.text,
         altText: slide.source.altText || "",
         credit: slide.source.credit || "",
+        photoRights: slide.source.photoRights,
       }))
     : (existingItem?.assets || []).map((asset, index) => ({
         file: null,
@@ -84,6 +332,7 @@ function SocialComposer({
         text: slideTextsFromBody(existingItem.body)[index] || "",
         altText: asset.altText || "",
         credit: asset.credit || "",
+        photoRights: asset.photoRights,
       }));
   const [templates, setTemplates] = useState([]);
   const [publicationType, setPublicationType] = useState(
@@ -524,6 +773,44 @@ function SocialComposer({
                       : "Hay cambios sin guardar. Guardalos para actualizar el borrador."
                     : "Vista previa de las imágenes finales generadas por Afterstage."}
               </p>
+              <PhotoRightsReview
+                publicationId={existingItem?.id || publication?.id}
+                slides={(publication?.slides || []).map((slide, index) => ({
+                  ...slide,
+                  slide: slide.slide || index + 1,
+                  photoRights: slide.photoRights,
+                }))}
+                onReviewed={(result, evidence) =>
+                  setPublication((current) => {
+                    if (!current) return current;
+                    const photoRights = (rights = {}) => ({
+                      ...rights,
+                      review: {
+                        ...rights.review,
+                        status: result.decision,
+                        relevanceNotes: evidence.relevanceNotes,
+                        isLicenseVerified: evidence.isLicenseVerified,
+                        isAuthenticPhotoVerified: evidence.isAuthenticPhotoVerified,
+                        contextVerified: evidence.contextVerified,
+                      },
+                    });
+                    const slideNumber = Number(result.slide);
+                    return {
+                      ...current,
+                      slides: (current.slides || []).map((slide, index) =>
+                        (slide.slide || index + 1) === slideNumber
+                          ? { ...slide, photoRights: photoRights(slide.photoRights) }
+                          : slide,
+                      ),
+                      images: (current.images || []).map((image, index) =>
+                        (image.slide || index + 1) === slideNumber
+                          ? { ...image, photoRights: photoRights(image.photoRights) }
+                          : image,
+                      ),
+                    };
+                  })
+                }
+              />
               <footer className="composer-savebar">
                 <div>
                   <ErrorMessage error={error} />
