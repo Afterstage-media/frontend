@@ -11,7 +11,7 @@ const imageMaxBytes = 2.5 * 1024 * 1024;
 const safeHttpsUrl = (value) => {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" ? url.href : "";
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
   } catch {
     return "";
   }
@@ -53,7 +53,12 @@ function PhotoRightsReview({ publicationId, slides, onReviewed }) {
           ? `Foto de la lámina ${slide.slide} aprobada.`
           : `Foto de la lámina ${slide.slide} rechazada.`,
       );
-      onReviewed(updated);
+      onReviewed(updated, {
+        relevanceNotes,
+        isLicenseVerified: decision === "approved" && Boolean(draft.isLicenseVerified),
+        isAuthenticPhotoVerified: decision === "approved" && Boolean(draft.isAuthenticPhotoVerified),
+        contextVerified: decision === "approved" && Boolean(draft.contextVerified),
+      });
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -774,7 +779,36 @@ function SocialComposer({
                   slide: slide.slide || index + 1,
                   photoRights: slide.photoRights,
                 }))}
-                onReviewed={setPublication}
+                onReviewed={(result, evidence) =>
+                  setPublication((current) => {
+                    if (!current) return current;
+                    const photoRights = (rights = {}) => ({
+                      ...rights,
+                      review: {
+                        ...rights.review,
+                        status: result.decision,
+                        relevanceNotes: evidence.relevanceNotes,
+                        isLicenseVerified: evidence.isLicenseVerified,
+                        isAuthenticPhotoVerified: evidence.isAuthenticPhotoVerified,
+                        contextVerified: evidence.contextVerified,
+                      },
+                    });
+                    const slideNumber = Number(result.slide);
+                    return {
+                      ...current,
+                      slides: (current.slides || []).map((slide, index) =>
+                        (slide.slide || index + 1) === slideNumber
+                          ? { ...slide, photoRights: photoRights(slide.photoRights) }
+                          : slide,
+                      ),
+                      images: (current.images || []).map((image, index) =>
+                        (image.slide || index + 1) === slideNumber
+                          ? { ...image, photoRights: photoRights(image.photoRights) }
+                          : image,
+                      ),
+                    };
+                  })
+                }
               />
               <footer className="composer-savebar">
                 <div>
