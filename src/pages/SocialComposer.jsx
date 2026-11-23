@@ -171,7 +171,8 @@ function PhotoRightsReview({ publicationId, slides, onReviewed }) {
                     }))
                   }
                 />
-                Confirmo que revisé la licencia y sus términos, y que permiten este uso editorial en Instagram.
+                Confirmo que revisé la licencia y sus términos: permiten el uso comercial en Instagram, la adaptación de
+                la foto y la sublicencia técnica a Meta.
               </label>
               <label className="photo-review-checkbox" htmlFor={contextId}>
                 <input
